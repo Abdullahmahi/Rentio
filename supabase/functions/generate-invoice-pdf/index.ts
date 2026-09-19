@@ -5,7 +5,7 @@
  * decides whether they may see it — a tenant can only ever generate their own
  * receipt. Only the upload uses the service role.
  */
-import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import {
   corsHeaders, json, userClient, serviceClient,
   formatMXN, formatDate, formatPeriod,
@@ -60,6 +60,28 @@ Deno.serve(async (request) => {
 
     // -------------------------------------------------------- letterhead
     const company = settings?.company_name ?? "Rentio";
+
+    // The logo lives in a private bucket, so fetch the bytes with the service
+    // role rather than relying on a public URL. A missing or unsupported image
+    // must never stop a receipt from rendering.
+    let logoHeight = 0;
+    if (settings?.logo_url) {
+      try {
+        const { data: file } = await serviceClient().storage.from("company").download(settings.logo_url);
+        if (file) {
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          const isPng = bytes[0] === 0x89 && bytes[1] === 0x50;
+          const image = isPng ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
+          const scaled = image.scaleToFit(140, 44);
+          page.drawImage(image, { x: left, y: y - scaled.height + 12, width: scaled.width, height: scaled.height });
+          logoHeight = scaled.height;
+        }
+      } catch (logoError) {
+        console.warn("logo could not be embedded", logoError);
+      }
+    }
+
+    if (logoHeight > 0) y -= logoHeight - 4;
     text(company, left, 16, bold, BRAND);
     rightText("RECIBO DE RENTA", right, 14, bold);
     y -= 18;

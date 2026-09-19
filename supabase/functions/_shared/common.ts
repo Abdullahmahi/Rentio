@@ -1,5 +1,5 @@
 // Shared helpers for the Rentio edge functions.
-import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
