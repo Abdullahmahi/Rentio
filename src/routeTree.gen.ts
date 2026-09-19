@@ -18,9 +18,8 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
-import { Route as PortalMaintenanceRouteImport } from './routes/portal.maintenance'
 import { Route as PortalProfileRouteImport } from './routes/portal.profile'
-import { Route as PortalReceiptsRouteImport } from './routes/portal.receipts'
+import { Route as PortalReportPaymentRouteImport } from './routes/portal.report-payment'
 import { Route as AppContractsIndexRouteImport } from './routes/app.contracts.index'
 import { Route as AppContractsIdRouteImport } from './routes/app.contracts.$id'
 import { Route as AppMaintenanceIndexRouteImport } from './routes/app.maintenance.index'
@@ -38,6 +37,10 @@ import { Route as AppTenantsIndexRouteImport } from './routes/app.tenants.index'
 import { Route as AppTenantsIdRouteImport } from './routes/app.tenants.$id'
 import { Route as AppUnitsIndexRouteImport } from './routes/app.units.index'
 import { Route as AppUnitsIdRouteImport } from './routes/app.units.$id'
+import { Route as PortalMaintenanceIndexRouteImport } from './routes/portal.maintenance.index'
+import { Route as PortalMaintenanceIdRouteImport } from './routes/portal.maintenance.$id'
+import { Route as PortalReceiptsIndexRouteImport } from './routes/portal.receipts.index'
+import { Route as PortalReceiptsIdRouteImport } from './routes/portal.receipts.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -84,19 +87,14 @@ const PortalContractsRoute = PortalContractsRouteImport.update({
   path: '/contracts',
   getParentRoute: () => PortalRoute,
 } as any)
-const PortalMaintenanceRoute = PortalMaintenanceRouteImport.update({
-  id: '/maintenance',
-  path: '/maintenance',
-  getParentRoute: () => PortalRoute,
-} as any)
 const PortalProfileRoute = PortalProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => PortalRoute,
 } as any)
-const PortalReceiptsRoute = PortalReceiptsRouteImport.update({
-  id: '/receipts',
-  path: '/receipts',
+const PortalReportPaymentRoute = PortalReportPaymentRouteImport.update({
+  id: '/report-payment',
+  path: '/report-payment',
   getParentRoute: () => PortalRoute,
 } as any)
 const AppContractsIndexRoute = AppContractsIndexRouteImport.update({
@@ -184,6 +182,26 @@ const AppUnitsIdRoute = AppUnitsIdRouteImport.update({
   path: '/units/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const PortalMaintenanceIndexRoute = PortalMaintenanceIndexRouteImport.update({
+  id: '/maintenance/',
+  path: '/maintenance/',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalMaintenanceIdRoute = PortalMaintenanceIdRouteImport.update({
+  id: '/maintenance/$id',
+  path: '/maintenance/$id',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalReceiptsIndexRoute = PortalReceiptsIndexRouteImport.update({
+  id: '/receipts/',
+  path: '/receipts/',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalReceiptsIdRoute = PortalReceiptsIdRouteImport.update({
+  id: '/receipts/$id',
+  path: '/receipts/$id',
+  getParentRoute: () => PortalRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -193,9 +211,8 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/portal/contracts': typeof PortalContractsRoute
-  '/portal/maintenance': typeof PortalMaintenanceRoute
   '/portal/profile': typeof PortalProfileRoute
-  '/portal/receipts': typeof PortalReceiptsRoute
+  '/portal/report-payment': typeof PortalReportPaymentRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
@@ -204,6 +221,8 @@ export interface FileRoutesByFullPath {
   '/app/receipts/$id': typeof AppReceiptsIdRoute
   '/app/tenants/$id': typeof AppTenantsIdRoute
   '/app/units/$id': typeof AppUnitsIdRoute
+  '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
+  '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/app/contracts/': typeof AppContractsIndexRoute
   '/app/maintenance/': typeof AppMaintenanceIndexRoute
   '/app/parking/': typeof AppParkingIndexRoute
@@ -215,6 +234,8 @@ export interface FileRoutesByFullPath {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tenants/': typeof AppTenantsIndexRoute
   '/app/units/': typeof AppUnitsIndexRoute
+  '/portal/maintenance/': typeof PortalMaintenanceIndexRoute
+  '/portal/receipts/': typeof PortalReceiptsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -222,9 +243,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/portal/contracts': typeof PortalContractsRoute
-  '/portal/maintenance': typeof PortalMaintenanceRoute
   '/portal/profile': typeof PortalProfileRoute
-  '/portal/receipts': typeof PortalReceiptsRoute
+  '/portal/report-payment': typeof PortalReportPaymentRoute
   '/app': typeof AppIndexRoute
   '/portal': typeof PortalIndexRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
@@ -233,6 +253,8 @@ export interface FileRoutesByTo {
   '/app/receipts/$id': typeof AppReceiptsIdRoute
   '/app/tenants/$id': typeof AppTenantsIdRoute
   '/app/units/$id': typeof AppUnitsIdRoute
+  '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
+  '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/app/contracts': typeof AppContractsIndexRoute
   '/app/maintenance': typeof AppMaintenanceIndexRoute
   '/app/parking': typeof AppParkingIndexRoute
@@ -244,6 +266,8 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsIndexRoute
   '/app/tenants': typeof AppTenantsIndexRoute
   '/app/units': typeof AppUnitsIndexRoute
+  '/portal/maintenance': typeof PortalMaintenanceIndexRoute
+  '/portal/receipts': typeof PortalReceiptsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -254,9 +278,8 @@ export interface FileRoutesById {
   '/portal': typeof PortalRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/portal/contracts': typeof PortalContractsRoute
-  '/portal/maintenance': typeof PortalMaintenanceRoute
   '/portal/profile': typeof PortalProfileRoute
-  '/portal/receipts': typeof PortalReceiptsRoute
+  '/portal/report-payment': typeof PortalReportPaymentRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
@@ -265,6 +288,8 @@ export interface FileRoutesById {
   '/app/receipts/$id': typeof AppReceiptsIdRoute
   '/app/tenants/$id': typeof AppTenantsIdRoute
   '/app/units/$id': typeof AppUnitsIdRoute
+  '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
+  '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/app/contracts/': typeof AppContractsIndexRoute
   '/app/maintenance/': typeof AppMaintenanceIndexRoute
   '/app/parking/': typeof AppParkingIndexRoute
@@ -276,6 +301,8 @@ export interface FileRoutesById {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tenants/': typeof AppTenantsIndexRoute
   '/app/units/': typeof AppUnitsIndexRoute
+  '/portal/maintenance/': typeof PortalMaintenanceIndexRoute
+  '/portal/receipts/': typeof PortalReceiptsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -287,9 +314,8 @@ export interface FileRouteTypes {
     | '/portal'
     | '/reset-password'
     | '/portal/contracts'
-    | '/portal/maintenance'
     | '/portal/profile'
-    | '/portal/receipts'
+    | '/portal/report-payment'
     | '/app/'
     | '/portal/'
     | '/app/contracts/$id'
@@ -298,6 +324,8 @@ export interface FileRouteTypes {
     | '/app/receipts/$id'
     | '/app/tenants/$id'
     | '/app/units/$id'
+    | '/portal/maintenance/$id'
+    | '/portal/receipts/$id'
     | '/app/contracts/'
     | '/app/maintenance/'
     | '/app/parking/'
@@ -309,6 +337,8 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/tenants/'
     | '/app/units/'
+    | '/portal/maintenance/'
+    | '/portal/receipts/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -316,9 +346,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/portal/contracts'
-    | '/portal/maintenance'
     | '/portal/profile'
-    | '/portal/receipts'
+    | '/portal/report-payment'
     | '/app'
     | '/portal'
     | '/app/contracts/$id'
@@ -327,6 +356,8 @@ export interface FileRouteTypes {
     | '/app/receipts/$id'
     | '/app/tenants/$id'
     | '/app/units/$id'
+    | '/portal/maintenance/$id'
+    | '/portal/receipts/$id'
     | '/app/contracts'
     | '/app/maintenance'
     | '/app/parking'
@@ -338,6 +369,8 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/tenants'
     | '/app/units'
+    | '/portal/maintenance'
+    | '/portal/receipts'
   id:
     | '__root__'
     | '/'
@@ -347,9 +380,8 @@ export interface FileRouteTypes {
     | '/portal'
     | '/reset-password'
     | '/portal/contracts'
-    | '/portal/maintenance'
     | '/portal/profile'
-    | '/portal/receipts'
+    | '/portal/report-payment'
     | '/app/'
     | '/portal/'
     | '/app/contracts/$id'
@@ -358,6 +390,8 @@ export interface FileRouteTypes {
     | '/app/receipts/$id'
     | '/app/tenants/$id'
     | '/app/units/$id'
+    | '/portal/maintenance/$id'
+    | '/portal/receipts/$id'
     | '/app/contracts/'
     | '/app/maintenance/'
     | '/app/parking/'
@@ -369,6 +403,8 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/tenants/'
     | '/app/units/'
+    | '/portal/maintenance/'
+    | '/portal/receipts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -445,13 +481,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalContractsRouteImport
       parentRoute: typeof PortalRoute
     }
-    '/portal/maintenance': {
-      id: '/portal/maintenance'
-      path: '/maintenance'
-      fullPath: '/portal/maintenance'
-      preLoaderRoute: typeof PortalMaintenanceRouteImport
-      parentRoute: typeof PortalRoute
-    }
     '/portal/profile': {
       id: '/portal/profile'
       path: '/profile'
@@ -459,11 +488,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalProfileRouteImport
       parentRoute: typeof PortalRoute
     }
-    '/portal/receipts': {
-      id: '/portal/receipts'
-      path: '/receipts'
-      fullPath: '/portal/receipts'
-      preLoaderRoute: typeof PortalReceiptsRouteImport
+    '/portal/report-payment': {
+      id: '/portal/report-payment'
+      path: '/report-payment'
+      fullPath: '/portal/report-payment'
+      preLoaderRoute: typeof PortalReportPaymentRouteImport
       parentRoute: typeof PortalRoute
     }
     '/app/contracts/': {
@@ -585,6 +614,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUnitsIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/portal/maintenance/': {
+      id: '/portal/maintenance/'
+      path: '/maintenance'
+      fullPath: '/portal/maintenance/'
+      preLoaderRoute: typeof PortalMaintenanceIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/maintenance/$id': {
+      id: '/portal/maintenance/$id'
+      path: '/maintenance/$id'
+      fullPath: '/portal/maintenance/$id'
+      preLoaderRoute: typeof PortalMaintenanceIdRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/receipts/': {
+      id: '/portal/receipts/'
+      path: '/receipts'
+      fullPath: '/portal/receipts/'
+      preLoaderRoute: typeof PortalReceiptsIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/receipts/$id': {
+      id: '/portal/receipts/$id'
+      path: '/receipts/$id'
+      fullPath: '/portal/receipts/$id'
+      preLoaderRoute: typeof PortalReceiptsIdRouteImport
+      parentRoute: typeof PortalRoute
+    }
   }
 }
 
@@ -634,18 +691,24 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface PortalRouteChildren {
   PortalContractsRoute: typeof PortalContractsRoute
-  PortalMaintenanceRoute: typeof PortalMaintenanceRoute
   PortalProfileRoute: typeof PortalProfileRoute
-  PortalReceiptsRoute: typeof PortalReceiptsRoute
+  PortalReportPaymentRoute: typeof PortalReportPaymentRoute
   PortalIndexRoute: typeof PortalIndexRoute
+  PortalMaintenanceIdRoute: typeof PortalMaintenanceIdRoute
+  PortalReceiptsIdRoute: typeof PortalReceiptsIdRoute
+  PortalMaintenanceIndexRoute: typeof PortalMaintenanceIndexRoute
+  PortalReceiptsIndexRoute: typeof PortalReceiptsIndexRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
   PortalContractsRoute: PortalContractsRoute,
-  PortalMaintenanceRoute: PortalMaintenanceRoute,
   PortalProfileRoute: PortalProfileRoute,
-  PortalReceiptsRoute: PortalReceiptsRoute,
+  PortalReportPaymentRoute: PortalReportPaymentRoute,
   PortalIndexRoute: PortalIndexRoute,
+  PortalMaintenanceIdRoute: PortalMaintenanceIdRoute,
+  PortalReceiptsIdRoute: PortalReceiptsIdRoute,
+  PortalMaintenanceIndexRoute: PortalMaintenanceIndexRoute,
+  PortalReceiptsIndexRoute: PortalReceiptsIndexRoute,
 }
 
 const PortalRouteWithChildren =

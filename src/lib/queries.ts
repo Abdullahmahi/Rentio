@@ -168,3 +168,76 @@ export function useActorId() {
   const { user } = useAuth();
   return user?.id ?? null;
 }
+
+export interface MyPortal {
+  lease: Tables<"leases"> | null;
+  /** Unit number and building address, via the tenant-scoped view. */
+  details: Views<"my_lease_details"> | null;
+  parking: Tables<"parking_spaces">[];
+  balance: Views<"lease_balances"> | null;
+  invoices: InvoiceWithPaid[];
+  payments: Tables<"payments">[];
+  workOrders: Tables<"work_orders">[];
+}
+
+/**
+ * Everything the tenant portal shows, for the signed-in tenant only.
+ *
+ * No filtering by tenant id happens here on purpose: RLS already fences every
+ * one of these tables to `my_lease_ids()`. If a query ever returned another
+ * tenant's row, that would be a policy bug, not a UI bug.
+ */
+export function useMyPortal() {
+  return useQuery({
+    queryKey: ["my-portal"],
+    queryFn: async (): Promise<MyPortal> => {
+      const leases = await supabase.from("leases").select("*").order("start_date", { ascending: false })
+        .then(unwrap<Tables<"leases">[]>);
+      const lease = leases.find((row) => row.status === "activo" || row.status === "por_vencer") ?? leases[0] ?? null;
+
+      if (!lease) {
+        return { lease: null, details: null, parking: [], balance: null, invoices: [], payments: [], workOrders: [] };
+      }
+
+      const [details, parking, balances, invoices, invoiceBalances, payments, workOrders] = await Promise.all([
+        supabase.from("my_lease_details").select("*").eq("lease_id", lease.id).then(unwrap<Views<"my_lease_details">[]>),
+        supabase.from("parking_spaces").select("*").eq("lease_id", lease.id).then(unwrap<Tables<"parking_spaces">[]>),
+        supabase.from("lease_balances").select("*").eq("lease_id", lease.id).then(unwrap<Views<"lease_balances">[]>),
+        supabase.from("invoices").select("*").eq("lease_id", lease.id)
+          .order("period_month", { ascending: false }).then(unwrap<Tables<"invoices">[]>),
+        supabase.from("invoice_balances").select("*").eq("lease_id", lease.id).then(unwrap<Views<"invoice_balances">[]>),
+        supabase.from("payments").select("*").eq("lease_id", lease.id)
+          .order("paid_at", { ascending: false }).then(unwrap<Tables<"payments">[]>),
+        supabase.from("work_orders").select("*").eq("lease_id", lease.id)
+          .order("created_at", { ascending: false }).then(unwrap<Tables<"work_orders">[]>),
+      ]);
+
+      const paidByInvoice = new Map(invoiceBalances.map((row) => [row.invoice_id, Number(row.paid ?? 0)]));
+
+      return {
+        lease,
+        details: details[0] ?? null,
+        parking,
+        balance: balances[0] ?? null,
+        invoices: invoices.map((invoice) => {
+          const paid = paidByInvoice.get(invoice.id) ?? 0;
+          return { ...invoice, paid, balance: Number(invoice.total) - paid };
+        }),
+        payments,
+        workOrders,
+      };
+    },
+  });
+}
+
+/** The tenant's own record, for the profile page. */
+export function useMyTenant() {
+  return useQuery({
+    queryKey: ["my-tenant"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("tenants").select("*").limit(1).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}

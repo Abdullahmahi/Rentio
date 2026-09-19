@@ -124,6 +124,14 @@ begin
   select count(*) into n from public.public_settings where clabe is not null;
   perform pg_temp.check('tenant CAN read public_settings view', n = 1);
 
+  -- ...and their OWN unit number and address, but nobody else's
+  select count(*) into n from public.my_lease_details where lease_id = lease_a;
+  perform pg_temp.check('tenant CAN read own unit details', n = 1);
+  select count(*) into n from public.my_lease_details where lease_id = lease_b;
+  perform pg_temp.check('tenant cannot read another unit details', n = 0);
+  select count(*) into n from public.my_lease_details;
+  perform pg_temp.check('my_lease_details is scoped to own leases', n <= 3);
+
   -- ============================================ internal notes stay internal
   select count(*) into n from public.work_order_notes where is_internal = true;
   perform pg_temp.check('tenant cannot read ANY internal note', n = 0);

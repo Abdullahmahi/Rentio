@@ -766,6 +766,24 @@ export type Database = {
         };
         Relationships: [];
       };
+      my_lease_details: {
+        Row: {
+          lease_id: string | null;
+          unit_id: string | null;
+          unit_number: string | null;
+          floor: number | null;
+          bedrooms: number | null;
+          bathrooms: number | null;
+          sqm: number | null;
+          property_name: string | null;
+          street: string | null;
+          colonia: string | null;
+          city: string | null;
+          state: string | null;
+          postal_code: string | null;
+        };
+        Relationships: [];
+      };
       public_settings: {
         Row: {
           company_name: string | null;
