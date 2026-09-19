@@ -21,7 +21,12 @@ interface DocumentsPanelProps {
   storageOwnerId?: string | undefined;
 }
 
-export function DocumentsPanel({ ownerType, ownerId, bucket, storageOwnerId }: DocumentsPanelProps) {
+export function DocumentsPanel({
+  ownerType,
+  ownerId,
+  bucket,
+  storageOwnerId,
+}: DocumentsPanelProps) {
   const { t } = useTranslation();
   const actorId = useActorId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,8 +36,10 @@ export function DocumentsPanel({ ownerType, ownerId, bucket, storageOwnerId }: D
     queryKey: qk.documents(ownerType, ownerId),
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("documents").select("*")
-        .eq("owner_type", ownerType).eq("owner_id", ownerId)
+        .from("documents")
+        .select("*")
+        .eq("owner_type", ownerType)
+        .eq("owner_id", ownerId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -55,10 +62,18 @@ export function DocumentsPanel({ ownerType, ownerId, bucket, storageOwnerId }: D
     try {
       const path = await uploadFile(bucket, storageOwnerId ?? ownerId, file);
       const { error } = await supabase.from("documents").insert({
-        owner_type: ownerType, owner_id: ownerId, name: file.name, url: path, uploaded_by: actorId,
+        owner_type: ownerType,
+        owner_id: ownerId,
+        name: file.name,
+        url: path,
+        uploaded_by: actorId,
       });
       if (error) throw error;
-      await logActivity(actorId, "document", null, "upload", { ownerType, ownerId, name: file.name });
+      await logActivity(actorId, "document", null, "upload", {
+        ownerType,
+        ownerId,
+        name: file.name,
+      });
       toast.success(t("documents.uploaded"));
       void documents.refetch();
     } catch (caught) {
@@ -75,7 +90,10 @@ export function DocumentsPanel({ ownerType, ownerId, bucket, storageOwnerId }: D
         <p className="text-sm text-muted-foreground">{t("documents.hint")}</p>
         <div>
           <input
-            ref={inputRef} type="file" className="sr-only" id={`upload-${ownerType}-${ownerId}`}
+            ref={inputRef}
+            type="file"
+            className="sr-only"
+            id={`upload-${ownerType}-${ownerId}`}
             onChange={(event) => void onPick(event.target.files?.[0])}
           />
           <Button asChild variant="outline" disabled={uploading}>
@@ -93,7 +111,13 @@ export function DocumentsPanel({ ownerType, ownerId, bucket, storageOwnerId }: D
         isEmpty={(documents.data?.length ?? 0) === 0}
         onRetry={() => void documents.refetch()}
         skeleton={<RowsSkeleton count={3} />}
-        empty={<EmptyState icon={FileText} message={t("documents.emptyTitle")} description={t("documents.emptyDescription")} />}
+        empty={
+          <EmptyState
+            icon={FileText}
+            message={t("documents.emptyTitle")}
+            description={t("documents.emptyDescription")}
+          />
+        }
       >
         <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface">
           {documents.data?.map((document) => (
@@ -101,17 +125,27 @@ export function DocumentsPanel({ ownerType, ownerId, bucket, storageOwnerId }: D
               <FileText className="size-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{document.name}</p>
-                <p className="text-xs text-muted-foreground">{formatMexicoDate(document.created_at)}</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatMexicoDate(document.created_at)}
+                </p>
               </div>
               <Button
-                size="icon" variant="ghost" aria-label={t("actions.download")}
-                onClick={() => void openSigned(bucket, document.url).catch((caught) => toast.error(t(describeError(caught))))}
+                size="icon"
+                variant="ghost"
+                aria-label={t("actions.download")}
+                onClick={() =>
+                  void openSigned(bucket, document.url).catch((caught) =>
+                    toast.error(t(describeError(caught))),
+                  )
+                }
               >
                 <Download className="size-4" />
               </Button>
               <AdminOnly>
                 <Button
-                  size="icon" variant="ghost" aria-label={t("actions.delete")}
+                  size="icon"
+                  variant="ghost"
+                  aria-label={t("actions.delete")}
                   onClick={() => remove.mutate(document.id)}
                 >
                   <Trash2 className="size-4 text-danger" />

@@ -10,7 +10,7 @@ import { Field } from "@/components/rentio/form-dialog";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/rentio/status";
-import { CATEGORY_ICONS } from "@/routes/app.maintenance.index";
+import { CATEGORY_ICONS } from "@/lib/maintenance";
 import { formatMexicoDate } from "@/lib/format";
 import { useMyPortal, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
@@ -24,7 +24,14 @@ export const Route = createFileRoute("/portal/maintenance/")({
   component: PortalMaintenance,
 });
 
-const CATEGORIES: Enums<"wo_category">[] = ["plomeria", "electricidad", "cerrajeria", "electrodomesticos", "limpieza", "otro"];
+const CATEGORIES: Enums<"wo_category">[] = [
+  "plomeria",
+  "electricidad",
+  "cerrajeria",
+  "electrodomesticos",
+  "limpieza",
+  "otro",
+];
 const PRIORITIES: Enums<"wo_priority">[] = ["baja", "media", "alta", "urgente"];
 
 function PortalMaintenance() {
@@ -47,15 +54,20 @@ function PortalMaintenance() {
       if (!lease || !form.category) throw new Error("incomplete");
 
       // RLS only accepts source = 'portal' from a tenant.
-      const { data: order, error: caught } = await supabase.from("work_orders").insert({
-        unit_id: lease.unit_id,
-        lease_id: lease.id,
-        source: "portal",
-        category: form.category,
-        priority: form.priority,
-        title: `${t(`woCategory.${form.category}`)} — ${t("units.columns.unit")} ${portal.data?.details?.unit_number ?? ""}`.trim(),
-        description: form.description.trim() || null,
-      }).select("id").single();
+      const { data: order, error: caught } = await supabase
+        .from("work_orders")
+        .insert({
+          unit_id: lease.unit_id,
+          lease_id: lease.id,
+          source: "portal",
+          category: form.category,
+          priority: form.priority,
+          title:
+            `${t(`woCategory.${form.category}`)} — ${t("units.columns.unit")} ${portal.data?.details?.unit_number ?? ""}`.trim(),
+          description: form.description.trim() || null,
+        })
+        .select("id")
+        .single();
       if (caught) throw caught;
 
       for (const photo of form.photos) {
@@ -101,7 +113,9 @@ function PortalMaintenance() {
                     aria-pressed={active}
                     className={cn(
                       "flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium",
-                      active ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface hover:bg-muted",
+                      active
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-surface hover:bg-muted",
                     )}
                   >
                     <Icon className="size-6" />
@@ -134,18 +148,38 @@ function PortalMaintenance() {
           </Field>
 
           <Field label={t("maintenance.fields.description")} htmlFor="request-description">
-            <Textarea id="request-description" rows={4} value={form.description}
+            <Textarea
+              id="request-description"
+              rows={4}
+              value={form.description}
               placeholder={t("portal.descriptionPlaceholder")}
-              onChange={(event) => setForm({ ...form, description: event.target.value })} />
+              onChange={(event) => setForm({ ...form, description: event.target.value })}
+            />
           </Field>
 
-          <Field label={t("maintenance.fields.photos")} htmlFor="request-photos" hint={t("portal.photosHint")}>
-            <Input id="request-photos" type="file" accept="image/*" capture="environment" multiple className="h-12"
-              onChange={(event) => setForm({ ...form, photos: [...(event.target.files ?? [])] })} />
+          <Field
+            label={t("maintenance.fields.photos")}
+            htmlFor="request-photos"
+            hint={t("portal.photosHint")}
+          >
+            <Input
+              id="request-photos"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              multiple
+              className="h-12"
+              onChange={(event) => setForm({ ...form, photos: [...(event.target.files ?? [])] })}
+            />
           </Field>
 
           {error ? (
-            <p role="alert" className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
+            <p
+              role="alert"
+              className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+            >
+              {error}
+            </p>
           ) : null}
 
           <div className="grid gap-2 sm:grid-cols-2">
@@ -153,7 +187,12 @@ function PortalMaintenance() {
               {submit.isPending ? <Loader2 className="animate-spin" /> : null}
               {t("portal.sendRequest")}
             </Button>
-            <Button type="button" variant="outline" className="h-12 text-base" onClick={() => setCreating(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 text-base"
+              onClick={() => setCreating(false)}
+            >
               {t("actions.cancel")}
             </Button>
           </div>
@@ -169,7 +208,8 @@ function PortalMaintenance() {
         description={t("portal.maintenanceHint")}
         actions={
           <Button className="h-11" onClick={() => setCreating(true)}>
-            <Plus className="size-4" />{t("portal.newRequest")}
+            <Plus className="size-4" />
+            {t("portal.newRequest")}
           </Button>
         }
       />
@@ -194,7 +234,9 @@ function PortalMaintenance() {
           {portal.data?.workOrders.map((order) => (
             <li key={order.id}>
               <button
-                onClick={() => void navigate({ to: "/portal/maintenance/$id", params: { id: order.id } })}
+                onClick={() =>
+                  void navigate({ to: "/portal/maintenance/$id", params: { id: order.id } })
+                }
                 className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-lg border border-border bg-surface p-4 text-left hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 <div className="min-w-0">

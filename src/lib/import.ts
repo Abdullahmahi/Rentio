@@ -29,71 +29,207 @@ export interface ImportSchema {
 }
 
 const normalize = (value: string) =>
-  value.trim().toLocaleLowerCase()
-    .normalize("NFD").replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  value
+    .trim()
+    .toLocaleLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
 
 export const IMPORT_SCHEMAS: Record<ImportKind, ImportSchema> = {
   units: {
     kind: "units",
     naturalKey: ["property", "unit_number"],
     fields: [
-      { key: "property", label: "units.fields.property", required: true, type: "text",
-        aliases: ["propiedad", "property", "edificio", "building"], example: "Edificio Roma 214" },
-      { key: "unit_number", label: "units.fields.number", required: true, type: "text",
-        aliases: ["unidad", "unit", "numero", "unit_number", "num_unidad"], example: "301" },
-      { key: "floor", label: "units.fields.floor", required: false, type: "integer",
-        aliases: ["piso", "floor", "nivel"], example: "3" },
-      { key: "bedrooms", label: "units.fields.bedrooms", required: false, type: "integer",
-        aliases: ["recamaras", "bedrooms", "habitaciones", "cuartos"], example: "2" },
-      { key: "bathrooms", label: "units.fields.bathrooms", required: false, type: "number",
-        aliases: ["banos", "bathrooms"], example: "1.5" },
-      { key: "sqm", label: "units.fields.sqm", required: false, type: "number",
-        aliases: ["m2", "metros", "sqm", "superficie"], example: "78" },
-      { key: "base_rent", label: "units.fields.baseRent", required: true, type: "money",
-        aliases: ["renta", "renta_base", "base_rent", "rent"], example: "15000" },
+      {
+        key: "property",
+        label: "units.fields.property",
+        required: true,
+        type: "text",
+        aliases: ["propiedad", "property", "edificio", "building"],
+        example: "Edificio Roma 214",
+      },
+      {
+        key: "unit_number",
+        label: "units.fields.number",
+        required: true,
+        type: "text",
+        aliases: ["unidad", "unit", "numero", "unit_number", "num_unidad"],
+        example: "301",
+      },
+      {
+        key: "floor",
+        label: "units.fields.floor",
+        required: false,
+        type: "integer",
+        aliases: ["piso", "floor", "nivel"],
+        example: "3",
+      },
+      {
+        key: "bedrooms",
+        label: "units.fields.bedrooms",
+        required: false,
+        type: "integer",
+        aliases: ["recamaras", "bedrooms", "habitaciones", "cuartos"],
+        example: "2",
+      },
+      {
+        key: "bathrooms",
+        label: "units.fields.bathrooms",
+        required: false,
+        type: "number",
+        aliases: ["banos", "bathrooms"],
+        example: "1.5",
+      },
+      {
+        key: "sqm",
+        label: "units.fields.sqm",
+        required: false,
+        type: "number",
+        aliases: ["m2", "metros", "sqm", "superficie"],
+        example: "78",
+      },
+      {
+        key: "base_rent",
+        label: "units.fields.baseRent",
+        required: true,
+        type: "money",
+        aliases: ["renta", "renta_base", "base_rent", "rent"],
+        example: "15000",
+      },
     ],
   },
   tenants: {
     kind: "tenants",
     naturalKey: ["email", "phone"],
     fields: [
-      { key: "full_name", label: "tenants.fields.fullName", required: true, type: "text",
-        aliases: ["nombre", "nombre_completo", "full_name", "name", "inquilino"], example: "María Fernanda Ríos" },
-      { key: "email", label: "tenants.fields.email", required: false, type: "text",
-        aliases: ["correo", "email", "correo_electronico", "e_mail"], example: "maria.rios@example.mx" },
-      { key: "phone", label: "tenants.fields.phone", required: false, type: "text",
-        aliases: ["telefono", "phone", "celular", "movil", "tel"], example: "+52 55 1234 5678" },
-      { key: "rfc", label: "tenants.fields.rfc", required: false, type: "text",
-        aliases: ["rfc"], example: "RIFM850101ABC" },
-      { key: "emergency_contact_name", label: "tenants.fields.emergencyName", required: false, type: "text",
-        aliases: ["contacto_emergencia", "emergency_contact", "emergency_contact_name"], example: "Jorge Ríos" },
-      { key: "emergency_contact_phone", label: "tenants.fields.emergencyPhone", required: false, type: "text",
-        aliases: ["telefono_emergencia", "emergency_phone", "emergency_contact_phone"], example: "+52 55 8765 4321" },
-      { key: "notes", label: "tenants.fields.notes", required: false, type: "text",
-        aliases: ["notas", "notes", "observaciones"], example: "" },
+      {
+        key: "full_name",
+        label: "tenants.fields.fullName",
+        required: true,
+        type: "text",
+        aliases: ["nombre", "nombre_completo", "full_name", "name", "inquilino"],
+        example: "María Fernanda Ríos",
+      },
+      {
+        key: "email",
+        label: "tenants.fields.email",
+        required: false,
+        type: "text",
+        aliases: ["correo", "email", "correo_electronico", "e_mail"],
+        example: "maria.rios@example.mx",
+      },
+      {
+        key: "phone",
+        label: "tenants.fields.phone",
+        required: false,
+        type: "text",
+        aliases: ["telefono", "phone", "celular", "movil", "tel"],
+        example: "+52 55 1234 5678",
+      },
+      {
+        key: "rfc",
+        label: "tenants.fields.rfc",
+        required: false,
+        type: "text",
+        aliases: ["rfc"],
+        example: "RIFM850101ABC",
+      },
+      {
+        key: "emergency_contact_name",
+        label: "tenants.fields.emergencyName",
+        required: false,
+        type: "text",
+        aliases: ["contacto_emergencia", "emergency_contact", "emergency_contact_name"],
+        example: "Jorge Ríos",
+      },
+      {
+        key: "emergency_contact_phone",
+        label: "tenants.fields.emergencyPhone",
+        required: false,
+        type: "text",
+        aliases: ["telefono_emergencia", "emergency_phone", "emergency_contact_phone"],
+        example: "+52 55 8765 4321",
+      },
+      {
+        key: "notes",
+        label: "tenants.fields.notes",
+        required: false,
+        type: "text",
+        aliases: ["notas", "notes", "observaciones"],
+        example: "",
+      },
     ],
   },
   leases: {
     kind: "leases",
     naturalKey: ["property", "unit_number", "start_date"],
     fields: [
-      { key: "property", label: "units.fields.property", required: true, type: "text",
-        aliases: ["propiedad", "property", "edificio"], example: "Edificio Roma 214" },
-      { key: "unit_number", label: "units.fields.number", required: true, type: "text",
-        aliases: ["unidad", "unit", "numero", "unit_number"], example: "301" },
-      { key: "tenant", label: "contracts.fields.primaryTenant", required: true, type: "text",
-        aliases: ["inquilino", "tenant", "correo_inquilino", "tenant_email", "nombre_inquilino"], example: "maria.rios@example.mx" },
-      { key: "start_date", label: "contracts.fields.startDate", required: true, type: "date",
-        aliases: ["inicio", "fecha_inicio", "start", "start_date"], example: "01/01/2026" },
-      { key: "end_date", label: "contracts.fields.endDate", required: true, type: "date",
-        aliases: ["fin", "fecha_fin", "end", "end_date", "vencimiento"], example: "31/12/2026" },
-      { key: "rent_amount", label: "contracts.fields.rent", required: true, type: "money",
-        aliases: ["renta", "renta_mensual", "rent", "rent_amount"], example: "15000" },
-      { key: "rent_due_day", label: "contracts.fields.dueDay", required: false, type: "integer",
-        aliases: ["dia_pago", "due_day", "rent_due_day"], example: "1" },
-      { key: "deposit_amount", label: "contracts.fields.deposit", required: false, type: "money",
-        aliases: ["deposito", "deposit", "deposit_amount", "garantia"], example: "15000" },
+      {
+        key: "property",
+        label: "units.fields.property",
+        required: true,
+        type: "text",
+        aliases: ["propiedad", "property", "edificio"],
+        example: "Edificio Roma 214",
+      },
+      {
+        key: "unit_number",
+        label: "units.fields.number",
+        required: true,
+        type: "text",
+        aliases: ["unidad", "unit", "numero", "unit_number"],
+        example: "301",
+      },
+      {
+        key: "tenant",
+        label: "contracts.fields.primaryTenant",
+        required: true,
+        type: "text",
+        aliases: ["inquilino", "tenant", "correo_inquilino", "tenant_email", "nombre_inquilino"],
+        example: "maria.rios@example.mx",
+      },
+      {
+        key: "start_date",
+        label: "contracts.fields.startDate",
+        required: true,
+        type: "date",
+        aliases: ["inicio", "fecha_inicio", "start", "start_date"],
+        example: "01/01/2026",
+      },
+      {
+        key: "end_date",
+        label: "contracts.fields.endDate",
+        required: true,
+        type: "date",
+        aliases: ["fin", "fecha_fin", "end", "end_date", "vencimiento"],
+        example: "31/12/2026",
+      },
+      {
+        key: "rent_amount",
+        label: "contracts.fields.rent",
+        required: true,
+        type: "money",
+        aliases: ["renta", "renta_mensual", "rent", "rent_amount"],
+        example: "15000",
+      },
+      {
+        key: "rent_due_day",
+        label: "contracts.fields.dueDay",
+        required: false,
+        type: "integer",
+        aliases: ["dia_pago", "due_day", "rent_due_day"],
+        example: "1",
+      },
+      {
+        key: "deposit_amount",
+        label: "contracts.fields.deposit",
+        required: false,
+        type: "money",
+        aliases: ["deposito", "deposit", "deposit_amount", "garantia"],
+        example: "15000",
+      },
     ],
   },
 };
@@ -107,7 +243,10 @@ export function templateFor(schema: ImportSchema) {
 }
 
 /** Match file headers to fields by name, so the mapping step starts mostly done. */
-export function autoMapColumns(headers: string[], schema: ImportSchema): Record<string, number | null> {
+export function autoMapColumns(
+  headers: string[],
+  schema: ImportSchema,
+): Record<string, number | null> {
   const mapping: Record<string, number | null> = {};
   const normalized = headers.map(normalize);
 
@@ -145,7 +284,9 @@ export function parseMoney(raw: string): number | null {
   const value = raw.trim().replace(/[$\s]/g, "");
   if (!value) return null;
   // A comma used as the decimal separator, e.g. "15000,50".
-  const normalized = /,\d{1,2}$/.test(value) ? value.replace(/\./g, "").replace(",", ".") : value.replace(/,/g, "");
+  const normalized = /,\d{1,2}$/.test(value)
+    ? value.replace(/\./g, "").replace(",", ".")
+    : value.replace(/,/g, "");
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -178,7 +319,13 @@ export function validateRows(
   context: ValidationContext,
 ): ValidatedRow[] {
   const keyOf = (values: Record<string, string | number | null>) =>
-    schema.naturalKey.map((field) => String(values[field] ?? "").trim().toLocaleLowerCase()).join("|");
+    schema.naturalKey
+      .map((field) =>
+        String(values[field] ?? "")
+          .trim()
+          .toLocaleLowerCase(),
+      )
+      .join("|");
 
   return rows.map((raw, index) => {
     const values: Record<string, string | number | null> = {};
@@ -199,7 +346,12 @@ export function validateRows(
       switch (field.type) {
         case "money": {
           const parsed = parseMoney(cell);
-          if (parsed === null) { error ??= { key: "import.errors.notANumber", params: { field: field.key, value: cell } }; }
+          if (parsed === null) {
+            error ??= {
+              key: "import.errors.notANumber",
+              params: { field: field.key, value: cell },
+            };
+          }
           values[field.key] = parsed;
           break;
         }
@@ -207,7 +359,10 @@ export function validateRows(
         case "integer": {
           const parsed = Number(cell.replace(/,/g, "."));
           if (!Number.isFinite(parsed)) {
-            error ??= { key: "import.errors.notANumber", params: { field: field.key, value: cell } };
+            error ??= {
+              key: "import.errors.notANumber",
+              params: { field: field.key, value: cell },
+            };
             values[field.key] = null;
           } else {
             values[field.key] = field.type === "integer" ? Math.round(parsed) : parsed;
@@ -216,7 +371,9 @@ export function validateRows(
         }
         case "date": {
           const parsed = parseDate(cell);
-          if (parsed === null) { error ??= { key: "import.errors.badDate", params: { value: cell } }; }
+          if (parsed === null) {
+            error ??= { key: "import.errors.badDate", params: { value: cell } };
+          }
           values[field.key] = parsed;
           break;
         }
@@ -234,13 +391,25 @@ export function validateRows(
     }
 
     if (!error && schema.kind === "leases") {
-      const unitKey = `${String(values["property"] ?? "").trim().toLocaleLowerCase()}|${String(values["unit_number"] ?? "").trim().toLocaleLowerCase()}`;
+      const unitKey = `${String(values["property"] ?? "")
+        .trim()
+        .toLocaleLowerCase()}|${String(values["unit_number"] ?? "")
+        .trim()
+        .toLocaleLowerCase()}`;
       if (!context.unitKeys.has(unitKey)) {
-        error = { key: "import.errors.unknownUnit", params: { value: String(values["unit_number"] ?? "") } };
+        error = {
+          key: "import.errors.unknownUnit",
+          params: { value: String(values["unit_number"] ?? "") },
+        };
       }
-      const tenant = String(values["tenant"] ?? "").trim().toLocaleLowerCase();
+      const tenant = String(values["tenant"] ?? "")
+        .trim()
+        .toLocaleLowerCase();
       if (!error && !context.tenantEmails.has(tenant) && !context.tenantPhones.has(tenant)) {
-        error = { key: "import.errors.unknownTenant", params: { value: String(values["tenant"] ?? "") } };
+        error = {
+          key: "import.errors.unknownTenant",
+          params: { value: String(values["tenant"] ?? "") },
+        };
       }
       const start = values["start_date"];
       const end = values["end_date"];
@@ -262,9 +431,15 @@ export function validateRows(
     if (schema.kind === "units") {
       isUpdate = context.unitKeys.has(keyOf(values));
     } else if (schema.kind === "tenants") {
-      const email = String(values["email"] ?? "").trim().toLocaleLowerCase();
-      const phone = String(values["phone"] ?? "").trim().toLocaleLowerCase();
-      isUpdate = (Boolean(email) && context.tenantEmails.has(email)) || (Boolean(phone) && context.tenantPhones.has(phone));
+      const email = String(values["email"] ?? "")
+        .trim()
+        .toLocaleLowerCase();
+      const phone = String(values["phone"] ?? "")
+        .trim()
+        .toLocaleLowerCase();
+      isUpdate =
+        (Boolean(email) && context.tenantEmails.has(email)) ||
+        (Boolean(phone) && context.tenantPhones.has(phone));
     } else {
       isUpdate = context.leaseKeys.has(keyOf(values));
     }

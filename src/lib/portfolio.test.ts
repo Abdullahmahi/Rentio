@@ -5,7 +5,13 @@
  * so they are the ones worth pinning down.
  */
 import { expect, test } from "bun:test";
-import { daysUntilEnd, isExpiringSoon, leaseContexts, occupancy, unitContexts } from "@/lib/portfolio";
+import {
+  daysUntilEnd,
+  isExpiringSoon,
+  leaseContexts,
+  occupancy,
+  unitContexts,
+} from "@/lib/portfolio";
 import { effectiveInvoiceStatus } from "@/components/rentio/status";
 import type { Portfolio } from "@/lib/queries";
 
@@ -66,12 +72,13 @@ test("occupancy counts only `ocupada` as occupied", () => {
 });
 
 test("isExpiringSoon covers the 60-day window and both of its edges", () => {
-  const lease = (end_date: string, status = "activo") => ({ id: "x", unit_id: "u1", status, end_date }) as never;
+  const lease = (end_date: string, status = "activo") =>
+    ({ id: "x", unit_id: "u1", status, end_date }) as never;
   expect(daysUntilEnd(lease("2026-10-31"), TODAY)).toBe(42);
   expect(isExpiringSoon(lease("2026-10-31"), TODAY)).toBe(true);
-  expect(isExpiringSoon(lease("2026-11-18"), TODAY)).toBe(true);  // day 60
+  expect(isExpiringSoon(lease("2026-11-18"), TODAY)).toBe(true); // day 60
   expect(isExpiringSoon(lease("2026-11-19"), TODAY)).toBe(false); // day 61
-  expect(isExpiringSoon(lease("2026-09-19"), TODAY)).toBe(true);  // ends today
+  expect(isExpiringSoon(lease("2026-09-19"), TODAY)).toBe(true); // ends today
   expect(isExpiringSoon(lease("2026-09-18"), TODAY)).toBe(false); // already ended
   expect(isExpiringSoon(lease("2026-10-31", "terminado"), TODAY)).toBe(false);
 });
@@ -80,16 +87,32 @@ test("effectiveInvoiceStatus derives vencido from the due date, not the stored v
   const past = "2026-01-05";
   const future = "2099-01-05";
 
-  expect(effectiveInvoiceStatus({ status: "enviado", due_date: past, total: 1000 }, 0)).toBe("vencido");
-  expect(effectiveInvoiceStatus({ status: "enviado", due_date: past, total: 1000 }, 400)).toBe("vencido");
-  expect(effectiveInvoiceStatus({ status: "enviado", due_date: past, total: 1000 }, 1000)).toBe("pagado");
-  expect(effectiveInvoiceStatus({ status: "enviado", due_date: future, total: 1000 }, 400)).toBe("pagado_parcial");
-  expect(effectiveInvoiceStatus({ status: "enviado", due_date: future, total: 1000 }, 0)).toBe("enviado");
+  expect(effectiveInvoiceStatus({ status: "enviado", due_date: past, total: 1000 }, 0)).toBe(
+    "vencido",
+  );
+  expect(effectiveInvoiceStatus({ status: "enviado", due_date: past, total: 1000 }, 400)).toBe(
+    "vencido",
+  );
+  expect(effectiveInvoiceStatus({ status: "enviado", due_date: past, total: 1000 }, 1000)).toBe(
+    "pagado",
+  );
+  expect(effectiveInvoiceStatus({ status: "enviado", due_date: future, total: 1000 }, 400)).toBe(
+    "pagado_parcial",
+  );
+  expect(effectiveInvoiceStatus({ status: "enviado", due_date: future, total: 1000 }, 0)).toBe(
+    "enviado",
+  );
 
   // Cancelled and draft invoices are never re-derived.
-  expect(effectiveInvoiceStatus({ status: "cancelado", due_date: past, total: 1000 }, 0)).toBe("cancelado");
-  expect(effectiveInvoiceStatus({ status: "borrador", due_date: past, total: 1000 }, 0)).toBe("borrador");
+  expect(effectiveInvoiceStatus({ status: "cancelado", due_date: past, total: 1000 }, 0)).toBe(
+    "cancelado",
+  );
+  expect(effectiveInvoiceStatus({ status: "borrador", due_date: past, total: 1000 }, 0)).toBe(
+    "borrador",
+  );
 
   // Floating point: 999.995 of 1000 must still read as paid.
-  expect(effectiveInvoiceStatus({ status: "enviado", due_date: past, total: 1000 }, 999.9999)).toBe("pagado");
+  expect(effectiveInvoiceStatus({ status: "enviado", due_date: past, total: 1000 }, 999.9999)).toBe(
+    "pagado",
+  );
 });

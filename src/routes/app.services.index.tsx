@@ -6,7 +6,13 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Combobox, type ComboboxOption } from "@/components/rentio/combobox";
 import { DataTable, type DataTableColumn } from "@/components/rentio/data-table";
 import { EmptyState } from "@/components/rentio/empty-state";
@@ -26,10 +32,12 @@ import type { Enums, Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/services/")({
-  head: () => ({ meta: [
-    { title: `${i18n.t("pages.services.title")} — Rentio` },
-    { name: "description", content: i18n.t("pages.services.description") },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: `${i18n.t("pages.services.title")} — Rentio` },
+      { name: "description", content: i18n.t("pages.services.description") },
+    ],
+  }),
   component: ServicesPage,
 });
 
@@ -56,9 +64,15 @@ function ServicesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
-    unit_id: null as string | null, type: "agua" as Enums<"utility_type">, amount: "" as number | "", notes: "",
+    unit_id: null as string | null,
+    type: "agua" as Enums<"utility_type">,
+    amount: "" as number | "",
+    notes: "",
   });
-  const [bulk, setBulk] = useState({ property_id: "", type: "cuota_mantenimiento" as Enums<"utility_type"> });
+  const [bulk, setBulk] = useState({
+    property_id: "",
+    type: "cuota_mantenimiento" as Enums<"utility_type">,
+  });
   const [amounts, setAmounts] = useState<Record<string, number | "">>({});
   const [applyAll, setApplyAll] = useState<number | "">("");
 
@@ -66,21 +80,37 @@ function ServicesPage() {
     queryKey: qk.utilities(period),
     queryFn: async () => {
       const { data, error: caught } = await supabase
-        .from("utility_charges").select("*").eq("period_month", period).order("created_at");
+        .from("utility_charges")
+        .select("*")
+        .eq("period_month", period)
+        .order("created_at");
       if (caught) throw caught;
 
       // Resolve the folio of whichever invoice consumed each billed charge.
-      const invoiceIds = [...new Set((data ?? []).map((row) => row.invoice_id).filter((v): v is string => Boolean(v)))];
+      const invoiceIds = [
+        ...new Set(
+          (data ?? []).map((row) => row.invoice_id).filter((v): v is string => Boolean(v)),
+        ),
+      ];
       const folios = new Map<string, string | null>();
       if (invoiceIds.length > 0) {
-        const { data: invoices } = await supabase.from("invoices").select("id, invoice_number").in("id", invoiceIds);
+        const { data: invoices } = await supabase
+          .from("invoices")
+          .select("id, invoice_number")
+          .in("id", invoiceIds);
         for (const invoice of invoices ?? []) folios.set(invoice.id, invoice.invoice_number);
       }
-      return (data ?? []).map((row) => ({ ...row, _folio: row.invoice_id ? folios.get(row.invoice_id) ?? null : null }));
+      return (data ?? []).map((row) => ({
+        ...row,
+        _folio: row.invoice_id ? (folios.get(row.invoice_id) ?? null) : null,
+      }));
     },
   });
 
-  const units = useMemo(() => (portfolio.data ? unitContexts(portfolio.data) : []), [portfolio.data]);
+  const units = useMemo(
+    () => (portfolio.data ? unitContexts(portfolio.data) : []),
+    [portfolio.data],
+  );
 
   const rows = useMemo<ChargeRow[]>(() => {
     const byUnit = new Map(units.map((row) => [row.unit.id, row]));
@@ -103,7 +133,9 @@ function ServicesPage() {
     const billed = rows.filter((row) => row.status === "facturado");
     const byType = TYPES.map((type) => ({
       type,
-      total: rows.filter((row) => row.type === type).reduce((sum, row) => sum + Number(row.amount), 0),
+      total: rows
+        .filter((row) => row.type === type)
+        .reduce((sum, row) => sum + Number(row.amount), 0),
     })).filter((entry) => entry.total > 0);
     return {
       pending: pending.reduce((sum, row) => sum + Number(row.amount), 0),
@@ -113,12 +145,13 @@ function ServicesPage() {
   }, [rows]);
 
   const unitOptions = useMemo<ComboboxOption[]>(
-    () => units.map((row) => ({
-      value: row.unit.id,
-      label: `${t("units.columns.unit")} ${row.unit.unit_number}`,
-      hint: [row.property?.name, row.tenant?.full_name].filter(Boolean).join(" · "),
-      keywords: `${row.property?.name ?? ""} ${row.tenant?.full_name ?? ""}`,
-    })),
+    () =>
+      units.map((row) => ({
+        value: row.unit.id,
+        label: `${t("units.columns.unit")} ${row.unit.unit_number}`,
+        hint: [row.property?.name, row.tenant?.full_name].filter(Boolean).join(" · "),
+        keywords: `${row.property?.name ?? ""} ${row.tenant?.full_name ?? ""}`,
+      })),
     [units, t],
   );
 
@@ -156,11 +189,18 @@ function ServicesPage() {
         notes: values.notes.trim() || null,
       });
       if (caught) throw caught;
-      await logActivity(actorId, "utility_charge", null, "create", { unit: values.unit_id, type: values.type, period });
+      await logActivity(actorId, "utility_charge", null, "create", {
+        unit: values.unit_id,
+        type: values.type,
+        period,
+      });
     },
     successKey: "services.created",
     invalidate: [qk.utilities(period)],
-    onSuccess: () => { setCreateOpen(false); setForm({ ...form, amount: "", notes: "" }); },
+    onSuccess: () => {
+      setCreateOpen(false);
+      setForm({ ...form, amount: "", notes: "" });
+    },
   });
 
   const createBulk = useToastMutation({
@@ -168,8 +208,10 @@ function ServicesPage() {
       const inserts = bulkUnits
         .filter((row) => !alreadyCharged.has(row.unit.id))
         .map((row) => ({ row, amount: amounts[row.unit.id] }))
-        .filter((entry): entry is { row: (typeof bulkUnits)[number]; amount: number } =>
-          entry.amount !== "" && entry.amount !== undefined && entry.amount > 0)
+        .filter(
+          (entry): entry is { row: (typeof bulkUnits)[number]; amount: number } =>
+            entry.amount !== "" && entry.amount !== undefined && entry.amount > 0,
+        )
         .map(({ row, amount }) => ({
           unit_id: row.unit.id,
           lease_id: row.activeLease?.id ?? null,
@@ -183,13 +225,19 @@ function ServicesPage() {
       const { error: caught } = await supabase.from("utility_charges").insert(inserts);
       if (caught) throw caught;
       await logActivity(actorId, "utility_charge", null, "bulk_create", {
-        count: inserts.length, type: bulk.type, period,
+        count: inserts.length,
+        type: bulk.type,
+        period,
       });
       return inserts.length;
     },
     successKey: "services.bulkCreated",
     invalidate: [qk.utilities(period)],
-    onSuccess: () => { setBulkOpen(false); setAmounts({}); setApplyAll(""); },
+    onSuccess: () => {
+      setBulkOpen(false);
+      setAmounts({});
+      setApplyAll("");
+    },
   });
 
   const remove = useToastMutation({
@@ -202,16 +250,43 @@ function ServicesPage() {
   });
 
   const columns: DataTableColumn<ChargeRow>[] = [
-    { key: "unit", header: t("units.columns.unit"), sortValue: (row) => row.unitNumber,
-      cell: (row) => <span className="font-medium">{row.unitNumber}</span> },
-    { key: "tenant", header: t("contracts.columns.tenant"), sortValue: (row) => row.tenantName, cell: (row) => row.tenantName },
-    { key: "type", header: t("services.columns.type"), sortValue: (row) => row.type,
-      cell: (row) => t(`utilityType.${row.type}`) },
-    { key: "period", header: t("receipts.columns.period"), sortValue: (row) => row.period_month,
-      cell: (row) => <span className="numeric">{formatPeriod(row.period_month, i18nInstance.language)}</span> },
-    { key: "amount", header: t("payments.columns.amount"), numeric: true, sortValue: (row) => Number(row.amount),
-      cell: (row) => <MoneyText value={Number(row.amount)} /> },
-    { key: "status", header: t("receipts.columns.status"), sortValue: (row) => row.status,
+    {
+      key: "unit",
+      header: t("units.columns.unit"),
+      sortValue: (row) => row.unitNumber,
+      cell: (row) => <span className="font-medium">{row.unitNumber}</span>,
+    },
+    {
+      key: "tenant",
+      header: t("contracts.columns.tenant"),
+      sortValue: (row) => row.tenantName,
+      cell: (row) => row.tenantName,
+    },
+    {
+      key: "type",
+      header: t("services.columns.type"),
+      sortValue: (row) => row.type,
+      cell: (row) => t(`utilityType.${row.type}`),
+    },
+    {
+      key: "period",
+      header: t("receipts.columns.period"),
+      sortValue: (row) => row.period_month,
+      cell: (row) => (
+        <span className="numeric">{formatPeriod(row.period_month, i18nInstance.language)}</span>
+      ),
+    },
+    {
+      key: "amount",
+      header: t("payments.columns.amount"),
+      numeric: true,
+      sortValue: (row) => Number(row.amount),
+      cell: (row) => <MoneyText value={Number(row.amount)} />,
+    },
+    {
+      key: "status",
+      header: t("receipts.columns.status"),
+      sortValue: (row) => row.status,
       cell: (row) => (
         <span className="inline-flex items-center gap-2">
           <UtilityStatusBadge value={row.status} />
@@ -221,23 +296,39 @@ function ServicesPage() {
               className="numeric text-xs font-medium text-primary hover:underline"
               onClick={(event) => {
                 event.stopPropagation();
-                if (row.invoice_id) void navigate({ to: "/app/receipts/$id", params: { id: row.invoice_id } });
+                if (row.invoice_id)
+                  void navigate({ to: "/app/receipts/$id", params: { id: row.invoice_id } });
               }}
             >
               {row.invoiceNumber}
             </button>
           ) : null}
         </span>
-      ) },
-    { key: "notes", header: t("services.columns.notes"), sortValue: (row) => row.notes ?? "",
-      cell: (row) => <span className="text-muted-foreground">{row.notes ?? "—"}</span> },
-    { key: "actions", header: "", cell: (row) => (
-      row.status === "pendiente" ? (
-        <Button size="sm" variant="ghost" onClick={(event) => { event.stopPropagation(); remove.mutate(row); }}>
-          {t("actions.delete")}
-        </Button>
-      ) : null
-    ) },
+      ),
+    },
+    {
+      key: "notes",
+      header: t("services.columns.notes"),
+      sortValue: (row) => row.notes ?? "",
+      cell: (row) => <span className="text-muted-foreground">{row.notes ?? "—"}</span>,
+    },
+    {
+      key: "actions",
+      header: "",
+      cell: (row) =>
+        row.status === "pendiente" ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(event) => {
+              event.stopPropagation();
+              remove.mutate(row);
+            }}
+          >
+            {t("actions.delete")}
+          </Button>
+        ) : null,
+    },
   ];
 
   return (
@@ -248,25 +339,46 @@ function ServicesPage() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <MonthSelector period={period} onChange={setPeriod} />
-            <Button variant="outline" onClick={() => { setBulkOpen(true); setAmounts({}); setApplyAll(""); }}>
-              <Table2 className="size-4" />{t("services.bulk")}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setBulkOpen(true);
+                setAmounts({});
+                setApplyAll("");
+              }}
+            >
+              <Table2 className="size-4" />
+              {t("services.bulk")}
             </Button>
-            <Button onClick={() => setCreateOpen(true)}><Plus className="size-4" />{t("services.new")}</Button>
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="size-4" />
+              {t("services.new")}
+            </Button>
           </div>
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-lg border border-border bg-surface p-4 shadow-subtle">
-          <p className="text-xs font-medium text-muted-foreground">{t("services.summary.pending")}</p>
-          <p className="numeric mt-1 text-xl font-semibold text-warning">{formatMXN(summary.pending)}</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            {t("services.summary.pending")}
+          </p>
+          <p className="numeric mt-1 text-xl font-semibold text-warning">
+            {formatMXN(summary.pending)}
+          </p>
         </div>
         <div className="rounded-lg border border-border bg-surface p-4 shadow-subtle">
-          <p className="text-xs font-medium text-muted-foreground">{t("services.summary.billed")}</p>
-          <p className="numeric mt-1 text-xl font-semibold text-success">{formatMXN(summary.billed)}</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            {t("services.summary.billed")}
+          </p>
+          <p className="numeric mt-1 text-xl font-semibold text-success">
+            {formatMXN(summary.billed)}
+          </p>
         </div>
         <div className="rounded-lg border border-border bg-surface p-4 shadow-subtle sm:col-span-2">
-          <p className="text-xs font-medium text-muted-foreground">{t("services.summary.byType")}</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            {t("services.summary.byType")}
+          </p>
           {summary.byType.length === 0 ? (
             <p className="mt-1 text-sm text-muted-foreground">—</p>
           ) : (
@@ -289,11 +401,15 @@ function ServicesPage() {
 
       <div className="max-w-xs">
         <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger aria-label={t("units.filters.property")}><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label={t("units.filters.property")}>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>{t("units.filters.allProperties")}</SelectItem>
             {portfolio.data?.properties.map((property) => (
-              <SelectItem key={property.id} value={property.id}>{property.name}</SelectItem>
+              <SelectItem key={property.id} value={property.id}>
+                {property.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -308,7 +424,9 @@ function ServicesPage() {
         empty={
           <EmptyState
             icon={Zap}
-            message={t("services.emptyTitle", { month: formatPeriod(period, i18nInstance.language) })}
+            message={t("services.emptyTitle", {
+              month: formatPeriod(period, i18nInstance.language),
+            })}
             description={t("services.emptyDescription")}
             actionLabel={t("services.bulk")}
             onAction={() => setBulkOpen(true)}
@@ -327,47 +445,79 @@ function ServicesPage() {
       {/* --------------------------------------------------- single charge */}
       <FormDialog
         open={createOpen}
-        onOpenChange={(next) => { setCreateOpen(next); if (!next) setError(null); }}
+        onOpenChange={(next) => {
+          setCreateOpen(next);
+          if (!next) setError(null);
+        }}
         title={t("services.new")}
-        description={t("services.newDescription", { month: formatPeriod(period, i18nInstance.language) })}
+        description={t("services.newDescription", {
+          month: formatPeriod(period, i18nInstance.language),
+        })}
         error={error}
         pending={create.isPending}
         onSubmit={() => {
           setError(null);
           if (!form.unit_id) return setError(t("services.errors.unitRequired"));
-          if (form.amount === "" || Number(form.amount) <= 0) return setError(t("services.errors.amountRequired"));
+          if (form.amount === "" || Number(form.amount) <= 0)
+            return setError(t("services.errors.amountRequired"));
           create.mutate(form);
         }}
       >
         <Field label={t("units.columns.unit")}>
-          <Combobox options={unitOptions} value={form.unit_id} onChange={(value) => setForm({ ...form, unit_id: value })}
-            placeholder={t("contracts.fields.unitPlaceholder")} />
+          <Combobox
+            options={unitOptions}
+            value={form.unit_id}
+            onChange={(value) => setForm({ ...form, unit_id: value })}
+            placeholder={t("contracts.fields.unitPlaceholder")}
+          />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t("services.columns.type")}>
-            <Select value={form.type} onValueChange={(value) => setForm({ ...form, type: value as Enums<"utility_type"> })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={form.type}
+              onValueChange={(value) => setForm({ ...form, type: value as Enums<"utility_type"> })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {TYPES.map((type) => <SelectItem key={type} value={type}>{t(`utilityType.${type}`)}</SelectItem>)}
+                {TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {t(`utilityType.${type}`)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </Field>
           <Field label={t("payments.columns.amount")}>
-            <MoneyInput value={form.amount} onChange={(value) => setForm({ ...form, amount: value })} />
+            <MoneyInput
+              value={form.amount}
+              onChange={(value) => setForm({ ...form, amount: value })}
+            />
           </Field>
         </div>
         <Field label={t("services.columns.notes")} htmlFor="charge-notes">
-          <Textarea id="charge-notes" rows={2} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
+          <Textarea
+            id="charge-notes"
+            rows={2}
+            value={form.notes}
+            onChange={(event) => setForm({ ...form, notes: event.target.value })}
+          />
         </Field>
       </FormDialog>
 
       {/* ------------------------------------------------- bulk capture */}
       <FormDialog
         open={bulkOpen}
-        onOpenChange={(next) => { setBulkOpen(next); if (!next) setError(null); }}
+        onOpenChange={(next) => {
+          setBulkOpen(next);
+          if (!next) setError(null);
+        }}
         wide
         title={t("services.bulk")}
-        description={t("services.bulkDescription", { month: formatPeriod(period, i18nInstance.language) })}
+        description={t("services.bulkDescription", {
+          month: formatPeriod(period, i18nInstance.language),
+        })}
         error={error}
         pending={createBulk.isPending}
         submitLabel={t("services.bulkSubmit")}
@@ -380,20 +530,39 @@ function ServicesPage() {
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t("units.fields.property")}>
-            <Select value={bulk.property_id} onValueChange={(value) => { setBulk({ ...bulk, property_id: value }); setAmounts({}); }}>
-              <SelectTrigger><SelectValue placeholder={t("units.fields.propertyPlaceholder")} /></SelectTrigger>
+            <Select
+              value={bulk.property_id}
+              onValueChange={(value) => {
+                setBulk({ ...bulk, property_id: value });
+                setAmounts({});
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("units.fields.propertyPlaceholder")} />
+              </SelectTrigger>
               <SelectContent>
                 {portfolio.data?.properties.map((property) => (
-                  <SelectItem key={property.id} value={property.id}>{property.name}</SelectItem>
+                  <SelectItem key={property.id} value={property.id}>
+                    {property.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </Field>
           <Field label={t("services.columns.type")}>
-            <Select value={bulk.type} onValueChange={(value) => setBulk({ ...bulk, type: value as Enums<"utility_type"> })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={bulk.type}
+              onValueChange={(value) => setBulk({ ...bulk, type: value as Enums<"utility_type"> })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {TYPES.map((type) => <SelectItem key={type} value={type}>{t(`utilityType.${type}`)}</SelectItem>)}
+                {TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {t(`utilityType.${type}`)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </Field>
@@ -404,7 +573,8 @@ function ServicesPage() {
           <div className="flex gap-2">
             <MoneyInput className="flex-1" value={applyAll} onChange={setApplyAll} />
             <Button
-              type="button" variant="outline"
+              type="button"
+              variant="outline"
               disabled={applyAll === "" || bulkUnits.length === 0}
               onClick={() => {
                 const next: Record<string, number | ""> = {};
@@ -436,7 +606,7 @@ function ServicesPage() {
                     <tr key={row.unit.id} className="border-t border-border">
                       <td className="px-3 py-2 font-medium">{row.unit.unit_number}</td>
                       <td className="px-3 py-2 text-muted-foreground">
-                        {skipped ? t("services.alreadyCharged") : row.tenant?.full_name ?? "—"}
+                        {skipped ? t("services.alreadyCharged") : (row.tenant?.full_name ?? "—")}
                       </td>
                       <td className="px-3 py-2">
                         <MoneyInput

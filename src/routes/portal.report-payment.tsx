@@ -54,16 +54,20 @@ function ReportPaymentPage() {
       if (!lease) throw new Error("no-lease");
 
       // RLS allows exactly this shape from a tenant: pendiente + reported_by_tenant.
-      const { data: payment, error: caught } = await supabase.from("payments").insert({
-        lease_id: lease.id,
-        amount: form.amount === "" ? 0 : form.amount,
-        paid_at: form.paid_at,
-        method: form.method,
-        reference: form.reference.trim() || null,
-        notes: form.notes.trim() || null,
-        status: "pendiente",
-        reported_by_tenant: true,
-      }).select("id").single();
+      const { data: payment, error: caught } = await supabase
+        .from("payments")
+        .insert({
+          lease_id: lease.id,
+          amount: form.amount === "" ? 0 : form.amount,
+          paid_at: form.paid_at,
+          method: form.method,
+          reference: form.reference.trim() || null,
+          notes: form.notes.trim() || null,
+          status: "pendiente",
+          reported_by_tenant: true,
+        })
+        .select("id")
+        .single();
       if (caught) throw caught;
 
       if (form.receipt) {
@@ -107,7 +111,8 @@ function ReportPaymentPage() {
           onSubmit={(event) => {
             event.preventDefault();
             setError(null);
-            if (form.amount === "" || Number(form.amount) <= 0) return setError(t("payments.errors.amountRequired"));
+            if (form.amount === "" || Number(form.amount) <= 0)
+              return setError(t("payments.errors.amountRequired"));
             if (!form.paid_at) return setError(t("portal.errors.dateRequired"));
             submit.mutate(undefined);
           }}
@@ -116,12 +121,20 @@ function ReportPaymentPage() {
             label={t("payments.columns.amount")}
             hint={balance > 0 ? t("portal.balanceHint", { amount: formatMXN(balance) }) : undefined}
           >
-            <MoneyInput value={form.amount} onChange={(value) => setForm({ ...form, amount: value })} />
+            <MoneyInput
+              value={form.amount}
+              onChange={(value) => setForm({ ...form, amount: value })}
+            />
           </Field>
 
           <Field label={t("portal.paidOn")} htmlFor="report-date">
-            <Input id="report-date" type="date" className="numeric h-12" value={form.paid_at}
-              onChange={(event) => setForm({ ...form, paid_at: event.target.value })} />
+            <Input
+              id="report-date"
+              type="date"
+              className="numeric h-12"
+              value={form.paid_at}
+              onChange={(event) => setForm({ ...form, paid_at: event.target.value })}
+            />
           </Field>
 
           {/* Large tap targets beat a dropdown on a phone. */}
@@ -145,13 +158,25 @@ function ReportPaymentPage() {
             </div>
           </Field>
 
-          <Field label={t("payments.columns.reference")} htmlFor="report-reference" hint={t("portal.referenceHint")}>
-            <Input id="report-reference" className="numeric h-12" value={form.reference}
-              onChange={(event) => setForm({ ...form, reference: event.target.value })} />
+          <Field
+            label={t("payments.columns.reference")}
+            htmlFor="report-reference"
+            hint={t("portal.referenceHint")}
+          >
+            <Input
+              id="report-reference"
+              className="numeric h-12"
+              value={form.reference}
+              onChange={(event) => setForm({ ...form, reference: event.target.value })}
+            />
           </Field>
 
           {/* capture="environment" opens the phone camera directly. */}
-          <Field label={t("portal.receiptPhoto")} htmlFor="report-receipt" hint={t("portal.receiptPhotoHint")}>
+          <Field
+            label={t("portal.receiptPhoto")}
+            htmlFor="report-receipt"
+            hint={t("portal.receiptPhotoHint")}
+          >
             <label
               htmlFor="report-receipt"
               className="flex h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface text-sm text-muted-foreground"
@@ -160,18 +185,31 @@ function ReportPaymentPage() {
               {form.receipt ? form.receipt.name : t("portal.takePhoto")}
             </label>
             <input
-              id="report-receipt" type="file" accept="image/*" capture="environment" className="sr-only"
+              id="report-receipt"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
               onChange={(event) => setForm({ ...form, receipt: event.target.files?.[0] ?? null })}
             />
           </Field>
 
           <Field label={t("tenants.fields.notes")} htmlFor="report-notes">
-            <Textarea id="report-notes" rows={3} value={form.notes}
-              onChange={(event) => setForm({ ...form, notes: event.target.value })} />
+            <Textarea
+              id="report-notes"
+              rows={3}
+              value={form.notes}
+              onChange={(event) => setForm({ ...form, notes: event.target.value })}
+            />
           </Field>
 
           {error ? (
-            <p role="alert" className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
+            <p
+              role="alert"
+              className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+            >
+              {error}
+            </p>
           ) : null}
 
           <Button type="submit" className="h-12 w-full text-base" disabled={submit.isPending}>

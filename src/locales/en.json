@@ -716,7 +716,8 @@
       "descriptionRequired": "Enter a description.",
       "amountRequired": "Enter the amount.",
       "reasonRequired": "Enter the reason for cancelling."
-    }
+    },
+    "sentWithoutEmail": "Receipt marked as sent, but the email could not be delivered. Check your email configuration."
   },
   "payments": {
     "emptyTitle": "No payments recorded",

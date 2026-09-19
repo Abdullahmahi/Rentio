@@ -1,10 +1,16 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable, type DataTableColumn } from "@/components/rentio/data-table";
 import { MoneyText } from "@/components/rentio/money-text";
@@ -21,10 +27,12 @@ import { supabase } from "@/lib/supabase";
 import i18n from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/reports/")({
-  head: () => ({ meta: [
-    { title: `${i18n.t("pages.reports.title")} — Rentio` },
-    { name: "description", content: i18n.t("pages.reports.description") },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: `${i18n.t("pages.reports.title")} — Rentio` },
+      { name: "description", content: i18n.t("pages.reports.description") },
+    ],
+  }),
   component: ReportsPage,
 });
 
@@ -33,15 +41,25 @@ const MONTHS = 12;
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 interface RentRollRow {
-  unitNumber: string; propertyName: string; propertyId: string | null;
-  tenant: string; rent: number; start: string | null; end: string | null;
-  status: string; unitStatus: "vacante" | "ocupada" | "mantenimiento" | "reservada";
+  unitNumber: string;
+  propertyName: string;
+  propertyId: string | null;
+  tenant: string;
+  rent: number;
+  start: string | null;
+  end: string | null;
+  status: string;
+  unitStatus: "vacante" | "ocupada" | "mantenimiento" | "reservada";
   leaseStatus: "borrador" | "activo" | "por_vencer" | "terminado" | "rescindido" | null;
 }
 
 interface AgingRow {
-  tenant: string; unitNumber: string; propertyId: string | null;
-  bucket: "b30" | "b60" | "b90" | "b90plus"; amount: number; days: number;
+  tenant: string;
+  unitNumber: string;
+  propertyId: string | null;
+  bucket: "b30" | "b60" | "b90" | "b90plus";
+  amount: number;
+  days: number;
 }
 
 function ReportsPage() {
@@ -55,11 +73,16 @@ function ReportsPage() {
     queryKey: ["report-income", firstMonth],
     queryFn: async () => {
       const [{ data: invoices, error }, { data: balances }] = await Promise.all([
-        supabase.from("invoices").select("id, lease_id, period_month, total, status").gte("period_month", firstMonth),
+        supabase
+          .from("invoices")
+          .select("id, lease_id, period_month, total, status")
+          .gte("period_month", firstMonth),
         supabase.from("invoice_balances").select("invoice_id, paid"),
       ]);
       if (error) throw error;
-      const paidById = new Map((balances ?? []).map((row) => [row.invoice_id, Number(row.paid ?? 0)]));
+      const paidById = new Map(
+        (balances ?? []).map((row) => [row.invoice_id, Number(row.paid ?? 0)]),
+      );
       return (invoices ?? [])
         .filter((invoice) => invoice.status !== "cancelado")
         .map((invoice) => ({
@@ -71,52 +94,71 @@ function ReportsPage() {
     },
   });
 
-  const contexts = useMemo(() => (portfolio.data ? leaseContexts(portfolio.data) : []), [portfolio.data]);
-  const units = useMemo(() => (portfolio.data ? unitContexts(portfolio.data) : []), [portfolio.data]);
-  const matchesProperty = (propertyId: string | null | undefined) =>
-    propertyFilter === ALL || propertyId === propertyFilter;
+  const contexts = useMemo(
+    () => (portfolio.data ? leaseContexts(portfolio.data) : []),
+    [portfolio.data],
+  );
+  const units = useMemo(
+    () => (portfolio.data ? unitContexts(portfolio.data) : []),
+    [portfolio.data],
+  );
+  const matchesProperty = useCallback(
+    (propertyId: string | null | undefined) =>
+      propertyFilter === ALL || propertyId === propertyFilter,
+    [propertyFilter],
+  );
 
   // ------------------------------------------------------------ rent roll
   const rentRoll = useMemo<RentRollRow[]>(
-    () => units
-      .filter((row) => matchesProperty(row.property?.id))
-      .map((row) => {
-        const context = contexts.find((candidate) => candidate.lease.id === row.activeLease?.id);
-        return {
-          unitNumber: row.unit.unit_number,
-          propertyName: row.property?.name ?? "—",
-          propertyId: row.property?.id ?? null,
-          tenant: row.tenant?.full_name ?? "—",
-          rent: Number(row.activeLease?.rent_amount ?? row.unit.base_rent),
-          start: row.activeLease?.start_date ?? null,
-          end: row.activeLease?.end_date ?? null,
-          status: row.unit.status,
-          unitStatus: row.unit.status,
-          leaseStatus: context?.lease.status ?? null,
-        };
-      }),
-    [units, contexts, propertyFilter],
+    () =>
+      units
+        .filter((row) => matchesProperty(row.property?.id))
+        .map((row) => {
+          const context = contexts.find((candidate) => candidate.lease.id === row.activeLease?.id);
+          return {
+            unitNumber: row.unit.unit_number,
+            propertyName: row.property?.name ?? "—",
+            propertyId: row.property?.id ?? null,
+            tenant: row.tenant?.full_name ?? "—",
+            rent: Number(row.activeLease?.rent_amount ?? row.unit.base_rent),
+            start: row.activeLease?.start_date ?? null,
+            end: row.activeLease?.end_date ?? null,
+            status: row.unit.status,
+            unitStatus: row.unit.status,
+            leaseStatus: context?.lease.status ?? null,
+          };
+        }),
+    [units, contexts, matchesProperty],
   );
 
   // -------------------------------------------------------------- aging
   const aging = useMemo<AgingRow[]>(
-    () => contexts
-      .filter((context) => isActive(context.lease) && matchesProperty(context.property?.id))
-      .flatMap((context) => {
-        const amount = Number(context.balance?.balance ?? 0);
-        const oldest = context.balance?.oldest_overdue_date;
-        if (amount <= 0.005 || !oldest) return [];
-        const days = Math.max(0, Math.floor((Date.now() - new Date(`${oldest}T00:00:00`).getTime()) / 86_400_000));
-        const bucket: AgingRow["bucket"] = days <= 30 ? "b30" : days <= 60 ? "b60" : days <= 90 ? "b90" : "b90plus";
-        return [{
-          tenant: context.primaryTenant?.full_name ?? "—",
-          unitNumber: context.unit?.unit_number ?? "—",
-          propertyId: context.property?.id ?? null,
-          bucket, amount, days,
-        }];
-      })
-      .sort((a, b) => b.days - a.days),
-    [contexts, propertyFilter],
+    () =>
+      contexts
+        .filter((context) => isActive(context.lease) && matchesProperty(context.property?.id))
+        .flatMap((context) => {
+          const amount = Number(context.balance?.balance ?? 0);
+          const oldest = context.balance?.oldest_overdue_date;
+          if (amount <= 0.005 || !oldest) return [];
+          const days = Math.max(
+            0,
+            Math.floor((Date.now() - new Date(`${oldest}T00:00:00`).getTime()) / 86_400_000),
+          );
+          const bucket: AgingRow["bucket"] =
+            days <= 30 ? "b30" : days <= 60 ? "b60" : days <= 90 ? "b90" : "b90plus";
+          return [
+            {
+              tenant: context.primaryTenant?.full_name ?? "—",
+              unitNumber: context.unit?.unit_number ?? "—",
+              propertyId: context.property?.id ?? null,
+              bucket,
+              amount,
+              days,
+            },
+          ];
+        })
+        .sort((a, b) => b.days - a.days),
+    [contexts, matchesProperty],
   );
 
   const bucketTotals = (["b30", "b60", "b90", "b90plus"] as const).map((bucket) => ({
@@ -148,25 +190,33 @@ function ReportsPage() {
 
   // ---------------------------------------------------------- occupancy
   const vacancies = useMemo(
-    () => units
-      .filter((row) => row.unit.status === "vacante" && matchesProperty(row.property?.id))
-      .map((row) => {
-        // Days vacant runs from the end of the most recent lease on the unit.
-        const ended = contexts
-          .filter((context) => context.lease.unit_id === row.unit.id && context.lease.move_out_date)
-          .map((context) => context.lease.move_out_date as string)
-          .sort()
-          .at(-1);
-        return {
-          unitNumber: row.unit.unit_number,
-          propertyName: row.property?.name ?? "—",
-          baseRent: Number(row.unit.base_rent),
-          since: ended ?? null,
-          days: ended ? Math.max(0, Math.floor((Date.now() - new Date(`${ended}T00:00:00`).getTime()) / 86_400_000)) : null,
-        };
-      })
-      .sort((a, b) => (b.days ?? 0) - (a.days ?? 0)),
-    [units, contexts, propertyFilter],
+    () =>
+      units
+        .filter((row) => row.unit.status === "vacante" && matchesProperty(row.property?.id))
+        .map((row) => {
+          // Days vacant runs from the end of the most recent lease on the unit.
+          const ended = contexts
+            .filter(
+              (context) => context.lease.unit_id === row.unit.id && context.lease.move_out_date,
+            )
+            .map((context) => context.lease.move_out_date as string)
+            .sort()
+            .at(-1);
+          return {
+            unitNumber: row.unit.unit_number,
+            propertyName: row.property?.name ?? "—",
+            baseRent: Number(row.unit.base_rent),
+            since: ended ?? null,
+            days: ended
+              ? Math.max(
+                  0,
+                  Math.floor((Date.now() - new Date(`${ended}T00:00:00`).getTime()) / 86_400_000),
+                )
+              : null,
+          };
+        })
+        .sort((a, b) => (b.days ?? 0) - (a.days ?? 0)),
+    [units, contexts, matchesProperty],
   );
 
   const occupancyStats = portfolio.data
@@ -175,76 +225,243 @@ function ReportsPage() {
 
   // --------------------------------------------------------------- tables
   const rentRollColumns: DataTableColumn<RentRollRow>[] = [
-    { key: "unit", header: t("units.columns.unit"), sortValue: (row) => row.unitNumber,
-      cell: (row) => <span className="font-medium">{row.unitNumber}</span> },
-    { key: "property", header: t("units.columns.property"), sortValue: (row) => row.propertyName, cell: (row) => row.propertyName },
-    { key: "tenant", header: t("contracts.columns.tenant"), sortValue: (row) => row.tenant, cell: (row) => row.tenant },
-    { key: "rent", header: t("contracts.columns.rent"), numeric: true, sortValue: (row) => row.rent,
-      cell: (row) => <MoneyText value={row.rent} /> },
-    { key: "start", header: t("contracts.columns.start"), sortValue: (row) => row.start ?? "",
-      cell: (row) => <span className="numeric">{row.start ? formatMexicoDate(row.start) : "—"}</span> },
-    { key: "end", header: t("contracts.columns.end"), sortValue: (row) => row.end ?? "",
-      cell: (row) => <span className="numeric">{row.end ? formatMexicoDate(row.end) : "—"}</span> },
-    { key: "unitStatus", header: t("units.columns.status"), sortValue: (row) => row.unitStatus,
-      cell: (row) => <UnitStatusBadge value={row.unitStatus} /> },
-    { key: "leaseStatus", header: t("contracts.columns.status"), sortValue: (row) => row.leaseStatus ?? "",
-      cell: (row) => row.leaseStatus ? <LeaseStatusBadge value={row.leaseStatus} /> : <span className="text-muted-foreground">—</span> },
+    {
+      key: "unit",
+      header: t("units.columns.unit"),
+      sortValue: (row) => row.unitNumber,
+      cell: (row) => <span className="font-medium">{row.unitNumber}</span>,
+    },
+    {
+      key: "property",
+      header: t("units.columns.property"),
+      sortValue: (row) => row.propertyName,
+      cell: (row) => row.propertyName,
+    },
+    {
+      key: "tenant",
+      header: t("contracts.columns.tenant"),
+      sortValue: (row) => row.tenant,
+      cell: (row) => row.tenant,
+    },
+    {
+      key: "rent",
+      header: t("contracts.columns.rent"),
+      numeric: true,
+      sortValue: (row) => row.rent,
+      cell: (row) => <MoneyText value={row.rent} />,
+    },
+    {
+      key: "start",
+      header: t("contracts.columns.start"),
+      sortValue: (row) => row.start ?? "",
+      cell: (row) => (
+        <span className="numeric">{row.start ? formatMexicoDate(row.start) : "—"}</span>
+      ),
+    },
+    {
+      key: "end",
+      header: t("contracts.columns.end"),
+      sortValue: (row) => row.end ?? "",
+      cell: (row) => <span className="numeric">{row.end ? formatMexicoDate(row.end) : "—"}</span>,
+    },
+    {
+      key: "unitStatus",
+      header: t("units.columns.status"),
+      sortValue: (row) => row.unitStatus,
+      cell: (row) => <UnitStatusBadge value={row.unitStatus} />,
+    },
+    {
+      key: "leaseStatus",
+      header: t("contracts.columns.status"),
+      sortValue: (row) => row.leaseStatus ?? "",
+      cell: (row) =>
+        row.leaseStatus ? (
+          <LeaseStatusBadge value={row.leaseStatus} />
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
   ];
 
   const agingColumns: DataTableColumn<AgingRow>[] = [
-    { key: "tenant", header: t("contracts.columns.tenant"), sortValue: (row) => row.tenant, cell: (row) => row.tenant },
-    { key: "unit", header: t("units.columns.unit"), sortValue: (row) => row.unitNumber, cell: (row) => row.unitNumber },
-    { key: "days", header: t("reports.daysOverdue"), numeric: true, sortValue: (row) => row.days, cell: (row) => row.days },
-    { key: "bucket", header: t("reports.bucket"), sortValue: (row) => row.bucket,
-      cell: (row) => t(`reports.buckets.${row.bucket}`) },
-    { key: "amount", header: t("payments.columns.amount"), numeric: true, sortValue: (row) => row.amount,
-      cell: (row) => <MoneyText value={row.amount} className="text-danger" /> },
+    {
+      key: "tenant",
+      header: t("contracts.columns.tenant"),
+      sortValue: (row) => row.tenant,
+      cell: (row) => row.tenant,
+    },
+    {
+      key: "unit",
+      header: t("units.columns.unit"),
+      sortValue: (row) => row.unitNumber,
+      cell: (row) => row.unitNumber,
+    },
+    {
+      key: "days",
+      header: t("reports.daysOverdue"),
+      numeric: true,
+      sortValue: (row) => row.days,
+      cell: (row) => row.days,
+    },
+    {
+      key: "bucket",
+      header: t("reports.bucket"),
+      sortValue: (row) => row.bucket,
+      cell: (row) => t(`reports.buckets.${row.bucket}`),
+    },
+    {
+      key: "amount",
+      header: t("payments.columns.amount"),
+      numeric: true,
+      sortValue: (row) => row.amount,
+      cell: (row) => <MoneyText value={row.amount} className="text-danger" />,
+    },
   ];
 
   const incomeColumns: DataTableColumn<(typeof monthlyIncome)[number]>[] = [
-    { key: "period", header: t("receipts.columns.period"), sortValue: (row) => row.period,
-      cell: (row) => <span className="numeric">{formatPeriod(row.period, i18nInstance.language)}</span> },
-    { key: "invoiced", header: t("dashboard.invoiced"), numeric: true, sortValue: (row) => row.invoiced,
-      cell: (row) => <MoneyText value={row.invoiced} /> },
-    { key: "collected", header: t("dashboard.collected"), numeric: true, sortValue: (row) => row.collected,
-      cell: (row) => <MoneyText value={row.collected} /> },
-    { key: "rate", header: t("reports.collectionRate"), numeric: true,
+    {
+      key: "period",
+      header: t("receipts.columns.period"),
+      sortValue: (row) => row.period,
+      cell: (row) => (
+        <span className="numeric">{formatPeriod(row.period, i18nInstance.language)}</span>
+      ),
+    },
+    {
+      key: "invoiced",
+      header: t("dashboard.invoiced"),
+      numeric: true,
+      sortValue: (row) => row.invoiced,
+      cell: (row) => <MoneyText value={row.invoiced} />,
+    },
+    {
+      key: "collected",
+      header: t("dashboard.collected"),
+      numeric: true,
+      sortValue: (row) => row.collected,
+      cell: (row) => <MoneyText value={row.collected} />,
+    },
+    {
+      key: "rate",
+      header: t("reports.collectionRate"),
+      numeric: true,
       sortValue: (row) => (row.invoiced > 0 ? row.collected / row.invoiced : 0),
-      cell: (row) => <span className="numeric">{row.invoiced > 0 ? `${Math.round((row.collected / row.invoiced) * 100)}%` : "—"}</span> },
+      cell: (row) => (
+        <span className="numeric">
+          {row.invoiced > 0 ? `${Math.round((row.collected / row.invoiced) * 100)}%` : "—"}
+        </span>
+      ),
+    },
   ];
 
   const vacancyColumns: DataTableColumn<(typeof vacancies)[number]>[] = [
-    { key: "unit", header: t("units.columns.unit"), sortValue: (row) => row.unitNumber,
-      cell: (row) => <span className="font-medium">{row.unitNumber}</span> },
-    { key: "property", header: t("units.columns.property"), sortValue: (row) => row.propertyName, cell: (row) => row.propertyName },
-    { key: "rent", header: t("units.columns.baseRent"), numeric: true, sortValue: (row) => row.baseRent,
-      cell: (row) => <MoneyText value={row.baseRent} /> },
-    { key: "since", header: t("reports.vacantSince"), sortValue: (row) => row.since ?? "",
-      cell: (row) => <span className="numeric">{row.since ? formatMexicoDate(row.since) : "—"}</span> },
-    { key: "days", header: t("reports.daysVacant"), numeric: true, sortValue: (row) => row.days ?? 0,
-      cell: (row) => row.days ?? "—" },
+    {
+      key: "unit",
+      header: t("units.columns.unit"),
+      sortValue: (row) => row.unitNumber,
+      cell: (row) => <span className="font-medium">{row.unitNumber}</span>,
+    },
+    {
+      key: "property",
+      header: t("units.columns.property"),
+      sortValue: (row) => row.propertyName,
+      cell: (row) => row.propertyName,
+    },
+    {
+      key: "rent",
+      header: t("units.columns.baseRent"),
+      numeric: true,
+      sortValue: (row) => row.baseRent,
+      cell: (row) => <MoneyText value={row.baseRent} />,
+    },
+    {
+      key: "since",
+      header: t("reports.vacantSince"),
+      sortValue: (row) => row.since ?? "",
+      cell: (row) => (
+        <span className="numeric">{row.since ? formatMexicoDate(row.since) : "—"}</span>
+      ),
+    },
+    {
+      key: "days",
+      header: t("reports.daysVacant"),
+      numeric: true,
+      sortValue: (row) => row.days ?? 0,
+      cell: (row) => row.days ?? "—",
+    },
   ];
 
   const exporters = {
-    rentRoll: () => downloadCsv(`rent-roll-${todayIso()}`,
-      [t("units.columns.unit"), t("units.columns.property"), t("contracts.columns.tenant"),
-       t("contracts.columns.rent"), t("contracts.columns.start"), t("contracts.columns.end"),
-       t("units.columns.status")],
-      rentRoll.map((row) => [row.unitNumber, row.propertyName, row.tenant, row.rent, row.start ?? "", row.end ?? "", t(`unitStatus.${row.unitStatus}`)])),
-    aging: () => downloadCsv(`morosidad-${todayIso()}`,
-      [t("contracts.columns.tenant"), t("units.columns.unit"), t("reports.daysOverdue"), t("reports.bucket"), t("payments.columns.amount")],
-      aging.map((row) => [row.tenant, row.unitNumber, row.days, t(`reports.buckets.${row.bucket}`), row.amount])),
-    income: () => downloadCsv(`ingresos-${todayIso()}`,
-      [t("receipts.columns.period"), t("dashboard.invoiced"), t("dashboard.collected")],
-      monthlyIncome.map((row) => [row.period, row.invoiced, row.collected])),
-    occupancy: () => downloadCsv(`ocupacion-${todayIso()}`,
-      [t("units.columns.unit"), t("units.columns.property"), t("units.columns.baseRent"), t("reports.vacantSince"), t("reports.daysVacant")],
-      vacancies.map((row) => [row.unitNumber, row.propertyName, row.baseRent, row.since ?? "", row.days ?? ""])),
+    rentRoll: () =>
+      downloadCsv(
+        `rent-roll-${todayIso()}`,
+        [
+          t("units.columns.unit"),
+          t("units.columns.property"),
+          t("contracts.columns.tenant"),
+          t("contracts.columns.rent"),
+          t("contracts.columns.start"),
+          t("contracts.columns.end"),
+          t("units.columns.status"),
+        ],
+        rentRoll.map((row) => [
+          row.unitNumber,
+          row.propertyName,
+          row.tenant,
+          row.rent,
+          row.start ?? "",
+          row.end ?? "",
+          t(`unitStatus.${row.unitStatus}`),
+        ]),
+      ),
+    aging: () =>
+      downloadCsv(
+        `morosidad-${todayIso()}`,
+        [
+          t("contracts.columns.tenant"),
+          t("units.columns.unit"),
+          t("reports.daysOverdue"),
+          t("reports.bucket"),
+          t("payments.columns.amount"),
+        ],
+        aging.map((row) => [
+          row.tenant,
+          row.unitNumber,
+          row.days,
+          t(`reports.buckets.${row.bucket}`),
+          row.amount,
+        ]),
+      ),
+    income: () =>
+      downloadCsv(
+        `ingresos-${todayIso()}`,
+        [t("receipts.columns.period"), t("dashboard.invoiced"), t("dashboard.collected")],
+        monthlyIncome.map((row) => [row.period, row.invoiced, row.collected]),
+      ),
+    occupancy: () =>
+      downloadCsv(
+        `ocupacion-${todayIso()}`,
+        [
+          t("units.columns.unit"),
+          t("units.columns.property"),
+          t("units.columns.baseRent"),
+          t("reports.vacantSince"),
+          t("reports.daysVacant"),
+        ],
+        vacancies.map((row) => [
+          row.unitNumber,
+          row.propertyName,
+          row.baseRent,
+          row.since ?? "",
+          row.days ?? "",
+        ]),
+      ),
   };
 
   const ExportButton = ({ onClick, disabled }: { onClick: () => void; disabled: boolean }) => (
     <Button variant="outline" onClick={onClick} disabled={disabled}>
-      <Download className="size-4" />{t("actions.export")}
+      <Download className="size-4" />
+      {t("actions.export")}
     </Button>
   );
 
@@ -255,11 +472,15 @@ function ReportsPage() {
         description={t("pages.reports.description")}
         actions={
           <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-            <SelectTrigger className="w-56" aria-label={t("units.filters.property")}><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-56" aria-label={t("units.filters.property")}>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>{t("units.filters.allProperties")}</SelectItem>
               {portfolio.data?.properties.map((property) => (
-                <SelectItem key={property.id} value={property.id}>{property.name}</SelectItem>
+                <SelectItem key={property.id} value={property.id}>
+                  {property.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -269,7 +490,10 @@ function ReportsPage() {
       <QueryState
         isLoading={portfolio.isLoading}
         error={portfolio.error ?? income.error}
-        onRetry={() => { void portfolio.refetch(); void income.refetch(); }}
+        onRetry={() => {
+          void portfolio.refetch();
+          void income.refetch();
+        }}
         skeleton={<RowsSkeleton count={8} />}
       >
         <Tabs defaultValue="rent-roll">
@@ -284,42 +508,74 @@ function ReportsPage() {
             <div className="flex justify-end">
               <ExportButton onClick={exporters.rentRoll} disabled={rentRoll.length === 0} />
             </div>
-            <DataTable columns={rentRollColumns} data={rentRoll} getRowId={(row) => `${row.propertyName}-${row.unitNumber}`}
-              searchValue={(row) => `${row.unitNumber} ${row.propertyName} ${row.tenant}`} pageSize={20} />
+            <DataTable
+              columns={rentRollColumns}
+              data={rentRoll}
+              getRowId={(row) => `${row.propertyName}-${row.unitNumber}`}
+              searchValue={(row) => `${row.unitNumber} ${row.propertyName} ${row.tenant}`}
+              pageSize={20}
+            />
           </TabsContent>
 
           <TabsContent value="aging" className="mt-4 space-y-3">
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {bucketTotals.map((entry) => (
-                <div key={entry.bucket} className="rounded-lg border border-border bg-surface p-4 shadow-subtle">
-                  <p className="text-xs font-medium text-muted-foreground">{t(`reports.buckets.${entry.bucket}`)}</p>
-                  <p className="numeric mt-1 text-xl font-semibold text-danger">{formatMXN(entry.total)}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{t("reports.leaseCount", { count: entry.count })}</p>
+                <div
+                  key={entry.bucket}
+                  className="rounded-lg border border-border bg-surface p-4 shadow-subtle"
+                >
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t(`reports.buckets.${entry.bucket}`)}
+                  </p>
+                  <p className="numeric mt-1 text-xl font-semibold text-danger">
+                    {formatMXN(entry.total)}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {t("reports.leaseCount", { count: entry.count })}
+                  </p>
                 </div>
               ))}
             </div>
             <div className="flex justify-end">
               <ExportButton onClick={exporters.aging} disabled={aging.length === 0} />
             </div>
-            <DataTable columns={agingColumns} data={aging} getRowId={(row) => `${row.unitNumber}-${row.tenant}`}
-              searchValue={(row) => `${row.tenant} ${row.unitNumber}`} pageSize={20} />
+            <DataTable
+              columns={agingColumns}
+              data={aging}
+              getRowId={(row) => `${row.unitNumber}-${row.tenant}`}
+              searchValue={(row) => `${row.tenant} ${row.unitNumber}`}
+              pageSize={20}
+            />
           </TabsContent>
 
           <TabsContent value="income" className="mt-4 space-y-3">
             <div className="flex justify-end">
               <ExportButton onClick={exporters.income} disabled={monthlyIncome.length === 0} />
             </div>
-            <DataTable columns={incomeColumns} data={monthlyIncome} getRowId={(row) => row.period} pageSize={12} />
+            <DataTable
+              columns={incomeColumns}
+              data={monthlyIncome}
+              getRowId={(row) => row.period}
+              pageSize={12}
+            />
           </TabsContent>
 
           <TabsContent value="occupancy" className="mt-4 space-y-3">
             <div className="grid gap-4 sm:grid-cols-3">
-              {([
-                ["dashboard.kpi.occupancy", `${Math.round(occupancyStats.rate * 100)}%`],
-                ["properties.stats.occupied", `${occupancyStats.occupied} / ${occupancyStats.total}`],
-                ["reports.vacantUnits", String(occupancyStats.vacant)],
-              ] as const).map(([key, value]) => (
-                <div key={key} className="rounded-lg border border-border bg-surface p-4 shadow-subtle">
+              {(
+                [
+                  ["dashboard.kpi.occupancy", `${Math.round(occupancyStats.rate * 100)}%`],
+                  [
+                    "properties.stats.occupied",
+                    `${occupancyStats.occupied} / ${occupancyStats.total}`,
+                  ],
+                  ["reports.vacantUnits", String(occupancyStats.vacant)],
+                ] as const
+              ).map(([key, value]) => (
+                <div
+                  key={key}
+                  className="rounded-lg border border-border bg-surface p-4 shadow-subtle"
+                >
                   <p className="text-xs font-medium text-muted-foreground">{t(key)}</p>
                   <p className="numeric mt-1 text-xl font-semibold">{value}</p>
                 </div>
@@ -328,8 +584,13 @@ function ReportsPage() {
             <div className="flex justify-end">
               <ExportButton onClick={exporters.occupancy} disabled={vacancies.length === 0} />
             </div>
-            <DataTable columns={vacancyColumns} data={vacancies} getRowId={(row) => `${row.propertyName}-${row.unitNumber}`}
-              searchValue={(row) => `${row.unitNumber} ${row.propertyName}`} pageSize={20} />
+            <DataTable
+              columns={vacancyColumns}
+              data={vacancies}
+              getRowId={(row) => `${row.propertyName}-${row.unitNumber}`}
+              searchValue={(row) => `${row.unitNumber} ${row.propertyName}`}
+              pageSize={20}
+            />
           </TabsContent>
         </Tabs>
       </QueryState>

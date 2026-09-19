@@ -30,7 +30,12 @@ function PortalProfile() {
   const { signOut } = useAuth();
   const tenant = useMyTenant();
 
-  const [form, setForm] = useState({ phone: "", email: "", emergency_contact_name: "", emergency_contact_phone: "" });
+  const [form, setForm] = useState({
+    phone: "",
+    email: "",
+    emergency_contact_name: "",
+    emergency_contact_phone: "",
+  });
   const [password, setPassword] = useState({ next: "", confirm: "" });
   const [error, setError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -57,12 +62,15 @@ function PortalProfile() {
   const save = useToastMutation({
     mutationFn: async () => {
       if (!tenant.data) throw new Error("no-tenant");
-      const { error: caught } = await supabase.from("tenants").update({
-        phone: form.phone.trim() || null,
-        email: form.email.trim() || null,
-        emergency_contact_name: form.emergency_contact_name.trim() || null,
-        emergency_contact_phone: form.emergency_contact_phone.trim() || null,
-      }).eq("id", tenant.data.id);
+      const { error: caught } = await supabase
+        .from("tenants")
+        .update({
+          phone: form.phone.trim() || null,
+          email: form.email.trim() || null,
+          emergency_contact_name: form.emergency_contact_name.trim() || null,
+          emergency_contact_phone: form.emergency_contact_phone.trim() || null,
+        })
+        .eq("id", tenant.data.id);
       if (caught) throw caught;
     },
     successKey: "portal.profileSaved",
@@ -103,7 +111,12 @@ function PortalProfile() {
         isEmpty={!tenant.data && !tenant.isLoading}
         onRetry={() => void tenant.refetch()}
         skeleton={<RowsSkeleton count={4} />}
-        empty={<EmptyState message={t("tenants.notFound")} description={t("portal.noLeaseDescription")} />}
+        empty={
+          <EmptyState
+            message={t("tenants.notFound")}
+            description={t("portal.noLeaseDescription")}
+          />
+        }
       >
         <form
           className="space-y-4 rounded-lg border border-border bg-surface p-5"
@@ -119,25 +132,53 @@ function PortalProfile() {
         >
           <h2 className="text-base font-semibold">{t("tenants.contactTitle")}</h2>
           <Field label={t("tenants.fields.phone")} htmlFor="profile-phone">
-            <Input id="profile-phone" inputMode="tel" className="numeric h-12" value={form.phone}
-              onChange={(event) => setForm({ ...form, phone: event.target.value })} />
+            <Input
+              id="profile-phone"
+              inputMode="tel"
+              className="numeric h-12"
+              value={form.phone}
+              onChange={(event) => setForm({ ...form, phone: event.target.value })}
+            />
           </Field>
           <Field label={t("tenants.fields.email")} htmlFor="profile-email">
-            <Input id="profile-email" type="email" className="h-12" value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })} />
+            <Input
+              id="profile-email"
+              type="email"
+              className="h-12"
+              value={form.email}
+              onChange={(event) => setForm({ ...form, email: event.target.value })}
+            />
           </Field>
           <Field label={t("tenants.fields.emergencyName")} htmlFor="profile-ename">
-            <Input id="profile-ename" className="h-12" value={form.emergency_contact_name}
-              onChange={(event) => setForm({ ...form, emergency_contact_name: event.target.value })} />
+            <Input
+              id="profile-ename"
+              className="h-12"
+              value={form.emergency_contact_name}
+              onChange={(event) => setForm({ ...form, emergency_contact_name: event.target.value })}
+            />
           </Field>
           <Field label={t("tenants.fields.emergencyPhone")} htmlFor="profile-ephone">
-            <Input id="profile-ephone" inputMode="tel" className="numeric h-12" value={form.emergency_contact_phone}
-              onChange={(event) => setForm({ ...form, emergency_contact_phone: event.target.value })} />
+            <Input
+              id="profile-ephone"
+              inputMode="tel"
+              className="numeric h-12"
+              value={form.emergency_contact_phone}
+              onChange={(event) =>
+                setForm({ ...form, emergency_contact_phone: event.target.value })
+              }
+            />
           </Field>
           {error ? (
-            <p role="alert" className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
+            <p
+              role="alert"
+              className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+            >
+              {error}
+            </p>
           ) : null}
-          <Button type="submit" className="h-12 w-full" disabled={save.isPending}>{t("actions.save")}</Button>
+          <Button type="submit" className="h-12 w-full" disabled={save.isPending}>
+            {t("actions.save")}
+          </Button>
         </form>
 
         <form
@@ -149,23 +190,46 @@ function PortalProfile() {
             if (password.next.length < MIN_PASSWORD) {
               return setPasswordError(t("auth.errors.passwordTooShort", { min: MIN_PASSWORD }));
             }
-            if (password.next !== password.confirm) return setPasswordError(t("auth.errors.passwordMismatch"));
+            if (password.next !== password.confirm)
+              return setPasswordError(t("auth.errors.passwordMismatch"));
             changePassword.mutate(undefined);
           }}
         >
           <h2 className="text-base font-semibold">{t("portal.changePassword")}</h2>
           <Field label={t("auth.newPassword")} htmlFor="profile-password">
-            <Input id="profile-password" type="password" autoComplete="new-password" className="h-12" value={password.next}
-              onChange={(event) => setPassword({ ...password, next: event.target.value })} />
+            <Input
+              id="profile-password"
+              type="password"
+              autoComplete="new-password"
+              className="h-12"
+              value={password.next}
+              onChange={(event) => setPassword({ ...password, next: event.target.value })}
+            />
           </Field>
           <Field label={t("auth.confirmPassword")} htmlFor="profile-confirm">
-            <Input id="profile-confirm" type="password" autoComplete="new-password" className="h-12" value={password.confirm}
-              onChange={(event) => setPassword({ ...password, confirm: event.target.value })} />
+            <Input
+              id="profile-confirm"
+              type="password"
+              autoComplete="new-password"
+              className="h-12"
+              value={password.confirm}
+              onChange={(event) => setPassword({ ...password, confirm: event.target.value })}
+            />
           </Field>
           {passwordError ? (
-            <p role="alert" className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger">{passwordError}</p>
+            <p
+              role="alert"
+              className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+            >
+              {passwordError}
+            </p>
           ) : null}
-          <Button type="submit" variant="outline" className="h-12 w-full" disabled={changePassword.isPending}>
+          <Button
+            type="submit"
+            variant="outline"
+            className="h-12 w-full"
+            disabled={changePassword.isPending}
+          >
             {t("auth.savePassword")}
           </Button>
         </form>
@@ -182,10 +246,12 @@ function PortalProfile() {
                   type="button"
                   onClick={() => setLanguage(language)}
                   aria-pressed={i18nInstance.language === language}
-                  className={cn("h-12 rounded-lg border text-sm font-medium",
+                  className={cn(
+                    "h-12 rounded-lg border text-sm font-medium",
                     i18nInstance.language === language
                       ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-surface hover:bg-muted")}
+                      : "border-border bg-surface hover:bg-muted",
+                  )}
                 >
                   {language === "es-MX" ? "Español" : "English"}
                 </button>
@@ -208,7 +274,8 @@ function PortalProfile() {
               .catch((caught) => toast.error(t(describeError(caught))));
           }}
         >
-          <LogOut className="size-4" />{t("actions.signOut")}
+          <LogOut className="size-4" />
+          {t("actions.signOut")}
         </Button>
       </QueryState>
     </div>

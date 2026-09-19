@@ -40,7 +40,7 @@ export function periodKey(date: Date) {
 
 export function shiftPeriod(period: string, months: number) {
   const [year, month] = period.split("-").map(Number);
-  const date = new Date(year!, (month! - 1) + months, 1);
+  const date = new Date(year!, month! - 1 + months, 1);
   return periodKey(date);
 }
 
@@ -87,7 +87,11 @@ interface PlanInput {
  * on its unit for that month.
  */
 export function planMonthlyInvoices({
-  portfolio, period, invoicedLeaseIds, pendingUtilities, labels,
+  portfolio,
+  period,
+  invoicedLeaseIds,
+  pendingUtilities,
+  labels,
 }: PlanInput): GenerationPlan {
   const contexts = leaseContexts(portfolio).filter((context) => isActive(context.lease));
 

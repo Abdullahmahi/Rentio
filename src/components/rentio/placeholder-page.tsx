@@ -7,7 +7,10 @@ export function PlaceholderPage({ pageKey, icon }: { pageKey: string; icon: Luci
   const { t } = useTranslation();
   return (
     <div className="space-y-6">
-      <PageHeader title={t(`pages.${pageKey}.title`)} description={t(`pages.${pageKey}.description`)} />
+      <PageHeader
+        title={t(`pages.${pageKey}.title`)}
+        description={t(`pages.${pageKey}.description`)}
+      />
       <EmptyState icon={icon} />
     </div>
   );

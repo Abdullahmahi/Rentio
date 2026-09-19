@@ -11,7 +11,11 @@ import { EmptyState } from "@/components/rentio/empty-state";
 import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
-import { LeaseStatusBadge, PaymentStatusBadge, WorkOrderStatusBadge } from "@/components/rentio/status";
+import {
+  LeaseStatusBadge,
+  PaymentStatusBadge,
+  WorkOrderStatusBadge,
+} from "@/components/rentio/status";
 import { formatMexicoDate } from "@/lib/format";
 import { isActive, leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
@@ -42,7 +46,9 @@ function TenantDetailPage() {
   const leases = useMemo(() => {
     if (!portfolio.data) return [];
     const mine = new Set(
-      portfolio.data.leaseTenants.filter((link) => link.tenant_id === id).map((link) => link.lease_id),
+      portfolio.data.leaseTenants
+        .filter((link) => link.tenant_id === id)
+        .map((link) => link.lease_id),
     );
     return leaseContexts(portfolio.data).filter((context) => mine.has(context.lease.id));
   }, [portfolio.data, id]);
@@ -55,7 +61,10 @@ function TenantDetailPage() {
     queryKey: ["tenant-profile", id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles").select("id, created_at, role").eq("tenant_id", id).maybeSingle();
+        .from("profiles")
+        .select("id, created_at, role")
+        .eq("tenant_id", id)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -66,7 +75,9 @@ function TenantDetailPage() {
     enabled: leaseIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("payments").select("*").in("lease_id", leaseIds)
+        .from("payments")
+        .select("*")
+        .in("lease_id", leaseIds)
         .order("paid_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -78,7 +89,9 @@ function TenantDetailPage() {
     enabled: leaseIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("work_orders").select("*").in("lease_id", leaseIds)
+        .from("work_orders")
+        .select("*")
+        .in("lease_id", leaseIds)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -101,34 +114,76 @@ function TenantDetailPage() {
   });
 
   const paymentColumns: DataTableColumn<Tables<"payments">>[] = [
-    { key: "date", header: t("payments.columns.date"), sortValue: (row) => row.paid_at,
-      cell: (row) => formatMexicoDate(row.paid_at) },
-    { key: "amount", header: t("payments.columns.amount"), numeric: true, sortValue: (row) => Number(row.amount),
-      cell: (row) => <MoneyText value={Number(row.amount)} /> },
-    { key: "method", header: t("payments.columns.method"), sortValue: (row) => row.method,
-      cell: (row) => t(`paymentMethod.${row.method}`) },
-    { key: "reference", header: t("payments.columns.reference"), sortValue: (row) => row.reference ?? "",
-      cell: (row) => <span className="numeric">{row.reference ?? "—"}</span> },
-    { key: "status", header: t("payments.columns.status"), sortValue: (row) => row.status,
-      cell: (row) => <PaymentStatusBadge value={row.status} /> },
+    {
+      key: "date",
+      header: t("payments.columns.date"),
+      sortValue: (row) => row.paid_at,
+      cell: (row) => formatMexicoDate(row.paid_at),
+    },
+    {
+      key: "amount",
+      header: t("payments.columns.amount"),
+      numeric: true,
+      sortValue: (row) => Number(row.amount),
+      cell: (row) => <MoneyText value={Number(row.amount)} />,
+    },
+    {
+      key: "method",
+      header: t("payments.columns.method"),
+      sortValue: (row) => row.method,
+      cell: (row) => t(`paymentMethod.${row.method}`),
+    },
+    {
+      key: "reference",
+      header: t("payments.columns.reference"),
+      sortValue: (row) => row.reference ?? "",
+      cell: (row) => <span className="numeric">{row.reference ?? "—"}</span>,
+    },
+    {
+      key: "status",
+      header: t("payments.columns.status"),
+      sortValue: (row) => row.status,
+      cell: (row) => <PaymentStatusBadge value={row.status} />,
+    },
   ];
 
   const woColumns: DataTableColumn<Tables<"work_orders">>[] = [
-    { key: "folio", header: t("maintenance.columns.folio"), sortValue: (row) => row.folio ?? "",
-      cell: (row) => <span className="font-medium">{row.folio ?? "—"}</span> },
-    { key: "title", header: t("maintenance.columns.title"), sortValue: (row) => row.title, cell: (row) => row.title },
-    { key: "status", header: t("maintenance.columns.status"), sortValue: (row) => row.status,
-      cell: (row) => <WorkOrderStatusBadge value={row.status} /> },
-    { key: "created", header: t("maintenance.columns.created"), sortValue: (row) => row.created_at,
-      cell: (row) => formatMexicoDate(row.created_at) },
+    {
+      key: "folio",
+      header: t("maintenance.columns.folio"),
+      sortValue: (row) => row.folio ?? "",
+      cell: (row) => <span className="font-medium">{row.folio ?? "—"}</span>,
+    },
+    {
+      key: "title",
+      header: t("maintenance.columns.title"),
+      sortValue: (row) => row.title,
+      cell: (row) => row.title,
+    },
+    {
+      key: "status",
+      header: t("maintenance.columns.status"),
+      sortValue: (row) => row.status,
+      cell: (row) => <WorkOrderStatusBadge value={row.status} />,
+    },
+    {
+      key: "created",
+      header: t("maintenance.columns.created"),
+      sortValue: (row) => row.created_at,
+      cell: (row) => formatMexicoDate(row.created_at),
+    },
   ];
 
   const balance = Number(currentLease?.balance?.balance ?? 0);
 
   return (
     <div className="space-y-6">
-      <Link to="/app/tenants" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" />{t("tenants.backToList")}
+      <Link
+        to="/app/tenants"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        {t("tenants.backToList")}
       </Link>
 
       <QueryState
@@ -137,7 +192,13 @@ function TenantDetailPage() {
         isEmpty={!tenant && !portfolio.isLoading}
         onRetry={() => void portfolio.refetch()}
         skeleton={<RowsSkeleton count={4} />}
-        empty={<EmptyState icon={Users} message={t("tenants.notFound")} description={t("tenants.notFoundDescription")} />}
+        empty={
+          <EmptyState
+            icon={Users}
+            message={t("tenants.notFound")}
+            description={t("tenants.notFoundDescription")}
+          />
+        }
       >
         {tenant ? (
           <>
@@ -148,21 +209,29 @@ function TenantDetailPage() {
                 portalProfile.data ? (
                   <span className="inline-flex items-center gap-2 rounded-lg border border-success/25 bg-success/10 px-3 py-2 text-sm font-medium text-success">
                     <CheckCircle2 className="size-4" />
-                    {t("tenants.portalActiveSince", { date: formatMexicoDate(portalProfile.data.created_at) })}
+                    {t("tenants.portalActiveSince", {
+                      date: formatMexicoDate(portalProfile.data.created_at),
+                    })}
                   </span>
                 ) : (
                   <div className="text-right">
                     <Button
                       onClick={() => {
                         setInviteError(null);
-                        if (!tenant.email) return setInviteError(t("tenants.errors.emailRequiredForInvite"));
+                        if (!tenant.email)
+                          return setInviteError(t("tenants.errors.emailRequiredForInvite"));
                         invite.mutate(undefined);
                       }}
                       disabled={invite.isPending}
                     >
-                      <Mail className="size-4" />{t("tenants.invite")}
+                      <Mail className="size-4" />
+                      {t("tenants.invite")}
                     </Button>
-                    {inviteError ? <p role="alert" className="mt-1.5 text-xs text-danger">{inviteError}</p> : null}
+                    {inviteError ? (
+                      <p role="alert" className="mt-1.5 text-xs text-danger">
+                        {inviteError}
+                      </p>
+                    ) : null}
                   </div>
                 )
               }
@@ -182,23 +251,36 @@ function TenantDetailPage() {
                     <h2 className="text-base font-semibold">{t("tenants.contactTitle")}</h2>
                     <dl className="mt-3">
                       <Row label={t("tenants.fields.email")}>{tenant.email ?? "—"}</Row>
-                      <Row label={t("tenants.fields.phone")}><span className="numeric">{tenant.phone ?? "—"}</span></Row>
+                      <Row label={t("tenants.fields.phone")}>
+                        <span className="numeric">{tenant.phone ?? "—"}</span>
+                      </Row>
                       <Row label={t("tenants.fields.rfc")}>{tenant.rfc ?? "—"}</Row>
-                      <Row label={t("tenants.fields.emergencyName")}>{tenant.emergency_contact_name ?? "—"}</Row>
+                      <Row label={t("tenants.fields.emergencyName")}>
+                        {tenant.emergency_contact_name ?? "—"}
+                      </Row>
                       <Row label={t("tenants.fields.emergencyPhone")}>
                         <span className="numeric">{tenant.emergency_contact_phone ?? "—"}</span>
                       </Row>
-                      {tenant.notes ? <Row label={t("tenants.fields.notes")}>{tenant.notes}</Row> : null}
+                      {tenant.notes ? (
+                        <Row label={t("tenants.fields.notes")}>{tenant.notes}</Row>
+                      ) : null}
                     </dl>
                   </section>
 
                   <section className="space-y-4">
                     <div className="rounded-lg border border-border bg-surface p-5 shadow-subtle">
-                      <p className="text-xs font-medium text-muted-foreground">{t("contracts.columns.balance")}</p>
-                      <MoneyText value={balance} className={`mt-1 block text-2xl font-semibold ${balance > 0 ? "text-danger" : ""}`} />
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {t("contracts.columns.balance")}
+                      </p>
+                      <MoneyText
+                        value={balance}
+                        className={`mt-1 block text-2xl font-semibold ${balance > 0 ? "text-danger" : ""}`}
+                      />
                       {currentLease?.balance?.oldest_overdue_date ? (
                         <p className="mt-1 text-xs text-danger">
-                          {t("contracts.oldestOverdue", { date: formatMexicoDate(currentLease.balance.oldest_overdue_date) })}
+                          {t("contracts.oldestOverdue", {
+                            date: formatMexicoDate(currentLease.balance.oldest_overdue_date),
+                          })}
                         </p>
                       ) : null}
                     </div>
@@ -208,14 +290,28 @@ function TenantDetailPage() {
                       {currentLease ? (
                         <>
                           <dl className="mt-3">
-                            <Row label={t("units.columns.unit")}>{currentLease.unit?.unit_number ?? "—"}</Row>
-                            <Row label={t("units.columns.property")}>{currentLease.property?.name ?? "—"}</Row>
-                            <Row label={t("contracts.columns.rent")}><MoneyText value={Number(currentLease.lease.rent_amount)} /></Row>
-                            <Row label={t("contracts.columns.status")}><LeaseStatusBadge value={currentLease.lease.status} /></Row>
+                            <Row label={t("units.columns.unit")}>
+                              {currentLease.unit?.unit_number ?? "—"}
+                            </Row>
+                            <Row label={t("units.columns.property")}>
+                              {currentLease.property?.name ?? "—"}
+                            </Row>
+                            <Row label={t("contracts.columns.rent")}>
+                              <MoneyText value={Number(currentLease.lease.rent_amount)} />
+                            </Row>
+                            <Row label={t("contracts.columns.status")}>
+                              <LeaseStatusBadge value={currentLease.lease.status} />
+                            </Row>
                           </dl>
                           <Button
-                            className="mt-4" variant="outline"
-                            onClick={() => void navigate({ to: "/app/contracts/$id", params: { id: currentLease.lease.id } })}
+                            className="mt-4"
+                            variant="outline"
+                            onClick={() =>
+                              void navigate({
+                                to: "/app/contracts/$id",
+                                params: { id: currentLease.lease.id },
+                              })
+                            }
                           >
                             {t("units.openLease")}
                           </Button>
@@ -235,9 +331,18 @@ function TenantDetailPage() {
                   isEmpty={(payments.data?.length ?? 0) === 0}
                   onRetry={() => void payments.refetch()}
                   skeleton={<RowsSkeleton count={4} />}
-                  empty={<EmptyState message={t("payments.emptyTitle")} description={t("payments.emptyDescription")} />}
+                  empty={
+                    <EmptyState
+                      message={t("payments.emptyTitle")}
+                      description={t("payments.emptyDescription")}
+                    />
+                  }
                 >
-                  <DataTable columns={paymentColumns} data={payments.data ?? []} getRowId={(row) => row.id} />
+                  <DataTable
+                    columns={paymentColumns}
+                    data={payments.data ?? []}
+                    getRowId={(row) => row.id}
+                  />
                 </QueryState>
               </TabsContent>
 
@@ -248,11 +353,21 @@ function TenantDetailPage() {
                   isEmpty={(workOrders.data?.length ?? 0) === 0}
                   onRetry={() => void workOrders.refetch()}
                   skeleton={<RowsSkeleton count={4} />}
-                  empty={<EmptyState icon={Wrench} message={t("maintenance.emptyTitle")} description={t("maintenance.emptyDescription")} />}
+                  empty={
+                    <EmptyState
+                      icon={Wrench}
+                      message={t("maintenance.emptyTitle")}
+                      description={t("maintenance.emptyDescription")}
+                    />
+                  }
                 >
                   <DataTable
-                    columns={woColumns} data={workOrders.data ?? []} getRowId={(row) => row.id}
-                    onRowClick={(row) => void navigate({ to: "/app/maintenance/$id", params: { id: row.id } })}
+                    columns={woColumns}
+                    data={workOrders.data ?? []}
+                    getRowId={(row) => row.id}
+                    onRowClick={(row) =>
+                      void navigate({ to: "/app/maintenance/$id", params: { id: row.id } })
+                    }
                   />
                 </QueryState>
               </TabsContent>

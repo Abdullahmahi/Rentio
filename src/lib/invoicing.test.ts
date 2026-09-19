@@ -3,7 +3,13 @@
  * whole building, so its plan is pinned down here before anything is written.
  */
 import { expect, test } from "bun:test";
-import { allocateOldestFirst, dueDateFor, periodKey, planMonthlyInvoices, shiftPeriod } from "@/lib/invoicing";
+import {
+  allocateOldestFirst,
+  dueDateFor,
+  periodKey,
+  planMonthlyInvoices,
+  shiftPeriod,
+} from "@/lib/invoicing";
 import type { Portfolio } from "@/lib/queries";
 import type { Tables } from "@/lib/database.types";
 
@@ -25,10 +31,31 @@ function fixture(): Portfolio {
       { id: "e3", property_id: "p1", label: "E-03", lease_id: null, monthly_fee: 900 } as never,
     ],
     leases: [
-      { id: "l1", unit_id: "u1", status: "activo", rent_amount: 15000, rent_due_day: 1, end_date: "2027-01-31" } as never,
-      { id: "l2", unit_id: "u2", status: "activo", rent_amount: 9000, rent_due_day: 5, end_date: "2027-01-31" } as never,
+      {
+        id: "l1",
+        unit_id: "u1",
+        status: "activo",
+        rent_amount: 15000,
+        rent_due_day: 1,
+        end_date: "2027-01-31",
+      } as never,
+      {
+        id: "l2",
+        unit_id: "u2",
+        status: "activo",
+        rent_amount: 9000,
+        rent_due_day: 5,
+        end_date: "2027-01-31",
+      } as never,
       // Ended: must never be billed.
-      { id: "l3", unit_id: "u3", status: "terminado", rent_amount: 8000, rent_due_day: 1, end_date: "2026-05-31" } as never,
+      {
+        id: "l3",
+        unit_id: "u3",
+        status: "terminado",
+        rent_amount: 8000,
+        rent_due_day: 1,
+        end_date: "2026-05-31",
+      } as never,
     ],
     leaseTenants: [
       { id: "lt1", lease_id: "l1", tenant_id: "t1", role: "primary" } as never,
@@ -44,20 +71,36 @@ function fixture(): Portfolio {
   };
 }
 
-const utility = (over: Partial<Tables<"utility_charges">>): Tables<"utility_charges"> => ({
-  id: "uc1", unit_id: "u1", lease_id: "l1", type: "agua", period_month: PERIOD,
-  amount: 250, status: "pendiente", invoice_id: null, notes: null,
-  created_at: "", updated_at: null, ...over,
-} as Tables<"utility_charges">);
+const utility = (over: Partial<Tables<"utility_charges">>): Tables<"utility_charges"> =>
+  ({
+    id: "uc1",
+    unit_id: "u1",
+    lease_id: "l1",
+    type: "agua",
+    period_month: PERIOD,
+    amount: 250,
+    status: "pendiente",
+    invoice_id: null,
+    notes: null,
+    created_at: "",
+    updated_at: null,
+    ...over,
+  }) as Tables<"utility_charges">;
 
 test("bills rent plus every assigned parking space", () => {
   const plan = planMonthlyInvoices({
-    portfolio: fixture(), period: PERIOD, invoicedLeaseIds: new Set(), pendingUtilities: [], labels,
+    portfolio: fixture(),
+    period: PERIOD,
+    invoicedLeaseIds: new Set(),
+    pendingUtilities: [],
+    labels,
   });
 
   const first = plan.toCreate.find((invoice) => invoice.leaseId === "l1")!;
   expect(first.lines.map((line) => line.description)).toEqual([
-    "Renta mensual", "Estacionamiento E-01", "Estacionamiento E-02",
+    "Renta mensual",
+    "Estacionamiento E-01",
+    "Estacionamiento E-02",
   ]);
   expect(first.total).toBe(17000);
 
@@ -69,8 +112,11 @@ test("bills rent plus every assigned parking space", () => {
 
 test("skips leases already invoiced for the period instead of duplicating", () => {
   const plan = planMonthlyInvoices({
-    portfolio: fixture(), period: PERIOD,
-    invoicedLeaseIds: new Set(["l1"]), pendingUtilities: [], labels,
+    portfolio: fixture(),
+    period: PERIOD,
+    invoicedLeaseIds: new Set(["l1"]),
+    pendingUtilities: [],
+    labels,
   });
 
   expect(plan.toCreate.map((invoice) => invoice.leaseId)).toEqual(["l2"]);
@@ -82,7 +128,11 @@ test("skips leases already invoiced for the period instead of duplicating", () =
 
 test("never bills an inactive lease", () => {
   const plan = planMonthlyInvoices({
-    portfolio: fixture(), period: PERIOD, invoicedLeaseIds: new Set(), pendingUtilities: [], labels,
+    portfolio: fixture(),
+    period: PERIOD,
+    invoicedLeaseIds: new Set(),
+    pendingUtilities: [],
+    labels,
   });
   expect(plan.toCreate.map((invoice) => invoice.leaseId)).not.toContain("l3");
   expect(plan.toCreate).toHaveLength(2);
@@ -106,9 +156,15 @@ test("pulls in pending utility charges for the same unit and period only", () =>
 
   const first = plan.toCreate.find((invoice) => invoice.leaseId === "l1")!;
   expect(first.lines.map((line) => line.description)).toEqual([
-    "Renta mensual", "Estacionamiento E-01", "Estacionamiento E-02", "Agua", "Cuota de mantenimiento",
+    "Renta mensual",
+    "Estacionamiento E-01",
+    "Estacionamiento E-02",
+    "Agua",
+    "Cuota de mantenimiento",
   ]);
-  expect(first.lines.find((line) => line.description === "Cuota de mantenimiento")?.category).toBe("cuota_mantenimiento");
+  expect(first.lines.find((line) => line.description === "Cuota de mantenimiento")?.category).toBe(
+    "cuota_mantenimiento",
+  );
   expect(first.lines.find((line) => line.description === "Agua")?.category).toBe("servicios");
   expect(first.total).toBe(15000 + 1200 + 800 + 250 + 950);
 
@@ -126,7 +182,7 @@ test("dueDateFor clamps a day-31 lease to the end of a short month", () => {
   expect(dueDateFor("2026-09-01", 31)).toBe("2026-09-30"); // September has 30 days
   expect(dueDateFor("2026-02-01", 31)).toBe("2026-02-28");
   expect(dueDateFor("2028-02-01", 31)).toBe("2028-02-29"); // leap year
-  expect(dueDateFor("2026-01-01", 0)).toBe("2026-01-01");  // clamped up
+  expect(dueDateFor("2026-01-01", 0)).toBe("2026-01-01"); // clamped up
 });
 
 test("period helpers roll across year boundaries", () => {
@@ -145,12 +201,17 @@ test("allocateOldestFirst pays the oldest invoice first and reports the overflow
 
   // Exactly covers the oldest.
   expect(allocateOldestFirst(3000, open)).toEqual({
-    allocations: [{ invoiceId: "i1", amount: 3000 }], credit: 0,
+    allocations: [{ invoiceId: "i1", amount: 3000 }],
+    credit: 0,
   });
 
   // Spills into the next one.
   expect(allocateOldestFirst(6500, open)).toEqual({
-    allocations: [{ invoiceId: "i1", amount: 3000 }, { invoiceId: "i2", amount: 3500 }], credit: 0,
+    allocations: [
+      { invoiceId: "i1", amount: 3000 },
+      { invoiceId: "i2", amount: 3500 },
+    ],
+    credit: 0,
   });
 
   // More than everything owed -> saldo a favor.
@@ -167,8 +228,9 @@ test("allocateOldestFirst pays the oldest invoice first and reports the overflow
   expect(allocateOldestFirst(500, [])).toEqual({ allocations: [], credit: 500 });
 
   // Fully-paid invoices are not allocated against.
-  expect(allocateOldestFirst(100, [{ id: "z", invoiceNumber: null, dueDate: "2026-01-01", balance: 0 }]))
-    .toEqual({ allocations: [], credit: 100 });
+  expect(
+    allocateOldestFirst(100, [{ id: "z", invoiceNumber: null, dueDate: "2026-01-01", balance: 0 }]),
+  ).toEqual({ allocations: [], credit: 100 });
 });
 
 test("allocateOldestFirst splits centavos without drifting", () => {

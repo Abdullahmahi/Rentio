@@ -44,15 +44,42 @@ export function usePortfolio() {
   return useQuery({
     queryKey: qk.portfolio,
     queryFn: async (): Promise<Portfolio> => {
-      const [properties, units, parking, leases, leaseTenants, tenants, balances] = await Promise.all([
-        supabase.from("properties").select("*").order("name").then(unwrap<Tables<"properties">[]>),
-        supabase.from("units").select("*").order("unit_number").then(unwrap<Tables<"units">[]>),
-        supabase.from("parking_spaces").select("*").order("label").then(unwrap<Tables<"parking_spaces">[]>),
-        supabase.from("leases").select("*").order("created_at").then(unwrap<Tables<"leases">[]>),
-        supabase.from("lease_tenants").select("*").then(unwrap<Tables<"lease_tenants">[]>),
-        supabase.from("tenants").select("*").order("full_name").then(unwrap<Tables<"tenants">[]>),
-        supabase.from("lease_balances").select("*").then(unwrap<Views<"lease_balances">[]>),
-      ]);
+      const [properties, units, parking, leases, leaseTenants, tenants, balances] =
+        await Promise.all([
+          supabase
+            .from("properties")
+            .select("*")
+            .order("name")
+            .then(unwrap<Tables<"properties">[]>),
+          supabase
+            .from("units")
+            .select("*")
+            .order("unit_number")
+            .then(unwrap<Tables<"units">[]>),
+          supabase
+            .from("parking_spaces")
+            .select("*")
+            .order("label")
+            .then(unwrap<Tables<"parking_spaces">[]>),
+          supabase
+            .from("leases")
+            .select("*")
+            .order("created_at")
+            .then(unwrap<Tables<"leases">[]>),
+          supabase
+            .from("lease_tenants")
+            .select("*")
+            .then(unwrap<Tables<"lease_tenants">[]>),
+          supabase
+            .from("tenants")
+            .select("*")
+            .order("full_name")
+            .then(unwrap<Tables<"tenants">[]>),
+          supabase
+            .from("lease_balances")
+            .select("*")
+            .then(unwrap<Views<"lease_balances">[]>),
+        ]);
       return { properties, units, parking, leases, leaseTenants, tenants, balances };
     },
   });
@@ -74,7 +101,11 @@ export function usePublicSettings() {
   return useQuery({
     queryKey: ["public-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("public_settings").select("*").limit(1).maybeSingle();
+      const { data, error } = await supabase
+        .from("public_settings")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -90,7 +121,11 @@ export async function logActivity(
   meta: Record<string, unknown> = {},
 ) {
   const { error } = await supabase.from("activity_log").insert({
-    actor_id: actorId, entity_type: entityType, entity_id: entityId, action, meta: meta as never,
+    actor_id: actorId,
+    entity_type: entityType,
+    entity_id: entityId,
+    action,
+    meta: meta as never,
   });
   if (error) console.warn("activity_log insert failed", error);
 }
@@ -106,7 +141,10 @@ interface ToastMutationOptions<TVars, TData> {
 
 /** Every mutation ends in a toast — success or failure, never silence. */
 export function useToastMutation<TVars, TData>({
-  mutationFn, successKey, invalidate = [], onSuccess,
+  mutationFn,
+  successKey,
+  invalidate = [],
+  onSuccess,
 }: ToastMutationOptions<TVars, TData>) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -191,28 +229,73 @@ export function useMyPortal() {
   return useQuery({
     queryKey: ["my-portal"],
     queryFn: async (): Promise<MyPortal> => {
-      const leases = await supabase.from("leases").select("*").order("start_date", { ascending: false })
+      const leases = await supabase
+        .from("leases")
+        .select("*")
+        .order("start_date", { ascending: false })
         .then(unwrap<Tables<"leases">[]>);
-      const lease = leases.find((row) => row.status === "activo" || row.status === "por_vencer") ?? leases[0] ?? null;
+      const lease =
+        leases.find((row) => row.status === "activo" || row.status === "por_vencer") ??
+        leases[0] ??
+        null;
 
       if (!lease) {
-        return { lease: null, details: null, parking: [], balance: null, invoices: [], payments: [], workOrders: [] };
+        return {
+          lease: null,
+          details: null,
+          parking: [],
+          balance: null,
+          invoices: [],
+          payments: [],
+          workOrders: [],
+        };
       }
 
-      const [details, parking, balances, invoices, invoiceBalances, payments, workOrders] = await Promise.all([
-        supabase.from("my_lease_details").select("*").eq("lease_id", lease.id).then(unwrap<Views<"my_lease_details">[]>),
-        supabase.from("parking_spaces").select("*").eq("lease_id", lease.id).then(unwrap<Tables<"parking_spaces">[]>),
-        supabase.from("lease_balances").select("*").eq("lease_id", lease.id).then(unwrap<Views<"lease_balances">[]>),
-        supabase.from("invoices").select("*").eq("lease_id", lease.id)
-          .order("period_month", { ascending: false }).then(unwrap<Tables<"invoices">[]>),
-        supabase.from("invoice_balances").select("*").eq("lease_id", lease.id).then(unwrap<Views<"invoice_balances">[]>),
-        supabase.from("payments").select("*").eq("lease_id", lease.id)
-          .order("paid_at", { ascending: false }).then(unwrap<Tables<"payments">[]>),
-        supabase.from("work_orders").select("*").eq("lease_id", lease.id)
-          .order("created_at", { ascending: false }).then(unwrap<Tables<"work_orders">[]>),
-      ]);
+      const [details, parking, balances, invoices, invoiceBalances, payments, workOrders] =
+        await Promise.all([
+          supabase
+            .from("my_lease_details")
+            .select("*")
+            .eq("lease_id", lease.id)
+            .then(unwrap<Views<"my_lease_details">[]>),
+          supabase
+            .from("parking_spaces")
+            .select("*")
+            .eq("lease_id", lease.id)
+            .then(unwrap<Tables<"parking_spaces">[]>),
+          supabase
+            .from("lease_balances")
+            .select("*")
+            .eq("lease_id", lease.id)
+            .then(unwrap<Views<"lease_balances">[]>),
+          supabase
+            .from("invoices")
+            .select("*")
+            .eq("lease_id", lease.id)
+            .order("period_month", { ascending: false })
+            .then(unwrap<Tables<"invoices">[]>),
+          supabase
+            .from("invoice_balances")
+            .select("*")
+            .eq("lease_id", lease.id)
+            .then(unwrap<Views<"invoice_balances">[]>),
+          supabase
+            .from("payments")
+            .select("*")
+            .eq("lease_id", lease.id)
+            .order("paid_at", { ascending: false })
+            .then(unwrap<Tables<"payments">[]>),
+          supabase
+            .from("work_orders")
+            .select("*")
+            .eq("lease_id", lease.id)
+            .order("created_at", { ascending: false })
+            .then(unwrap<Tables<"work_orders">[]>),
+        ]);
 
-      const paidByInvoice = new Map(invoiceBalances.map((row) => [row.invoice_id, Number(row.paid ?? 0)]));
+      const paidByInvoice = new Map(
+        invoiceBalances.map((row) => [row.invoice_id, Number(row.paid ?? 0)]),
+      );
 
       return {
         lease,

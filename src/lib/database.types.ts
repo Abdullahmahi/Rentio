@@ -1,13 +1,7 @@
 // Generated from the Rentio schema — do not edit by hand.
 // Regenerate after a migration:  bun run db:types
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   public: {
@@ -804,33 +798,34 @@ export type Database = {
       next_invoice_number: { Args: Record<string, never>; Returns: string };
     };
     Enums: {
-      invoice_status: "borrador" | "enviado" | "pagado_parcial" | "pagado" | "vencido" | "cancelado";
+      invoice_status:
+        "borrador" | "enviado" | "pagado_parcial" | "pagado" | "vencido" | "cancelado";
       lease_status: "borrador" | "activo" | "por_vencer" | "terminado" | "rescindido";
       lease_tenant_role: "primary" | "co_tenant" | "guarantor";
-      line_category: "renta" | "estacionamiento" | "servicios" | "cuota_mantenimiento" | "recargo" | "otro";
+      line_category:
+        "renta" | "estacionamiento" | "servicios" | "cuota_mantenimiento" | "recargo" | "otro";
       payment_method: "spei" | "efectivo" | "deposito" | "oxxo" | "cheque" | "tarjeta";
       payment_status: "pendiente" | "confirmado" | "cancelado";
       unit_status: "vacante" | "ocupada" | "mantenimiento" | "reservada";
       user_role: "admin" | "manager" | "tenant";
       utility_status: "pendiente" | "facturado";
       utility_type: "agua" | "luz" | "gas" | "cuota_mantenimiento" | "otro";
-      wo_category: "plomeria" | "electricidad" | "cerrajeria" | "electrodomesticos" | "limpieza" | "otro";
+      wo_category:
+        "plomeria" | "electricidad" | "cerrajeria" | "electrodomesticos" | "limpieza" | "otro";
       wo_priority: "baja" | "media" | "alta" | "urgente";
       wo_source: "portal" | "whatsapp" | "telefono" | "personal";
-      wo_status: "nueva" | "asignada" | "en_progreso" | "esperando_refacciones" | "resuelta" | "cerrada";
+      wo_status:
+        "nueva" | "asignada" | "en_progreso" | "esperando_refacciones" | "resuelta" | "cerrada";
     };
     CompositeTypes: Record<string, never>;
   };
 };
 
 type PublicSchema = Database["public"];
-export type Tables<T extends keyof PublicSchema["Tables"]> =
-  PublicSchema["Tables"][T]["Row"];
+export type Tables<T extends keyof PublicSchema["Tables"]> = PublicSchema["Tables"][T]["Row"];
 export type TablesInsert<T extends keyof PublicSchema["Tables"]> =
   PublicSchema["Tables"][T]["Insert"];
 export type TablesUpdate<T extends keyof PublicSchema["Tables"]> =
   PublicSchema["Tables"][T]["Update"];
-export type Views<T extends keyof PublicSchema["Views"]> =
-  PublicSchema["Views"][T]["Row"];
-export type Enums<T extends keyof PublicSchema["Enums"]> =
-  PublicSchema["Enums"][T];
+export type Views<T extends keyof PublicSchema["Views"]> = PublicSchema["Views"][T]["Row"];
+export type Enums<T extends keyof PublicSchema["Enums"]> = PublicSchema["Enums"][T];

@@ -13,13 +13,23 @@ interface MoneyInputProps {
 }
 
 /** MXN amount field: $ prefix, thousands separators while idle, tabular digits. */
-export function MoneyInput({ value, onChange, id, className, placeholder = "0.00", disabled, ...rest }: MoneyInputProps) {
+export function MoneyInput({
+  value,
+  onChange,
+  id,
+  className,
+  placeholder = "0.00",
+  disabled,
+  ...rest
+}: MoneyInputProps) {
   const fallbackId = useId();
   const display = value === "" ? "" : String(value);
 
   return (
     <div className={cn("relative", className)}>
-      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+        $
+      </span>
       <Input
         id={id ?? fallbackId}
         inputMode="decimal"
@@ -35,7 +45,9 @@ export function MoneyInput({ value, onChange, id, className, placeholder = "0.00
           onChange(Number.isFinite(parsed) ? parsed : "");
         }}
       />
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">MXN</span>
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+        MXN
+      </span>
     </div>
   );
 }

@@ -10,7 +10,9 @@ export function BrandPanel({ icon: Icon }: { icon: LucideIcon }) {
         <Icon className="size-5" />
       </div>
       <div className="max-w-md">
-        <p className="text-2xl font-semibold leading-snug text-foreground">{t("auth.brandHeadline")}</p>
+        <p className="text-2xl font-semibold leading-snug text-foreground">
+          {t("auth.brandHeadline")}
+        </p>
         <p className="mt-3 text-sm text-muted-foreground">{t("auth.brandBody")}</p>
       </div>
       <p className="text-xs text-muted-foreground">{t("auth.brandFooter")}</p>

@@ -27,7 +27,10 @@ function PortalReceiptDetail() {
     queryKey: ["portal-invoice-lines", id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("invoice_lines").select("*").eq("invoice_id", id).order("created_at");
+        .from("invoice_lines")
+        .select("*")
+        .eq("invoice_id", id)
+        .order("created_at");
       if (error) throw error;
       return data;
     },
@@ -35,7 +38,9 @@ function PortalReceiptDetail() {
 
   const downloadPdf = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("generate-invoice-pdf", { body: { invoice_id: id } });
+      const { data, error } = await supabase.functions.invoke("generate-invoice-pdf", {
+        body: { invoice_id: id },
+      });
       if (error) throw error;
       const url = (data as { url?: string } | null)?.url;
       if (!url) throw new Error("no-url");
@@ -47,8 +52,12 @@ function PortalReceiptDetail() {
 
   return (
     <div className="space-y-5">
-      <Link to="/portal/receipts" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" />{t("receipts.backToList")}
+      <Link
+        to="/portal/receipts"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        {t("receipts.backToList")}
       </Link>
 
       <QueryState
@@ -57,7 +66,13 @@ function PortalReceiptDetail() {
         isEmpty={!invoice && !portal.isLoading}
         onRetry={() => void portal.refetch()}
         skeleton={<RowsSkeleton count={4} />}
-        empty={<EmptyState icon={ReceiptText} message={t("receipts.notFound")} description={t("receipts.notFoundDescription")} />}
+        empty={
+          <EmptyState
+            icon={ReceiptText}
+            message={t("receipts.notFound")}
+            description={t("receipts.notFoundDescription")}
+          />
+        }
       >
         {invoice ? (
           <>
@@ -70,21 +85,32 @@ function PortalReceiptDetail() {
             <section className="overflow-hidden rounded-lg border border-border bg-surface">
               <ul className="divide-y divide-border">
                 {lines.data?.map((line) => (
-                  <li key={line.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 px-4 py-3">
+                  <li
+                    key={line.id}
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 px-4 py-3"
+                  >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{line.description}</p>
-                      <p className="text-xs text-muted-foreground">{t(`lineCategory.${line.category}`)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t(`lineCategory.${line.category}`)}
+                      </p>
                     </div>
                     <MoneyText value={Number(line.amount) * Number(line.quantity)} />
                   </li>
                 ))}
               </ul>
               <dl className="space-y-1.5 border-t border-border bg-muted/40 px-4 py-3 text-sm">
-                {([
-                  ["receipts.columns.total", Number(invoice.total), ""],
-                  ["receipts.columns.paid", invoice.paid, "text-success"],
-                  ["receipts.columns.balance", invoice.balance, invoice.balance > 0.005 ? "text-danger" : ""],
-                ] as const).map(([key, value, tone]) => (
+                {(
+                  [
+                    ["receipts.columns.total", Number(invoice.total), ""],
+                    ["receipts.columns.paid", invoice.paid, "text-success"],
+                    [
+                      "receipts.columns.balance",
+                      invoice.balance,
+                      invoice.balance > 0.005 ? "text-danger" : "",
+                    ],
+                  ] as const
+                ).map(([key, value, tone]) => (
                   <div key={key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
                     <dt className="text-muted-foreground">{t(key)}</dt>
                     <dd className={`numeric font-semibold ${tone}`}>{formatMXN(value)}</dd>
@@ -94,7 +120,8 @@ function PortalReceiptDetail() {
             </section>
 
             <Button variant="outline" className="h-12 w-full" onClick={() => void downloadPdf()}>
-              <Download className="size-4" />{t("receipts.downloadPdf")}
+              <Download className="size-4" />
+              {t("receipts.downloadPdf")}
             </Button>
           </>
         ) : null}

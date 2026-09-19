@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import type { Tables, Enums } from "@/lib/database.types";
@@ -110,7 +118,13 @@ export function useAuth() {
 }
 
 /** Hides financial and destructive controls from managers. */
-export function AdminOnly({ children, fallback = null }: { children: ReactNode; fallback?: ReactNode }) {
+export function AdminOnly({
+  children,
+  fallback = null,
+}: {
+  children: ReactNode;
+  fallback?: ReactNode;
+}) {
   const { isAdmin } = useAuth();
   return <>{isAdmin ? children : fallback}</>;
 }

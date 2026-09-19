@@ -31,19 +31,30 @@ function PortalReceipts() {
         isEmpty={(portal.data?.invoices.length ?? 0) === 0}
         onRetry={() => void portal.refetch()}
         skeleton={<RowsSkeleton count={5} />}
-        empty={<EmptyState icon={ReceiptText} message={t("receipts.emptyTitle")} description={t("portal.noReceipts")} />}
+        empty={
+          <EmptyState
+            icon={ReceiptText}
+            message={t("receipts.emptyTitle")}
+            description={t("portal.noReceipts")}
+          />
+        }
       >
         <ul className="space-y-3">
           {portal.data?.invoices.map((invoice) => (
             <li key={invoice.id}>
               <button
-                onClick={() => void navigate({ to: "/portal/receipts/$id", params: { id: invoice.id } })}
+                onClick={() =>
+                  void navigate({ to: "/portal/receipts/$id", params: { id: invoice.id } })
+                }
                 className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border bg-surface p-4 text-left hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-base font-semibold">{formatPeriod(invoice.period_month, i18nInstance.language)}</p>
+                  <p className="truncate text-base font-semibold">
+                    {formatPeriod(invoice.period_month, i18nInstance.language)}
+                  </p>
                   <p className="numeric mt-0.5 text-xs text-muted-foreground">
-                    {invoice.invoice_number ?? "—"} · {t("receipts.columns.due")} {formatMexicoDate(invoice.due_date)}
+                    {invoice.invoice_number ?? "—"} · {t("receipts.columns.due")}{" "}
+                    {formatMexicoDate(invoice.due_date)}
                   </p>
                   <div className="mt-2">
                     <InvoiceStatusBadge value={effectiveInvoiceStatus(invoice, invoice.paid)} />

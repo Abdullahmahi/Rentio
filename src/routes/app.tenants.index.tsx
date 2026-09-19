@@ -5,7 +5,13 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DataTable, type DataTableColumn } from "@/components/rentio/data-table";
 import { EmptyState } from "@/components/rentio/empty-state";
 import { Field, FormDialog } from "@/components/rentio/form-dialog";
@@ -21,10 +27,12 @@ import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/tenants/")({
-  head: () => ({ meta: [
-    { title: `${i18n.t("pages.tenants.title")} — Rentio` },
-    { name: "description", content: i18n.t("pages.tenants.description") },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: `${i18n.t("pages.tenants.title")} — Rentio` },
+      { name: "description", content: i18n.t("pages.tenants.description") },
+    ],
+  }),
   component: TenantsPage,
 });
 
@@ -36,8 +44,13 @@ interface TenantRow {
 }
 
 const EMPTY_FORM = {
-  full_name: "", email: "", phone: "", rfc: "",
-  emergency_contact_name: "", emergency_contact_phone: "", notes: "",
+  full_name: "",
+  email: "",
+  phone: "",
+  rfc: "",
+  emergency_contact_name: "",
+  emergency_contact_phone: "",
+  notes: "",
 };
 
 const ALL = "__all__";
@@ -84,39 +97,76 @@ function TenantsPage() {
 
   const create = useToastMutation({
     mutationFn: async (values: typeof EMPTY_FORM) => {
-      const { data, error: caught } = await supabase.from("tenants").insert({
-        full_name: values.full_name.trim(),
-        email: values.email.trim() || null,
-        phone: values.phone.trim() || null,
-        rfc: values.rfc.trim().toUpperCase() || null,
-        emergency_contact_name: values.emergency_contact_name.trim() || null,
-        emergency_contact_phone: values.emergency_contact_phone.trim() || null,
-        notes: values.notes.trim() || null,
-      }).select("id").single();
+      const { data, error: caught } = await supabase
+        .from("tenants")
+        .insert({
+          full_name: values.full_name.trim(),
+          email: values.email.trim() || null,
+          phone: values.phone.trim() || null,
+          rfc: values.rfc.trim().toUpperCase() || null,
+          emergency_contact_name: values.emergency_contact_name.trim() || null,
+          emergency_contact_phone: values.emergency_contact_phone.trim() || null,
+          notes: values.notes.trim() || null,
+        })
+        .select("id")
+        .single();
       if (caught) throw caught;
       await logActivity(actorId, "tenant", data.id, "create", { full_name: values.full_name });
       return data;
     },
     successKey: "tenants.created",
     invalidate: [qk.portfolio],
-    onSuccess: () => { setOpen(false); setForm(EMPTY_FORM); },
+    onSuccess: () => {
+      setOpen(false);
+      setForm(EMPTY_FORM);
+    },
   });
 
   const columns: DataTableColumn<TenantRow>[] = [
-    { key: "name", header: t("tenants.columns.name"), sortValue: (row) => row.tenant.full_name,
-      cell: (row) => <span className="font-medium">{row.tenant.full_name}</span> },
-    { key: "phone", header: t("tenants.columns.phone"), sortValue: (row) => row.tenant.phone ?? "",
-      cell: (row) => <span className="numeric">{row.tenant.phone ?? "—"}</span> },
-    { key: "email", header: t("tenants.columns.email"), sortValue: (row) => row.tenant.email ?? "",
-      cell: (row) => row.tenant.email ?? "—" },
-    { key: "unit", header: t("tenants.columns.unit"), sortValue: (row) => row.unitNumber ?? "",
-      cell: (row) => row.unitNumber ?? <span className="text-muted-foreground">—</span> },
-    { key: "lease", header: t("tenants.columns.lease"), sortValue: (row) => row.lease?.status ?? "",
-      cell: (row) => row.lease
-        ? <LeaseStatusBadge value={row.lease.status} />
-        : <span className="text-sm text-muted-foreground">{t("tenants.noLease")}</span> },
-    { key: "balance", header: t("tenants.columns.balance"), numeric: true, sortValue: (row) => row.balance,
-      cell: (row) => <MoneyText value={row.balance} className={row.balance > 0 ? "text-danger" : undefined} /> },
+    {
+      key: "name",
+      header: t("tenants.columns.name"),
+      sortValue: (row) => row.tenant.full_name,
+      cell: (row) => <span className="font-medium">{row.tenant.full_name}</span>,
+    },
+    {
+      key: "phone",
+      header: t("tenants.columns.phone"),
+      sortValue: (row) => row.tenant.phone ?? "",
+      cell: (row) => <span className="numeric">{row.tenant.phone ?? "—"}</span>,
+    },
+    {
+      key: "email",
+      header: t("tenants.columns.email"),
+      sortValue: (row) => row.tenant.email ?? "",
+      cell: (row) => row.tenant.email ?? "—",
+    },
+    {
+      key: "unit",
+      header: t("tenants.columns.unit"),
+      sortValue: (row) => row.unitNumber ?? "",
+      cell: (row) => row.unitNumber ?? <span className="text-muted-foreground">—</span>,
+    },
+    {
+      key: "lease",
+      header: t("tenants.columns.lease"),
+      sortValue: (row) => row.lease?.status ?? "",
+      cell: (row) =>
+        row.lease ? (
+          <LeaseStatusBadge value={row.lease.status} />
+        ) : (
+          <span className="text-sm text-muted-foreground">{t("tenants.noLease")}</span>
+        ),
+    },
+    {
+      key: "balance",
+      header: t("tenants.columns.balance"),
+      numeric: true,
+      sortValue: (row) => row.balance,
+      cell: (row) => (
+        <MoneyText value={row.balance} className={row.balance > 0 ? "text-danger" : undefined} />
+      ),
+    },
   ];
 
   return (
@@ -124,12 +174,19 @@ function TenantsPage() {
       <PageHeader
         title={t("pages.tenants.title")}
         description={t("pages.tenants.description")}
-        actions={<Button onClick={() => setOpen(true)}><Plus className="size-4" />{t("tenants.new")}</Button>}
+        actions={
+          <Button onClick={() => setOpen(true)}>
+            <Plus className="size-4" />
+            {t("tenants.new")}
+          </Button>
+        }
       />
 
       <div className="max-w-xs">
         <Select value={leaseFilter} onValueChange={setLeaseFilter}>
-          <SelectTrigger aria-label={t("tenants.filters.label")}><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label={t("tenants.filters.label")}>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>{t("tenants.filters.all")}</SelectItem>
             <SelectItem value="with">{t("tenants.filters.withLease")}</SelectItem>
@@ -158,55 +215,102 @@ function TenantsPage() {
           columns={columns}
           data={rows}
           getRowId={(row) => row.tenant.id}
-          searchValue={(row) => `${row.tenant.full_name} ${row.tenant.phone ?? ""} ${row.tenant.email ?? ""}`}
-          onRowClick={(row) => void navigate({ to: "/app/tenants/$id", params: { id: row.tenant.id } })}
+          searchValue={(row) =>
+            `${row.tenant.full_name} ${row.tenant.phone ?? ""} ${row.tenant.email ?? ""}`
+          }
+          onRowClick={(row) =>
+            void navigate({ to: "/app/tenants/$id", params: { id: row.tenant.id } })
+          }
           pageSize={15}
         />
       </QueryState>
 
       <FormDialog
         open={open}
-        onOpenChange={(next) => { setOpen(next); if (!next) setError(null); }}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (!next) setError(null);
+        }}
         title={t("tenants.new")}
         error={error}
         pending={create.isPending}
         onSubmit={() => {
           setError(null);
           if (!form.full_name.trim()) return setError(t("tenants.errors.nameRequired"));
-          if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email.trim())) return setError(t("tenants.errors.emailInvalid"));
-          if (form.rfc.trim() && !isPlausibleRfc(form.rfc)) return setError(t("tenants.errors.rfcInvalid"));
+          if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email.trim()))
+            return setError(t("tenants.errors.emailInvalid"));
+          if (form.rfc.trim() && !isPlausibleRfc(form.rfc))
+            return setError(t("tenants.errors.rfcInvalid"));
           create.mutate(form);
         }}
       >
         <Field label={t("tenants.fields.fullName")} htmlFor="tenant-name">
-          <Input id="tenant-name" value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} />
+          <Input
+            id="tenant-name"
+            value={form.full_name}
+            onChange={(event) => setForm({ ...form, full_name: event.target.value })}
+          />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t("tenants.fields.email")} htmlFor="tenant-email">
-            <Input id="tenant-email" type="email" inputMode="email" value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })} />
+            <Input
+              id="tenant-email"
+              type="email"
+              inputMode="email"
+              value={form.email}
+              onChange={(event) => setForm({ ...form, email: event.target.value })}
+            />
           </Field>
           <Field label={t("tenants.fields.phone")} htmlFor="tenant-phone" hint={PHONE_HINT}>
-            <Input id="tenant-phone" inputMode="tel" className="numeric" value={form.phone}
-              onChange={(event) => setForm({ ...form, phone: event.target.value })} />
+            <Input
+              id="tenant-phone"
+              inputMode="tel"
+              className="numeric"
+              value={form.phone}
+              onChange={(event) => setForm({ ...form, phone: event.target.value })}
+            />
           </Field>
         </div>
-        <Field label={t("tenants.fields.rfc")} htmlFor="tenant-rfc" hint={t("tenants.fields.rfcHint")}>
-          <Input id="tenant-rfc" maxLength={13} className="uppercase" value={form.rfc}
-            onChange={(event) => setForm({ ...form, rfc: event.target.value.toUpperCase() })} />
+        <Field
+          label={t("tenants.fields.rfc")}
+          htmlFor="tenant-rfc"
+          hint={t("tenants.fields.rfcHint")}
+        >
+          <Input
+            id="tenant-rfc"
+            maxLength={13}
+            className="uppercase"
+            value={form.rfc}
+            onChange={(event) => setForm({ ...form, rfc: event.target.value.toUpperCase() })}
+          />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t("tenants.fields.emergencyName")} htmlFor="tenant-ename">
-            <Input id="tenant-ename" value={form.emergency_contact_name}
-              onChange={(event) => setForm({ ...form, emergency_contact_name: event.target.value })} />
+            <Input
+              id="tenant-ename"
+              value={form.emergency_contact_name}
+              onChange={(event) => setForm({ ...form, emergency_contact_name: event.target.value })}
+            />
           </Field>
           <Field label={t("tenants.fields.emergencyPhone")} htmlFor="tenant-ephone">
-            <Input id="tenant-ephone" inputMode="tel" className="numeric" value={form.emergency_contact_phone}
-              onChange={(event) => setForm({ ...form, emergency_contact_phone: event.target.value })} />
+            <Input
+              id="tenant-ephone"
+              inputMode="tel"
+              className="numeric"
+              value={form.emergency_contact_phone}
+              onChange={(event) =>
+                setForm({ ...form, emergency_contact_phone: event.target.value })
+              }
+            />
           </Field>
         </div>
         <Field label={t("tenants.fields.notes")} htmlFor="tenant-notes">
-          <Textarea id="tenant-notes" rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
+          <Textarea
+            id="tenant-notes"
+            rows={3}
+            value={form.notes}
+            onChange={(event) => setForm({ ...form, notes: event.target.value })}
+          />
         </Field>
       </FormDialog>
     </div>

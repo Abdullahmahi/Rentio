@@ -5,7 +5,12 @@
  */
 import { expect, test } from "bun:test";
 import {
-  IMPORT_SCHEMAS, autoMapColumns, parseDate, parseMoney, summarize, validateRows,
+  IMPORT_SCHEMAS,
+  autoMapColumns,
+  parseDate,
+  parseMoney,
+  summarize,
+  validateRows,
   type ValidationContext,
 } from "@/lib/import";
 import { parseCsv, toCsv } from "@/lib/csv";
@@ -20,7 +25,7 @@ const context = (over: Partial<ValidationContext> = {}): ValidationContext => ({
 });
 
 test("parseDate reads dd/mm/aaaa first, then ISO", () => {
-  expect(parseDate("01/03/2026")).toBe("2026-03-01");   // 1 March, not 3 January
+  expect(parseDate("01/03/2026")).toBe("2026-03-01"); // 1 March, not 3 January
   expect(parseDate("31/12/2026")).toBe("2026-12-31");
   expect(parseDate("1-3-2026")).toBe("2026-03-01");
   expect(parseDate("2026-03-01")).toBe("2026-03-01");
@@ -56,13 +61,15 @@ test("units: flags a missing required field, an unknown property and a bad numbe
   const mapping = autoMapColumns(["property", "unit_number", "base_rent"], schema);
   const rows = validateRows(
     [
-      ["Edificio Roma 214", "302", "15000"],   // new -> valid
-      ["Edificio Roma 214", "101", "16000"],   // exists -> update warning
-      ["Torre Fantasma", "201", "12000"],      // unknown property
-      ["Edificio Roma 214", "", "12000"],      // missing unit number
-      ["Edificio Roma 214", "303", "mucho"],   // unparseable rent
+      ["Edificio Roma 214", "302", "15000"], // new -> valid
+      ["Edificio Roma 214", "101", "16000"], // exists -> update warning
+      ["Torre Fantasma", "201", "12000"], // unknown property
+      ["Edificio Roma 214", "", "12000"], // missing unit number
+      ["Edificio Roma 214", "303", "mucho"], // unparseable rent
     ],
-    mapping, schema, context(),
+    mapping,
+    schema,
+    context(),
   );
 
   expect(rows.map((row) => row.status)).toEqual(["valid", "warning", "error", "error", "error"]);
@@ -80,11 +87,13 @@ test("tenants: an existing email or phone is an update, and one of them is requi
   const rows = validateRows(
     [
       ["Nuevo Inquilino", "nuevo@example.mx", "+52 55 0000 0000"],
-      ["María Fernanda Ríos", "maria.rios@example.mx", ""],   // email exists
-      ["Otro Nombre", "", "+52 55 1234 5678"],                // phone exists
-      ["Sin Contacto", "", ""],                               // no way to reach them
+      ["María Fernanda Ríos", "maria.rios@example.mx", ""], // email exists
+      ["Otro Nombre", "", "+52 55 1234 5678"], // phone exists
+      ["Sin Contacto", "", ""], // no way to reach them
     ],
-    mapping, schema, context(),
+    mapping,
+    schema,
+    context(),
   );
 
   expect(rows.map((row) => row.status)).toEqual(["valid", "warning", "warning", "error"]);
@@ -104,7 +113,9 @@ test("leases: the unit and tenant must already exist, and dates must run forward
       ["Edificio Roma 214", "101", "nadie@example.mx", "01/01/2026", "31/12/2026", "15000"],
       ["Edificio Roma 214", "101", "maria.rios@example.mx", "31/12/2026", "01/01/2026", "15000"],
     ],
-    mapping, schema, context(),
+    mapping,
+    schema,
+    context(),
   );
 
   expect(rows[0]?.status).toBe("valid");
@@ -131,7 +142,17 @@ test("re-running the same file produces updates, never duplicates", () => {
 });
 
 test("CSV round-trips quoted fields, embedded commas and blank lines", () => {
-  const csv = toCsv(["a", "b"], [["Roma, Norte", 'dice "hola"'], ["x", "y"]]);
+  const csv = toCsv(
+    ["a", "b"],
+    [
+      ["Roma, Norte", 'dice "hola"'],
+      ["x", "y"],
+    ],
+  );
   const parsed = parseCsv(csv + "\r\n\r\n");
-  expect(parsed).toEqual([["a", "b"], ["Roma, Norte", 'dice "hola"'], ["x", "y"]]);
+  expect(parsed).toEqual([
+    ["a", "b"],
+    ["Roma, Norte", 'dice "hola"'],
+    ["x", "y"],
+  ]);
 });

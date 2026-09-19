@@ -30,7 +30,10 @@ function PortalRequestDetail() {
     queryKey: ["portal-wo-notes", id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("work_order_notes").select("*").eq("work_order_id", id).order("created_at");
+        .from("work_order_notes")
+        .select("*")
+        .eq("work_order_id", id)
+        .order("created_at");
       if (error) throw error;
       return data;
     },
@@ -39,7 +42,10 @@ function PortalRequestDetail() {
   const photos = useQuery({
     queryKey: ["portal-wo-photos", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("work_order_photos").select("*").eq("work_order_id", id);
+      const { data, error } = await supabase
+        .from("work_order_photos")
+        .select("*")
+        .eq("work_order_id", id);
       if (error) throw error;
       return data;
     },
@@ -50,18 +56,28 @@ function PortalRequestDetail() {
     void (async () => {
       const urls = await Promise.all(
         (photos.data ?? []).map(async (photo) => {
-          try { return await signedUrl("work-order-photos", photo.url); } catch { return ""; }
+          try {
+            return await signedUrl("work-order-photos", photo.url);
+          } catch {
+            return "";
+          }
         }),
       );
       if (active) setPhotoUrls(urls.filter(Boolean));
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [photos.data]);
 
   return (
     <div className="space-y-5">
-      <Link to="/portal/maintenance" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" />{t("maintenance.backToList")}
+      <Link
+        to="/portal/maintenance"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        {t("maintenance.backToList")}
       </Link>
 
       <QueryState
@@ -70,7 +86,13 @@ function PortalRequestDetail() {
         isEmpty={!order && !portal.isLoading}
         onRetry={() => void portal.refetch()}
         skeleton={<RowsSkeleton count={4} />}
-        empty={<EmptyState icon={Wrench} message={t("maintenance.notFound")} description={t("maintenance.notFoundDescription")} />}
+        empty={
+          <EmptyState
+            icon={Wrench}
+            message={t("maintenance.notFound")}
+            description={t("maintenance.notFoundDescription")}
+          />
+        }
       >
         {order ? (
           <>
@@ -94,7 +116,12 @@ function PortalRequestDetail() {
             {photoUrls.length > 0 ? (
               <section className="grid grid-cols-2 gap-3">
                 {photoUrls.map((url) => (
-                  <img key={url} src={url} alt="" className="aspect-square w-full rounded-lg border border-border object-cover" />
+                  <img
+                    key={url}
+                    src={url}
+                    alt=""
+                    className="aspect-square w-full rounded-lg border border-border object-cover"
+                  />
                 ))}
               </section>
             ) : null}
@@ -106,9 +133,14 @@ function PortalRequestDetail() {
               ) : (
                 <ul className="mt-3 space-y-3">
                   {notes.data?.map((note) => (
-                    <li key={note.id} className="rounded-lg border border-border bg-muted/40 px-3 py-2.5">
+                    <li
+                      key={note.id}
+                      className="rounded-lg border border-border bg-muted/40 px-3 py-2.5"
+                    >
                       <p className="whitespace-pre-wrap text-sm">{note.body}</p>
-                      <p className="numeric mt-1 text-xs text-muted-foreground">{formatMexicoDate(note.created_at)}</p>
+                      <p className="numeric mt-1 text-xs text-muted-foreground">
+                        {formatMexicoDate(note.created_at)}
+                      </p>
                     </li>
                   ))}
                 </ul>

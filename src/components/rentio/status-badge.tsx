@@ -10,6 +10,21 @@ const variants: Record<StatusVariant, string> = {
   neutral: "border-border bg-muted text-muted-foreground",
 };
 
-export function StatusBadge({ status, variant = "neutral" }: { status: string; variant?: StatusVariant }) {
-  return <span className={cn("inline-flex h-6 items-center rounded-full border px-2 text-xs font-medium", variants[variant])}>{status}</span>;
+export function StatusBadge({
+  status,
+  variant = "neutral",
+}: {
+  status: string;
+  variant?: StatusVariant;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex h-6 items-center rounded-full border px-2 text-xs font-medium",
+        variants[variant],
+      )}
+    >
+      {status}
+    </span>
+  );
 }

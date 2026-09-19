@@ -34,8 +34,15 @@ function PortalContract() {
   const lease = portal.data?.lease;
   const details = portal.data?.details;
 
-  const address = [details?.street, details?.colonia, details?.city, details?.state, details?.postal_code]
-    .filter(Boolean).join(", ");
+  const address = [
+    details?.street,
+    details?.colonia,
+    details?.city,
+    details?.state,
+    details?.postal_code,
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <div className="space-y-5">
@@ -47,7 +54,13 @@ function PortalContract() {
         isEmpty={!lease && !portal.isLoading}
         onRetry={() => void portal.refetch()}
         skeleton={<RowsSkeleton count={5} />}
-        empty={<EmptyState icon={FileText} message={t("portal.noLeaseTitle")} description={t("portal.noLeaseDescription")} />}
+        empty={
+          <EmptyState
+            icon={FileText}
+            message={t("portal.noLeaseTitle")}
+            description={t("portal.noLeaseDescription")}
+          />
+        }
       >
         {lease ? (
           <>
@@ -58,7 +71,9 @@ function PortalContract() {
                 </h2>
                 <LeaseStatusBadge value={lease.status} />
               </div>
-              {details?.property_name ? <p className="mt-1 text-sm text-muted-foreground">{details.property_name}</p> : null}
+              {details?.property_name ? (
+                <p className="mt-1 text-sm text-muted-foreground">{details.property_name}</p>
+              ) : null}
               {address ? <p className="text-sm text-muted-foreground">{address}</p> : null}
 
               <dl className="mt-4">
@@ -68,13 +83,19 @@ function PortalContract() {
                 <Row label={t("contracts.columns.end")}>
                   <span className="numeric">{formatMexicoDate(lease.end_date)}</span>
                 </Row>
-                <Row label={t("contracts.fields.rent")}><MoneyText value={Number(lease.rent_amount)} /></Row>
+                <Row label={t("contracts.fields.rent")}>
+                  <MoneyText value={Number(lease.rent_amount)} />
+                </Row>
                 <Row label={t("contracts.fields.dueDay")}>{lease.rent_due_day}</Row>
-                <Row label={t("contracts.fields.deposit")}><MoneyText value={Number(lease.deposit_amount)} /></Row>
+                <Row label={t("contracts.fields.deposit")}>
+                  <MoneyText value={Number(lease.deposit_amount)} />
+                </Row>
                 <Row label={t("nav.parking")}>
-                  {(portal.data?.parking.length ?? 0) > 0
-                    ? portal.data?.parking.map((space) => space.label).join(", ")
-                    : <span className="text-muted-foreground">{t("units.noParking")}</span>}
+                  {(portal.data?.parking.length ?? 0) > 0 ? (
+                    portal.data?.parking.map((space) => space.label).join(", ")
+                  ) : (
+                    <span className="text-muted-foreground">{t("units.noParking")}</span>
+                  )}
                 </Row>
               </dl>
             </section>
@@ -85,13 +106,18 @@ function PortalContract() {
               disabled={!lease.contract_url}
               onClick={() => {
                 if (!lease.contract_url) return;
-                void openSigned("contracts", lease.contract_url).catch((caught) => toast.error(t(describeError(caught))));
+                void openSigned("contracts", lease.contract_url).catch((caught) =>
+                  toast.error(t(describeError(caught))),
+                );
               }}
             >
-              <Download className="size-4" />{t("portal.downloadContract")}
+              <Download className="size-4" />
+              {t("portal.downloadContract")}
             </Button>
             {!lease.contract_url ? (
-              <p className="text-center text-xs text-muted-foreground">{t("portal.noContractFile")}</p>
+              <p className="text-center text-xs text-muted-foreground">
+                {t("portal.noContractFile")}
+              </p>
             ) : null}
           </>
         ) : null}

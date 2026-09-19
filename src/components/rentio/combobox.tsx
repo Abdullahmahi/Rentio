@@ -2,7 +2,14 @@ import { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +37,15 @@ interface ComboboxProps {
 /** Searchable single-select. Used wherever a plain dropdown would mean
  *  scrolling past 120 units or 30 leases. */
 export function Combobox({
-  options, value, onChange, placeholder, searchPlaceholder, emptyLabel, disabled, id, className,
+  options,
+  value,
+  onChange,
+  placeholder,
+  searchPlaceholder,
+  emptyLabel,
+  disabled,
+  id,
+  className,
 }: ComboboxProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -46,7 +61,11 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn("w-full justify-between font-normal", !selected && "text-muted-foreground", className)}
+          className={cn(
+            "w-full justify-between font-normal",
+            !selected && "text-muted-foreground",
+            className,
+          )}
         >
           <span className="truncate">{selected?.label ?? placeholder}</span>
           <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
@@ -56,7 +75,8 @@ export function Combobox({
         <Command
           filter={(itemValue, search) => {
             const option = options.find((candidate) => candidate.value === itemValue);
-            const haystack = `${option?.label ?? ""} ${option?.hint ?? ""} ${option?.keywords ?? ""}`.toLocaleLowerCase();
+            const haystack =
+              `${option?.label ?? ""} ${option?.hint ?? ""} ${option?.keywords ?? ""}`.toLocaleLowerCase();
             return haystack.includes(search.toLocaleLowerCase()) ? 1 : 0;
           }}
         >
@@ -68,12 +88,19 @@ export function Combobox({
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={(next) => { onChange(next); setOpen(false); }}
+                  onSelect={(next) => {
+                    onChange(next);
+                    setOpen(false);
+                  }}
                 >
-                  <Check className={cn("size-4", option.value === value ? "opacity-100" : "opacity-0")} />
+                  <Check
+                    className={cn("size-4", option.value === value ? "opacity-100" : "opacity-0")}
+                  />
                   <div className="min-w-0">
                     <div className="truncate">{option.label}</div>
-                    {option.hint ? <div className="truncate text-xs text-muted-foreground">{option.hint}</div> : null}
+                    {option.hint ? (
+                      <div className="truncate text-xs text-muted-foreground">{option.hint}</div>
+                    ) : null}
                   </div>
                 </CommandItem>
               ))}

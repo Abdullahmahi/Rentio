@@ -7,12 +7,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 function SessionSkeleton() {
   const { t } = useTranslation();
   return (
-    <div className="min-h-screen bg-background p-6" role="status" aria-label={t("auth.checkingSession")}>
+    <div
+      className="min-h-screen bg-background p-6"
+      role="status"
+      aria-label={t("auth.checkingSession")}
+    >
       <div className="mx-auto max-w-5xl space-y-4">
         <Skeleton className="h-10 w-56" />
         <Skeleton className="h-4 w-80" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-24" />)}
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-24" />
+          ))}
         </div>
         <Skeleton className="h-72" />
       </div>
@@ -27,7 +33,13 @@ function SessionSkeleton() {
  * A signed-in user on the wrong shell is sent to their own home, never to a
  * blank page.
  */
-export function RequireRole({ allow, children }: { allow: "staff" | "tenant"; children: ReactNode }) {
+export function RequireRole({
+  allow,
+  children,
+}: {
+  allow: "staff" | "tenant";
+  children: ReactNode;
+}) {
   const { loading, user, role, isStaff } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });

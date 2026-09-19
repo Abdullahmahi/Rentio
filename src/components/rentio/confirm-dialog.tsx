@@ -1,7 +1,13 @@
 import { useTranslation } from "react-i18next";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button, type ButtonProps } from "@/components/ui/button";
@@ -17,11 +23,22 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
 }
 
-export function ConfirmDialog({ title, description, confirmLabel, cancelLabel, triggerLabel, triggerVariant = "outline", destructive, onConfirm }: ConfirmDialogProps) {
+export function ConfirmDialog({
+  title,
+  description,
+  confirmLabel,
+  cancelLabel,
+  triggerLabel,
+  triggerVariant = "outline",
+  destructive,
+  onConfirm,
+}: ConfirmDialogProps) {
   const { t } = useTranslation();
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild><Button variant={triggerVariant}>{triggerLabel}</Button></AlertDialogTrigger>
+      <AlertDialogTrigger asChild>
+        <Button variant={triggerVariant}>{triggerLabel}</Button>
+      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title ?? t("dialog.title")}</AlertDialogTitle>
@@ -29,7 +46,16 @@ export function ConfirmDialog({ title, description, confirmLabel, cancelLabel, t
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelLabel ?? t("actions.cancel")}</AlertDialogCancel>
-          <AlertDialogAction className={destructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : undefined} onClick={onConfirm}>{confirmLabel ?? t("actions.confirm")}</AlertDialogAction>
+          <AlertDialogAction
+            className={
+              destructive
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                : undefined
+            }
+            onClick={onConfirm}
+          >
+            {confirmLabel ?? t("actions.confirm")}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

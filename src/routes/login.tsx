@@ -34,7 +34,8 @@ function LoginPage() {
     if (loading || !user || !role) return;
     // `redirect` is an arbitrary in-app path, so it cannot be a literal route
     // type. Only same-origin paths are honoured.
-    const target = redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : homeFor(role);
+    const target =
+      redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : homeFor(role);
     void navigate({ to: target as "/app", replace: true });
   }, [loading, user, role, redirect, navigate]);
 
@@ -59,7 +60,9 @@ function LoginPage() {
       <div className="flex items-center justify-center px-4 py-12 sm:px-8">
         <div className="w-full max-w-sm">
           <div className="flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">R</div>
+            <div className="grid size-10 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
+              R
+            </div>
             <div>
               <div className="text-base font-semibold">{t("brand.name")}</div>
               <div className="text-xs text-muted-foreground">{t("brand.internal")}</div>
@@ -79,33 +82,49 @@ function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email">{t("auth.email")}</Label>
               <Input
-                id="email" type="email" autoComplete="email" inputMode="email"
-                value={email} onChange={(event) => setEmail(event.target.value)}
-                aria-invalid={Boolean(error)} placeholder="nombre@empresa.mx"
+                id="email"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                className="h-12"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                aria-invalid={Boolean(error)}
+                placeholder="nombre@empresa.mx"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">{t("auth.password")}</Label>
               <Input
-                id="password" type="password" autoComplete="current-password"
-                value={password} onChange={(event) => setPassword(event.target.value)}
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                className="h-12"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
                 aria-invalid={Boolean(error)}
               />
             </div>
 
             {error ? (
-              <p role="alert" className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger">
+              <p
+                role="alert"
+                className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+              >
                 {error}
               </p>
             ) : null}
 
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button type="submit" className="h-12 w-full text-base" disabled={submitting}>
               {submitting ? <Loader2 className="animate-spin" /> : null}
               {t("auth.signIn")}
             </Button>
           </form>
 
-          <Link to="/forgot-password" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
+          <Link
+            to="/forgot-password"
+            className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+          >
             {t("auth.forgotPassword")}
           </Link>
 

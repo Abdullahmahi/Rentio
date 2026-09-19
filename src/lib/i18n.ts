@@ -11,7 +11,7 @@ if (!i18n.isInitialized) {
     resources: { "es-MX": { translation: esMX }, en: { translation: en } },
     lng: "es-MX",
     fallbackLng: "es-MX",
-    interpolation: { escapeValue: false }
+    interpolation: { escapeValue: false },
   });
 }
 

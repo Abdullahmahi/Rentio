@@ -45,7 +45,8 @@ export function leaseContexts(portfolio: Portfolio): LeaseContext[] {
   return portfolio.leases.map((lease) => {
     const links = linksByLease.get(lease.id) ?? [];
     const pick = (role: Tables<"lease_tenants">["role"]) =>
-      links.filter((link) => link.role === role)
+      links
+        .filter((link) => link.role === role)
         .map((link) => tenantById.get(link.tenant_id))
         .filter((tenant): tenant is Tables<"tenants"> => Boolean(tenant));
     const unit = unitById.get(lease.unit_id);

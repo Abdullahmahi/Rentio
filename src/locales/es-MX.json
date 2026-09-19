@@ -716,7 +716,8 @@
       "descriptionRequired": "Escribe una descripción.",
       "amountRequired": "Captura el importe.",
       "reasonRequired": "Escribe el motivo de la cancelación."
-    }
+    },
+    "sentWithoutEmail": "Recibo marcado como enviado, pero no se pudo enviar el correo. Revisa la configuración de correo."
   },
   "payments": {
     "emptyTitle": "Sin pagos registrados",

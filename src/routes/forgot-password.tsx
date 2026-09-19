@@ -44,7 +44,9 @@ function ForgotPasswordPage() {
       <div className="flex items-center justify-center px-4 py-12 sm:px-8">
         <div className="w-full max-w-sm">
           <h1 className="text-2xl font-semibold">{t("auth.forgotPasswordTitle")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("auth.forgotPasswordDescription")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("auth.forgotPasswordDescription")}
+          </p>
 
           {sent ? (
             <div className="mt-8 rounded-lg border border-success/25 bg-success/10 p-4">
@@ -56,20 +58,35 @@ function ForgotPasswordPage() {
             <form className="mt-8 space-y-4" onSubmit={onSubmit} noValidate>
               <div className="space-y-2">
                 <Label htmlFor="email">{t("auth.email")}</Label>
-                <Input id="email" type="email" autoComplete="email" value={email}
-                  onChange={(event) => setEmail(event.target.value)} aria-invalid={Boolean(error)} />
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  className="h-12"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  aria-invalid={Boolean(error)}
+                />
               </div>
               {error ? (
-                <p role="alert" className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
+                <p
+                  role="alert"
+                  className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+                >
+                  {error}
+                </p>
               ) : null}
-              <Button type="submit" className="w-full" disabled={submitting}>
+              <Button type="submit" className="h-12 w-full text-base" disabled={submitting}>
                 {submitting ? <Loader2 className="animate-spin" /> : null}
                 {t("auth.sendResetLink")}
               </Button>
             </form>
           )}
 
-          <Link to="/login" className="mt-6 inline-block text-sm font-medium text-primary hover:underline">
+          <Link
+            to="/login"
+            className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+          >
             {t("auth.backToSignIn")}
           </Link>
         </div>
