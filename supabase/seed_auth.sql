@@ -66,4 +66,29 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- GoTrue scans several auth.users text columns into NON-NULLABLE Go strings.
+-- A hand-inserted row that leaves any of them NULL breaks EVERY sign-in on the
+-- project with "Database error querying schema" — not just that user's. The
+-- exact column set varies by GoTrue version, so fill whatever this project has
+-- rather than naming them. Only NULLs are touched.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  col text;
+begin
+  for col in
+    select c.column_name
+    from information_schema.columns c
+    where c.table_schema = 'auth'
+      and c.table_name = 'users'
+      and c.data_type in ('text', 'character varying')
+      and (c.column_name like '%token%' or c.column_name in ('email_change', 'phone_change'))
+  loop
+    execute format('update auth.users set %I = %L where %I is null', col, '', col);
+  end loop;
+end;
+$$;
+
 commit;
