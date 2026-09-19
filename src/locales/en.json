@@ -350,6 +350,52 @@
     "types": {
       "techado": "Covered",
       "descubierto": "Uncovered"
+    },
+    "new": "New space",
+    "bulkNew": "Create spaces in series",
+    "bulkDescription": "Create a whole run of spaces in one action.",
+    "bulkSubmit": "Create spaces",
+    "bulkPreview": "This creates {{count}} spaces, from {{first}} to {{last}}.",
+    "created": "Parking space created.",
+    "bulkCreated": "Parking spaces created.",
+    "assign": "Assign",
+    "assigned": "Space assigned to the lease.",
+    "assignTitle": "Assign space {{label}}",
+    "assignNote": "This space will be added to the lease's monthly receipt automatically.",
+    "release": "Release",
+    "released": "Space released.",
+    "releaseTitle": "Release space {{label}}?",
+    "releaseDescription": "The space will stop being billed on this lease's monthly receipts.",
+    "outOfServiceHint": "Space is out of service.",
+    "unknownLease": "Lease unavailable",
+    "noneInProperty": "This property has no parking spaces yet.",
+    "status": {
+      "disponible": "Available",
+      "asignado": "Assigned",
+      "fuera_de_servicio": "Out of service"
+    },
+    "stats": {
+      "total": "Total",
+      "available": "Available",
+      "assigned": "Assigned",
+      "revenue": "Monthly revenue"
+    },
+    "fields": {
+      "label": "Label",
+      "labelHint": "For example E-12.",
+      "type": "Type",
+      "fee": "Monthly fee",
+      "status": "Status",
+      "prefix": "Prefix",
+      "start": "Start number",
+      "count": "How many",
+      "lease": "Lease",
+      "leasePlaceholder": "Search by unit or tenant"
+    },
+    "errors": {
+      "labelRequired": "Enter the space label.",
+      "countRange": "Choose between 1 and 200 spaces.",
+      "leaseRequired": "Select a lease."
     }
   },
   "contracts": {

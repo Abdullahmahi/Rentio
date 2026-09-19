@@ -350,6 +350,52 @@
     "types": {
       "techado": "Techado",
       "descubierto": "Descubierto"
+    },
+    "new": "Nuevo cajón",
+    "bulkNew": "Crear cajones en serie",
+    "bulkDescription": "Crea una serie completa de cajones en una sola acción.",
+    "bulkSubmit": "Crear cajones",
+    "bulkPreview": "Se crearán {{count}} cajones, de {{first}} a {{last}}.",
+    "created": "Cajón creado correctamente.",
+    "bulkCreated": "Cajones creados correctamente.",
+    "assign": "Asignar",
+    "assigned": "Cajón asignado al contrato.",
+    "assignTitle": "Asignar cajón {{label}}",
+    "assignNote": "Este cajón se agregará automáticamente al recibo mensual del contrato.",
+    "release": "Liberar",
+    "released": "Cajón liberado.",
+    "releaseTitle": "¿Liberar el cajón {{label}}?",
+    "releaseDescription": "El cajón dejará de facturarse en los recibos mensuales de este contrato.",
+    "outOfServiceHint": "Cajón fuera de servicio.",
+    "unknownLease": "Contrato no disponible",
+    "noneInProperty": "Esta propiedad todavía no tiene cajones registrados.",
+    "status": {
+      "disponible": "Disponible",
+      "asignado": "Asignado",
+      "fuera_de_servicio": "Fuera de servicio"
+    },
+    "stats": {
+      "total": "Total",
+      "available": "Disponibles",
+      "assigned": "Asignados",
+      "revenue": "Ingreso mensual"
+    },
+    "fields": {
+      "label": "Etiqueta",
+      "labelHint": "Por ejemplo E-12.",
+      "type": "Tipo",
+      "fee": "Cuota mensual",
+      "status": "Estado",
+      "prefix": "Prefijo",
+      "start": "Número inicial",
+      "count": "Cantidad",
+      "lease": "Contrato",
+      "leasePlaceholder": "Busca por unidad o inquilino"
+    },
+    "errors": {
+      "labelRequired": "Escribe la etiqueta del cajón.",
+      "countRange": "La cantidad debe estar entre 1 y 200.",
+      "leaseRequired": "Selecciona un contrato."
     }
   },
   "contracts": {
