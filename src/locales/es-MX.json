@@ -659,7 +659,48 @@
       "amount": "Monto",
       "method": "Método",
       "reference": "Referencia",
-      "status": "Estado"
+      "status": "Estado",
+      "recordedBy": "Registrado por"
+    },
+    "record": "Registrar pago",
+    "recorded": "Pago registrado y aplicado.",
+    "confirm": "Confirmar",
+    "confirmed": "Pago confirmado y aplicado al recibo más antiguo.",
+    "reject": "Rechazar",
+    "rejected": "Pago rechazado.",
+    "rejectTitle": "Rechazar pago reportado",
+    "rejectDescription": "El inquilino verá que su reporte fue rechazado. Escribe el motivo.",
+    "void": "Cancelar pago",
+    "voided": "Pago cancelado. Se retiraron sus aplicaciones.",
+    "voidTitle": "Cancelar pago confirmado",
+    "voidDescription": "El pago no se elimina: queda en el historial tachado y se retiran sus aplicaciones a recibos.",
+    "queueEmptyTitle": "No hay pagos por confirmar",
+    "queueEmptyDescription": "Los pagos que reporten los inquilinos aparecerán aquí.",
+    "viewReceipt": "Ver comprobante",
+    "noReceipt": "Sin comprobante",
+    "currentBalance": "Saldo: {{amount}}",
+    "applyTo": "Aplicar a",
+    "noOpenInvoices": "Este contrato no tiene recibos abiertos. El pago quedará como saldo a favor.",
+    "creditNotice": "Saldo a favor: {{amount}} — se aplicará al siguiente recibo.",
+    "tabs": {
+      "queue": "Pagos por confirmar",
+      "history": "Historial"
+    },
+    "filters": {
+      "allMethods": "Todos los métodos",
+      "from": "Desde",
+      "to": "Hasta"
+    },
+    "fields": {
+      "paidAt": "Fecha de pago",
+      "receipt": "Comprobante",
+      "reason": "Motivo"
+    },
+    "errors": {
+      "leaseRequired": "Selecciona un contrato.",
+      "amountRequired": "Captura el monto del pago.",
+      "overAllocated": "Lo aplicado supera el monto del pago.",
+      "reasonRequired": "Escribe el motivo."
     }
   },
   "month": {

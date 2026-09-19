@@ -659,7 +659,48 @@
       "amount": "Amount",
       "method": "Method",
       "reference": "Reference",
-      "status": "Status"
+      "status": "Status",
+      "recordedBy": "Recorded by"
+    },
+    "record": "Record payment",
+    "recorded": "Payment recorded and applied.",
+    "confirm": "Confirm",
+    "confirmed": "Payment confirmed and applied to the oldest receipt.",
+    "reject": "Reject",
+    "rejected": "Payment rejected.",
+    "rejectTitle": "Reject reported payment",
+    "rejectDescription": "The tenant will see that their report was rejected. Give a reason.",
+    "void": "Void payment",
+    "voided": "Payment voided and its allocations removed.",
+    "voidTitle": "Void a confirmed payment",
+    "voidDescription": "The payment isn't deleted — it stays in history struck through, and its allocations are removed.",
+    "queueEmptyTitle": "Nothing waiting for confirmation",
+    "queueEmptyDescription": "Payments reported by tenants will appear here.",
+    "viewReceipt": "View proof of payment",
+    "noReceipt": "No proof attached",
+    "currentBalance": "Balance: {{amount}}",
+    "applyTo": "Apply to",
+    "noOpenInvoices": "This lease has no open receipts. The payment will be held as credit.",
+    "creditNotice": "Credit balance: {{amount}} — it will apply to the next receipt.",
+    "tabs": {
+      "queue": "Awaiting confirmation",
+      "history": "History"
+    },
+    "filters": {
+      "allMethods": "All methods",
+      "from": "From",
+      "to": "To"
+    },
+    "fields": {
+      "paidAt": "Date paid",
+      "receipt": "Proof of payment",
+      "reason": "Reason"
+    },
+    "errors": {
+      "leaseRequired": "Select a lease.",
+      "amountRequired": "Enter the payment amount.",
+      "overAllocated": "You've applied more than the payment amount.",
+      "reasonRequired": "Enter a reason."
     }
   },
   "month": {

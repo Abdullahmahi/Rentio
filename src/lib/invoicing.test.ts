@@ -3,7 +3,7 @@
  * whole building, so its plan is pinned down here before anything is written.
  */
 import { expect, test } from "bun:test";
-import { dueDateFor, periodKey, planMonthlyInvoices, shiftPeriod } from "@/lib/invoicing";
+import { allocateOldestFirst, dueDateFor, periodKey, planMonthlyInvoices, shiftPeriod } from "@/lib/invoicing";
 import type { Portfolio } from "@/lib/queries";
 import type { Tables } from "@/lib/database.types";
 
@@ -134,4 +134,50 @@ test("period helpers roll across year boundaries", () => {
   expect(shiftPeriod("2026-01-01", -1)).toBe("2025-12-01");
   expect(shiftPeriod("2026-12-01", 1)).toBe("2027-01-01");
   expect(shiftPeriod("2026-09-01", -3)).toBe("2026-06-01");
+});
+
+test("allocateOldestFirst pays the oldest invoice first and reports the overflow", () => {
+  const open = [
+    { id: "i2", invoiceNumber: "REC-2", dueDate: "2026-08-01", balance: 5000 },
+    { id: "i1", invoiceNumber: "REC-1", dueDate: "2026-07-01", balance: 3000 },
+    { id: "i3", invoiceNumber: "REC-3", dueDate: "2026-09-01", balance: 4000 },
+  ];
+
+  // Exactly covers the oldest.
+  expect(allocateOldestFirst(3000, open)).toEqual({
+    allocations: [{ invoiceId: "i1", amount: 3000 }], credit: 0,
+  });
+
+  // Spills into the next one.
+  expect(allocateOldestFirst(6500, open)).toEqual({
+    allocations: [{ invoiceId: "i1", amount: 3000 }, { invoiceId: "i2", amount: 3500 }], credit: 0,
+  });
+
+  // More than everything owed -> saldo a favor.
+  expect(allocateOldestFirst(15000, open)).toEqual({
+    allocations: [
+      { invoiceId: "i1", amount: 3000 },
+      { invoiceId: "i2", amount: 5000 },
+      { invoiceId: "i3", amount: 4000 },
+    ],
+    credit: 3000,
+  });
+
+  // Nothing owed at all is pure credit.
+  expect(allocateOldestFirst(500, [])).toEqual({ allocations: [], credit: 500 });
+
+  // Fully-paid invoices are not allocated against.
+  expect(allocateOldestFirst(100, [{ id: "z", invoiceNumber: null, dueDate: "2026-01-01", balance: 0 }]))
+    .toEqual({ allocations: [], credit: 100 });
+});
+
+test("allocateOldestFirst splits centavos without drifting", () => {
+  const open = [
+    { id: "a", invoiceNumber: null, dueDate: "2026-01-01", balance: 1000.33 },
+    { id: "b", invoiceNumber: null, dueDate: "2026-02-01", balance: 2000.67 },
+  ];
+  const result = allocateOldestFirst(3001.0, open);
+  const applied = result.allocations.reduce((sum, row) => sum + row.amount, 0);
+  expect(Number(applied.toFixed(2))).toBe(3001.0);
+  expect(result.credit).toBe(0);
 });

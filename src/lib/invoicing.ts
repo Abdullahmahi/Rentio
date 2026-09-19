@@ -151,3 +151,46 @@ export function planMonthlyInvoices({
     total: toCreate.reduce((sum, invoice) => sum + invoice.total, 0),
   };
 }
+
+export interface OpenInvoice {
+  id: string;
+  invoiceNumber: string | null;
+  dueDate: string;
+  balance: number;
+}
+
+export interface Allocation {
+  invoiceId: string;
+  amount: number;
+}
+
+export interface AllocationResult {
+  allocations: Allocation[];
+  /** Money left over once every open invoice is covered — a saldo a favor. */
+  credit: number;
+}
+
+/**
+ * Spread a payment across open invoices, oldest due date first.
+ *
+ * Staff can override the result in the UI; this is only the default. Amounts
+ * are rounded to centavos so repeated splits cannot drift a peso.
+ */
+export function allocateOldestFirst(amount: number, openInvoices: OpenInvoice[]): AllocationResult {
+  const cents = (value: number) => Math.round(value * 100);
+  let remaining = cents(amount);
+
+  const ordered = [...openInvoices]
+    .filter((invoice) => cents(invoice.balance) > 0)
+    .sort((a, b) => (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0));
+
+  const allocations: Allocation[] = [];
+  for (const invoice of ordered) {
+    if (remaining <= 0) break;
+    const applied = Math.min(remaining, cents(invoice.balance));
+    allocations.push({ invoiceId: invoice.id, amount: applied / 100 });
+    remaining -= applied;
+  }
+
+  return { allocations, credit: remaining / 100 };
+}
