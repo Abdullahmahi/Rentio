@@ -70,24 +70,30 @@ npx supabase functions deploy generate-invoice-pdf send-invoice-email \
 > `supabase/functions/deno.json` — that file exists only so `deno check`
 > works locally. Bare specifiers typecheck fine and then fail the deploy.
 
-**Status**
+**Status** — all four deployed and exercised against the live project.
 
 | | |
 | --- | --- |
-| `generate-invoice-pdf` | Working. Verified against REC-00050: letterhead, tenant, line items, Total/Pagado/Saldo, bank details, CFDI disclaimer. A tenant can render their own receipt and gets `not found` for anyone else's. |
-| `send-invoice-email` | Deployed, returns `RESEND_API_KEY is not configured` until you add the key. |
-| `send-tenant-invite` / `send-staff-invite` | Deployed, same. Role guards verified: a tenant is refused by all three. |
+| `generate-invoice-pdf` | Working. Verified on REC-00050: letterhead with address, tenant and unit, line items, Total/Pagado/Saldo, bank details, CFDI disclaimer. A tenant renders their own receipt and gets `not found` for anyone else's. |
+| `send-invoice-email` | Working. Delivered a real email with the PDF attached, subject `Recibo de renta — Agosto de 2026 — Unidad 102`. |
+| `send-tenant-invite` / `send-staff-invite` | Deployed. Role guards verified — a tenant is refused by all three. |
 
-**To enable email:**
+### Before real tenants receive anything
 
-```sh
-npx supabase secrets set RESEND_API_KEY=re_xxx \
-  RESEND_FROM="Rentio <no-reply@tu-dominio.mx>" --project-ref duttovdfuyywsvczkyur
-```
+1. **Verify a sending domain** at [resend.com/domains](https://resend.com/domains), then:
+   ```sh
+   npx supabase secrets set "RESEND_FROM=Rentio <no-reply@tu-dominio.mx>" \
+     --project-ref duttovdfuyywsvczkyur
+   ```
+   Until then Resend only delivers to the account owner's own address, and
+   every other recipient is rejected with a 403.
 
-> `SITE_URL` is currently `http://localhost:5199`. It is the redirect target in
-> invitation emails, so **change it before inviting a real tenant** or their
-> set-password link will point at localhost.
+2. **Change `SITE_URL`.** It is `http://localhost:5199`, and it is the redirect
+   in invitation emails — a real tenant would get a set-password link pointing
+   at their own machine.
+   ```sh
+   npx supabase secrets set SITE_URL=https://tu-app.com --project-ref duttovdfuyywsvczkyur
+   ```
 
 ## Checks
 
