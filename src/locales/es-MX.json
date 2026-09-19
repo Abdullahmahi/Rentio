@@ -518,7 +518,69 @@
       "title": "Título",
       "priority": "Prioridad",
       "status": "Estado",
-      "created": "Creada"
+      "created": "Creada",
+      "category": "Categoría",
+      "source": "Origen",
+      "assignee": "Asignado a",
+      "daysOpen": "Días abierta"
+    },
+    "new": "Nueva orden",
+    "created": "Orden de trabajo creada.",
+    "statusChanged": "Estado actualizado.",
+    "vendorSaved": "Proveedor actualizado.",
+    "noteAdded": "Nota agregada.",
+    "backToList": "Volver a mantenimiento",
+    "notFound": "Orden no encontrada",
+    "notFoundDescription": "Es posible que se haya eliminado o que el enlace sea incorrecto.",
+    "dayCount": "{{count}} día",
+    "dayCount_other": "{{count}} días",
+    "openFor": "Abierta {{count}} día",
+    "openFor_other": "Abierta {{count}} días",
+    "resolvedOn": "Resuelta el {{date}}",
+    "changeStatus": "Cambiar estado",
+    "resolve": "Resolver",
+    "close": "Cerrar",
+    "photos": "Fotografías",
+    "noPhotos": "Sin fotografías.",
+    "openPhoto": "Abrir fotografía",
+    "timeline": "Historial de estados",
+    "noTimeline": "Aún no hay cambios registrados.",
+    "movedTo": "Cambió a {{status}}",
+    "assignment": "Asignación",
+    "internalNotes": "Notas internas",
+    "internalNotesHint": "Solo visible para el equipo",
+    "tenantNotes": "Mensajes al inquilino",
+    "tenantNotesHint": "El inquilino puede ver esto",
+    "internalPlaceholder": "Nota para el equipo. El inquilino no la verá.",
+    "tenantPlaceholder": "Mensaje que verá el inquilino en su portal.",
+    "addNote": "Agregar nota",
+    "noNotes": "Sin notas todavía.",
+    "view": {
+      "kanban": "Ver como tablero",
+      "table": "Ver como tabla"
+    },
+    "summary": {
+      "open": "Órdenes abiertas",
+      "urgent": "Urgentes",
+      "resolved": "Resueltas este mes",
+      "average": "Tiempo promedio de resolución"
+    },
+    "fields": {
+      "unitHint": "Al elegir la unidad se vinculan el contrato y el inquilino.",
+      "description": "Descripción",
+      "photos": "Fotografías",
+      "vendorName": "Proveedor",
+      "vendorPhone": "Teléfono del proveedor",
+      "cost": "Costo",
+      "costHint": "Solo visible para el equipo."
+    },
+    "actions": {
+      "create": "Orden creada",
+      "assign_vendor": "Proveedor asignado",
+      "status": "Cambio de estado"
+    },
+    "errors": {
+      "titleRequired": "Escribe un título para la orden."
     }
   },
   "paymentMethod": {
@@ -751,5 +813,19 @@
       "unitRequired": "Selecciona una unidad.",
       "amountRequired": "Captura el monto."
     }
+  },
+  "woCategory": {
+    "plomeria": "Plomería",
+    "electricidad": "Electricidad",
+    "cerrajeria": "Cerrajería",
+    "electrodomesticos": "Electrodomésticos",
+    "limpieza": "Limpieza",
+    "otro": "Otro"
+  },
+  "woSource": {
+    "portal": "Portal",
+    "whatsapp": "WhatsApp",
+    "telefono": "Teléfono",
+    "personal": "En persona"
   }
 }

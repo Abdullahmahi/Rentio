@@ -518,7 +518,69 @@
       "title": "Title",
       "priority": "Priority",
       "status": "Status",
-      "created": "Created"
+      "created": "Created",
+      "category": "Category",
+      "source": "Source",
+      "assignee": "Assigned to",
+      "daysOpen": "Days open"
+    },
+    "new": "New work order",
+    "created": "Work order created.",
+    "statusChanged": "Status updated.",
+    "vendorSaved": "Vendor updated.",
+    "noteAdded": "Note added.",
+    "backToList": "Back to maintenance",
+    "notFound": "Work order not found",
+    "notFoundDescription": "It may have been deleted, or the link is wrong.",
+    "dayCount": "{{count}} day",
+    "dayCount_other": "{{count}} days",
+    "openFor": "Open {{count}} day",
+    "openFor_other": "Open {{count}} days",
+    "resolvedOn": "Resolved on {{date}}",
+    "changeStatus": "Change status",
+    "resolve": "Resolve",
+    "close": "Close",
+    "photos": "Photos",
+    "noPhotos": "No photos.",
+    "openPhoto": "Open photo",
+    "timeline": "Status timeline",
+    "noTimeline": "No transitions recorded yet.",
+    "movedTo": "Moved to {{status}}",
+    "assignment": "Assignment",
+    "internalNotes": "Internal notes",
+    "internalNotesHint": "Visible to the team only",
+    "tenantNotes": "Messages to the tenant",
+    "tenantNotesHint": "The tenant can see this",
+    "internalPlaceholder": "Note for the team. The tenant will not see it.",
+    "tenantPlaceholder": "Message the tenant will see in their portal.",
+    "addNote": "Add note",
+    "noNotes": "No notes yet.",
+    "view": {
+      "kanban": "Board view",
+      "table": "Table view"
+    },
+    "summary": {
+      "open": "Open orders",
+      "urgent": "Urgent",
+      "resolved": "Resolved this month",
+      "average": "Average time to resolve"
+    },
+    "fields": {
+      "unitHint": "Choosing the unit links the lease and tenant automatically.",
+      "description": "Description",
+      "photos": "Photos",
+      "vendorName": "Vendor",
+      "vendorPhone": "Vendor phone",
+      "cost": "Cost",
+      "costHint": "Visible to staff only."
+    },
+    "actions": {
+      "create": "Order created",
+      "assign_vendor": "Vendor assigned",
+      "status": "Status change"
+    },
+    "errors": {
+      "titleRequired": "Enter a title for the work order."
     }
   },
   "paymentMethod": {
@@ -751,5 +813,19 @@
       "unitRequired": "Select a unit.",
       "amountRequired": "Enter the amount."
     }
+  },
+  "woCategory": {
+    "plomeria": "Plumbing",
+    "electricidad": "Electrical",
+    "cerrajeria": "Locksmith",
+    "electrodomesticos": "Appliances",
+    "limpieza": "Cleaning",
+    "otro": "Other"
+  },
+  "woSource": {
+    "portal": "Portal",
+    "whatsapp": "WhatsApp",
+    "telefono": "Phone",
+    "personal": "In person"
   }
 }
