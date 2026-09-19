@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   BarChart3, Building2, CarFront, ChevronLeft, ChevronRight, ClipboardList,
   FileText, LayoutDashboard, Menu, Moon, ReceiptText, Settings, Sun, Users,
@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LANGUAGE_STORAGE_KEY, type AppLanguage } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -28,6 +29,8 @@ function RentioMark({ compact = false }: { compact?: boolean }) {
 
 export function AppShell() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { profile, role, signOut } = useAuth();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -60,6 +63,18 @@ export function AppShell() {
     void i18n.changeLanguage(language);
     window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
     document.documentElement.lang = language;
+  };
+
+  const displayName = profile?.full_name?.trim() || t("user.fallbackName");
+  const initials = displayName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toLocaleUpperCase())
+    .join("");
+
+  const handleSignOut = async () => {
+    await signOut();
+    void navigate({ to: "/login", replace: true });
   };
 
   const currentKey = navItems.find(([, path]) => path === pathname)?.[0] ?? "dashboard";
@@ -97,8 +112,16 @@ export function AppShell() {
             </div>
             <Button size="icon" variant="ghost" onClick={toggleTheme} aria-label={t("actions.changeTheme")} title={t(dark ? "theme.light" : "theme.dark")}>{dark ? <Sun /> : <Moon />}</Button>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" aria-label={t("actions.openUserMenu")}><Avatar className="size-8"><AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">{t("user.initials")}</AvatarFallback></Avatar></Button></DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52"><DropdownMenuLabel><div>{t("user.name")}</div><div className="text-xs font-normal text-muted-foreground">{t("user.role")}</div></DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem>{t("actions.signOut")}</DropdownMenuItem></DropdownMenuContent>
+              <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" aria-label={t("actions.openUserMenu")}><Avatar className="size-8"><AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">{initials}</AvatarFallback></Avatar></Button></DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="truncate">{displayName}</div>
+                  {role ? <span className="mt-1 inline-flex h-5 items-center rounded-full border border-border bg-muted px-2 text-[11px] font-medium text-muted-foreground">{t(`roles.${role}`)}</span> : null}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild><Link to="/app/settings">{t("user.myProfile")}</Link></DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => { void handleSignOut(); }}>{t("actions.signOut")}</DropdownMenuItem>
+              </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>

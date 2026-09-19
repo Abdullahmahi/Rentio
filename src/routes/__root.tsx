@@ -11,6 +11,8 @@ import { useEffect, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import appCss from "../styles.css?url";
+import { AuthProvider } from "../lib/auth";
+import { Toaster } from "../components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import "../lib/i18n";
 
@@ -120,8 +122,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AuthProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster position="top-right" richColors closeButton />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

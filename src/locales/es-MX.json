@@ -1,32 +1,179 @@
 {
-  "brand": { "name": "Rentio", "internal": "Administración", "tenant": "Portal de inquilinos" },
+  "brand": {
+    "name": "Rentio",
+    "internal": "Administración",
+    "tenant": "Portal de inquilinos"
+  },
   "nav": {
-    "dashboard": "Panel", "properties": "Propiedades", "units": "Unidades", "parking": "Estacionamiento", "tenants": "Inquilinos", "contracts": "Contratos", "receipts": "Recibos", "payments": "Pagos", "services": "Servicios", "maintenance": "Mantenimiento", "reports": "Reportes", "settings": "Configuración",
-    "home": "Inicio", "profile": "Perfil"
+    "dashboard": "Panel",
+    "properties": "Propiedades",
+    "units": "Unidades",
+    "parking": "Estacionamiento",
+    "tenants": "Inquilinos",
+    "contracts": "Contratos",
+    "receipts": "Recibos",
+    "payments": "Pagos",
+    "services": "Servicios",
+    "maintenance": "Mantenimiento",
+    "reports": "Reportes",
+    "settings": "Configuración",
+    "home": "Inicio",
+    "profile": "Perfil"
   },
   "pages": {
-    "dashboard": { "title": "Panel", "description": "Resumen general de la operación de Rentio." },
-    "properties": { "title": "Propiedades", "description": "Administra los edificios y propiedades de la cartera." },
-    "units": { "title": "Unidades", "description": "Consulta y administra las unidades disponibles y ocupadas." },
-    "parking": { "title": "Estacionamiento", "description": "Administra los espacios de estacionamiento asignados." },
-    "tenants": { "title": "Inquilinos", "description": "Mantén organizada la información de tus inquilinos." },
-    "contracts": { "title": "Contratos", "description": "Consulta contratos activos, próximos a vencer e históricos." },
-    "receipts": { "title": "Recibos", "description": "Consulta y administra los recibos de renta." },
-    "payments": { "title": "Pagos", "description": "Da seguimiento a los pagos recibidos y pendientes." },
-    "services": { "title": "Servicios", "description": "Administra los servicios asociados a las propiedades." },
-    "maintenance": { "title": "Mantenimiento", "description": "Da seguimiento a solicitudes y trabajos de mantenimiento." },
-    "reports": { "title": "Reportes", "description": "Consulta indicadores y reportes de la operación." },
-    "settings": { "title": "Configuración", "description": "Configura las preferencias generales de Rentio." },
-    "home": { "title": "Inicio", "description": "Consulta la información más importante de tu renta." },
-    "profile": { "title": "Perfil", "description": "Consulta y actualiza tu información personal." }
+    "dashboard": {
+      "title": "Panel",
+      "description": "Resumen general de la operación de Rentio."
+    },
+    "properties": {
+      "title": "Propiedades",
+      "description": "Administra los edificios y propiedades de la cartera."
+    },
+    "units": {
+      "title": "Unidades",
+      "description": "Consulta y administra las unidades disponibles y ocupadas."
+    },
+    "parking": {
+      "title": "Estacionamiento",
+      "description": "Administra los espacios de estacionamiento asignados."
+    },
+    "tenants": {
+      "title": "Inquilinos",
+      "description": "Mantén organizada la información de tus inquilinos."
+    },
+    "contracts": {
+      "title": "Contratos",
+      "description": "Consulta contratos activos, próximos a vencer e históricos."
+    },
+    "receipts": {
+      "title": "Recibos",
+      "description": "Consulta y administra los recibos de renta."
+    },
+    "payments": {
+      "title": "Pagos",
+      "description": "Da seguimiento a los pagos recibidos y pendientes."
+    },
+    "services": {
+      "title": "Servicios",
+      "description": "Administra los servicios asociados a las propiedades."
+    },
+    "maintenance": {
+      "title": "Mantenimiento",
+      "description": "Da seguimiento a solicitudes y trabajos de mantenimiento."
+    },
+    "reports": {
+      "title": "Reportes",
+      "description": "Consulta indicadores y reportes de la operación."
+    },
+    "settings": {
+      "title": "Configuración",
+      "description": "Configura las preferencias generales de Rentio."
+    },
+    "home": {
+      "title": "Inicio",
+      "description": "Consulta la información más importante de tu renta."
+    },
+    "profile": {
+      "title": "Perfil",
+      "description": "Consulta y actualiza tu información personal."
+    }
   },
-  "empty": { "title": "Aún no hay información", "description": "Los datos de esta sección aparecerán aquí cuando estén disponibles.", "table": "No se encontraron resultados", "tableDescription": "Prueba con otra búsqueda o revisa los filtros." },
-  "table": { "search": "Buscar...", "previous": "Anterior", "next": "Siguiente", "page": "Página {{current}} de {{total}}", "sortAscending": "Ordenar ascendente", "sortDescending": "Ordenar descendente" },
-  "actions": { "cancel": "Cancelar", "confirm": "Confirmar", "collapse": "Contraer navegación", "expand": "Expandir navegación", "changeLanguage": "Cambiar idioma", "changeTheme": "Cambiar tema", "openUserMenu": "Abrir menú de usuario", "signOut": "Cerrar sesión" },
-  "language": { "es-MX": "ES", "en": "EN" },
-  "theme": { "light": "Modo claro", "dark": "Modo oscuro" },
-  "user": { "name": "Mariana Torres", "role": "Administradora", "initials": "MT" },
-  "status": { "active": "Activo", "inactive": "Inactivo", "pending": "Pendiente", "overdue": "Vencido", "paid": "Pagado", "open": "Abierto" },
-  "dialog": { "title": "Confirmar acción", "description": "Esta acción no se puede deshacer. ¿Deseas continuar?" },
-  "meta": { "description": "Rentio, administración profesional de propiedades y rentas en México." }
+  "empty": {
+    "title": "Aún no hay información",
+    "description": "Los datos de esta sección aparecerán aquí cuando estén disponibles.",
+    "table": "No se encontraron resultados",
+    "tableDescription": "Prueba con otra búsqueda o revisa los filtros."
+  },
+  "table": {
+    "search": "Buscar...",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {{current}} de {{total}}",
+    "sortAscending": "Ordenar ascendente",
+    "sortDescending": "Ordenar descendente"
+  },
+  "actions": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "collapse": "Contraer navegación",
+    "expand": "Expandir navegación",
+    "changeLanguage": "Cambiar idioma",
+    "changeTheme": "Cambiar tema",
+    "openUserMenu": "Abrir menú de usuario",
+    "signOut": "Cerrar sesión"
+  },
+  "language": {
+    "es-MX": "ES",
+    "en": "EN"
+  },
+  "theme": {
+    "light": "Modo claro",
+    "dark": "Modo oscuro"
+  },
+  "user": {
+    "name": "Mariana Torres",
+    "role": "Administradora",
+    "initials": "MT",
+    "fallbackName": "Mi cuenta",
+    "myProfile": "Mi perfil"
+  },
+  "status": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "pending": "Pendiente",
+    "overdue": "Vencido",
+    "paid": "Pagado",
+    "open": "Abierto"
+  },
+  "dialog": {
+    "title": "Confirmar acción",
+    "description": "Esta acción no se puede deshacer. ¿Deseas continuar?"
+  },
+  "meta": {
+    "description": "Rentio, administración profesional de propiedades y rentas en México."
+  },
+  "auth": {
+    "signIn": "Iniciar sesión",
+    "signInDescription": "Ingresa con la cuenta que te proporcionó el administrador.",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noSignup": "¿No tienes cuenta? El administrador crea las cuentas del equipo e invita a los inquilinos.",
+    "checkingSession": "Verificando tu sesión…",
+    "forgotPasswordTitle": "Restablecer contraseña",
+    "forgotPasswordDescription": "Te enviaremos un enlace para crear una contraseña nueva.",
+    "sendResetLink": "Enviar enlace",
+    "resetEmailSent": "Revisa tu correo",
+    "resetEmailSentHint": "Si la dirección está registrada, recibirás un enlace en los próximos minutos.",
+    "backToSignIn": "Volver a iniciar sesión",
+    "newPasswordTitle": "Nueva contraseña",
+    "newPasswordDescription": "Elige una contraseña nueva para tu cuenta.",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "savePassword": "Guardar contraseña",
+    "passwordUpdated": "Tu contraseña se actualizó correctamente.",
+    "passwordHint": "Mínimo {{min}} caracteres.",
+    "brandHeadline": "La administración de tus rentas, en un solo lugar.",
+    "brandBody": "Contratos, recibos, pagos y mantenimiento de toda tu cartera, con el control que las hojas de cálculo no te dan.",
+    "brandFooter": "Rentio — administración de propiedades en renta",
+    "errors": {
+      "emailRequired": "Ingresa tu correo electrónico.",
+      "passwordRequired": "Ingresa tu contraseña.",
+      "passwordTooShort": "La contraseña debe tener al menos {{min}} caracteres.",
+      "passwordMismatch": "Las contraseñas no coinciden."
+    }
+  },
+  "roles": {
+    "admin": "Administrador",
+    "manager": "Gerente de propiedades",
+    "tenant": "Inquilino"
+  },
+  "errors": {
+    "generic": "Ocurrió un error. Inténtalo de nuevo.",
+    "network": "No pudimos conectar con el servidor. Revisa tu conexión.",
+    "forbidden": "No tienes permiso para realizar esta acción.",
+    "duplicate": "Ese registro ya existe.",
+    "invalidCredentials": "Correo o contraseña incorrectos.",
+    "notConfigured": "Falta conectar Supabase. Agrega VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY."
+  }
 }

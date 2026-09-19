@@ -58,3 +58,28 @@ grant all on all tables in schema storage to authenticated, service_role;
 alter default privileges in schema public grant all on tables to authenticated, service_role;
 alter default privileges in schema public grant all on sequences to authenticated, service_role;
 alter default privileges in schema public grant all on functions to authenticated, service_role;
+
+-- Columns the real auth.users carries, so seed_auth.sql can be exercised locally.
+alter table auth.users
+  add column if not exists instance_id uuid,
+  add column if not exists aud text,
+  add column if not exists role text,
+  add column if not exists email_confirmed_at timestamptz,
+  add column if not exists updated_at timestamptz,
+  add column if not exists raw_app_meta_data jsonb,
+  add column if not exists confirmation_token text,
+  add column if not exists recovery_token text,
+  add column if not exists email_change_token_new text,
+  add column if not exists email_change text;
+
+create table if not exists auth.identities (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  provider_id text not null,
+  provider text not null,
+  identity_data jsonb not null default '{}'::jsonb,
+  last_sign_in_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique (provider_id, provider)
+);

@@ -1,3 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PortalShell } from "@/components/rentio/portal-shell";
-export const Route = createFileRoute("/portal")({ component: PortalShell });
+import { RequireRole } from "@/components/rentio/require-role";
+
+export const Route = createFileRoute("/portal")({
+  component: () => (
+    <RequireRole allow="tenant">
+      <PortalShell />
+    </RequireRole>
+  ),
+});
