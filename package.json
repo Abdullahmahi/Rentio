@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "db:types": "python3 supabase/gen-types.py > src/lib/database.types.ts",
     "db:test": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/rls_test.sql",
-    "test": "bun test"
+    "test": "bun test",
+    "db:demo-logins": "bun --env-file=.env.local run scripts/seed-demo-logins.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
