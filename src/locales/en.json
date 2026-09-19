@@ -90,7 +90,11 @@
     "next": "Next",
     "page": "Page {{current}} of {{total}}",
     "sortAscending": "Sort ascending",
-    "sortDescending": "Sort descending"
+    "sortDescending": "Sort descending",
+    "selected": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "selectAll": "Select all",
+    "selectRow": "Select row"
   },
   "actions": {
     "cancel": "Cancel",
@@ -579,7 +583,72 @@
       "due": "Due",
       "total": "Total",
       "balance": "Balance",
-      "status": "Status"
+      "status": "Status",
+      "issue": "Issued",
+      "paid": "Paid",
+      "lines": "Line items"
+    },
+    "generate": "Generate this month's receipts",
+    "generateTitle": "Generate receipts — {{month}}",
+    "generateSubmit": "Generate receipts",
+    "generatePreview": "This will create {{count}} receipts totalling {{total}}.",
+    "generateNothing": "Every active lease already has a receipt for this month.",
+    "generateNote": "Pending utility charges for this month are included and flipped to billed. Receipts are created as drafts.",
+    "generated": "Receipts generated.",
+    "skippedTitle": "{{count}} lease skipped",
+    "skippedTitle_other": "{{count}} leases skipped",
+    "skippedReason": "already has a receipt for this month",
+    "sendSelected": "Send selected",
+    "sent": "Receipts sent.",
+    "send": "Send",
+    "downloadPdf": "Download PDF",
+    "backToList": "Back to receipts",
+    "untitled": "Receipt without a number",
+    "notFound": "Receipt not found",
+    "notFoundDescription": "It may have been deleted, or the link is wrong.",
+    "detailDescription": "Unit {{unit}} — {{tenant}} · {{period}}",
+    "emptyMonthTitle": "No receipts in {{month}}",
+    "emptyMonthDescription": "Generate this month's receipts to start collecting.",
+    "overdueCount": "{{count}} overdue receipt",
+    "overdueCount_other": "{{count}} overdue receipts",
+    "conceptsTitle": "Line items",
+    "subtotal": "Subtotal",
+    "addLine": "Add line item",
+    "lineAdded": "Line item added.",
+    "lineRemoved": "Line item removed.",
+    "applyLateFee": "Apply late fee",
+    "lateFeeApplied": "Late fee applied.",
+    "lateFeeDisabled": "Only available once the receipt is overdue.",
+    "cancel": "Cancel receipt",
+    "cancelled": "Receipt cancelled.",
+    "cancelTitle": "Cancel receipt {{folio}}",
+    "cancelDescription": "The receipt is not deleted — it stays on record as cancelled with the reason you give.",
+    "cancelReason": "Reason for cancelling",
+    "cancelledNotice": "Receipt cancelled. Reason: {{reason}}",
+    "paymentsApplied": "Payments applied to this receipt",
+    "noPayments": "No payments applied",
+    "noPaymentsDescription": "Payments applied to this receipt will appear here.",
+    "summary": {
+      "invoiced": "Total invoiced",
+      "collected": "Collected",
+      "pending": "Outstanding",
+      "overdue": "Overdue"
+    },
+    "line": {
+      "description": "Description",
+      "category": "Category",
+      "quantity": "Qty",
+      "amount": "Amount"
+    },
+    "lines": {
+      "rent": "Monthly rent",
+      "parking": "Parking {{label}}",
+      "lateFee": "Late payment fee"
+    },
+    "errors": {
+      "descriptionRequired": "Enter a description.",
+      "amountRequired": "Enter the amount.",
+      "reasonRequired": "Enter the reason for cancelling."
     }
   },
   "payments": {
@@ -592,5 +661,17 @@
       "reference": "Reference",
       "status": "Status"
     }
+  },
+  "month": {
+    "previous": "Previous month",
+    "next": "Next month"
+  },
+  "lineCategory": {
+    "renta": "Rent",
+    "estacionamiento": "Parking",
+    "servicios": "Utilities",
+    "cuota_mantenimiento": "Maintenance fee",
+    "recargo": "Late fee",
+    "otro": "Other"
   }
 }

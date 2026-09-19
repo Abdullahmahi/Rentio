@@ -90,7 +90,11 @@
     "next": "Siguiente",
     "page": "Página {{current}} de {{total}}",
     "sortAscending": "Ordenar ascendente",
-    "sortDescending": "Ordenar descendente"
+    "sortDescending": "Ordenar descendente",
+    "selected": "{{count}} seleccionado",
+    "selected_other": "{{count}} seleccionados",
+    "selectAll": "Seleccionar todo",
+    "selectRow": "Seleccionar fila"
   },
   "actions": {
     "cancel": "Cancelar",
@@ -579,7 +583,72 @@
       "due": "Vencimiento",
       "total": "Total",
       "balance": "Saldo",
-      "status": "Estado"
+      "status": "Estado",
+      "issue": "Emisión",
+      "paid": "Pagado",
+      "lines": "Conceptos"
+    },
+    "generate": "Generar recibos del mes",
+    "generateTitle": "Generar recibos — {{month}}",
+    "generateSubmit": "Generar recibos",
+    "generatePreview": "Se generarán {{count}} recibos por un total de {{total}}.",
+    "generateNothing": "No hay contratos pendientes de facturar en este mes.",
+    "generateNote": "Los cargos de servicios pendientes de este mes se incluyen y pasan a «facturado». Los recibos se crean como borrador.",
+    "generated": "Recibos generados correctamente.",
+    "skippedTitle": "{{count}} contrato omitido",
+    "skippedTitle_other": "{{count}} contratos omitidos",
+    "skippedReason": "ya tiene recibo para este mes",
+    "sendSelected": "Enviar seleccionados",
+    "sent": "Recibos enviados.",
+    "send": "Enviar",
+    "downloadPdf": "Descargar PDF",
+    "backToList": "Volver a recibos",
+    "untitled": "Recibo sin folio",
+    "notFound": "Recibo no encontrado",
+    "notFoundDescription": "Es posible que se haya eliminado o que el enlace sea incorrecto.",
+    "detailDescription": "Unidad {{unit}} — {{tenant}} · {{period}}",
+    "emptyMonthTitle": "Sin recibos en {{month}}",
+    "emptyMonthDescription": "Genera los recibos del mes para empezar a cobrar.",
+    "overdueCount": "{{count}} recibo vencido",
+    "overdueCount_other": "{{count}} recibos vencidos",
+    "conceptsTitle": "Conceptos",
+    "subtotal": "Subtotal",
+    "addLine": "Agregar concepto",
+    "lineAdded": "Concepto agregado.",
+    "lineRemoved": "Concepto eliminado.",
+    "applyLateFee": "Aplicar recargo",
+    "lateFeeApplied": "Recargo aplicado.",
+    "lateFeeDisabled": "Solo disponible cuando el recibo está vencido.",
+    "cancel": "Cancelar recibo",
+    "cancelled": "Recibo cancelado.",
+    "cancelTitle": "Cancelar recibo {{folio}}",
+    "cancelDescription": "El recibo no se elimina: queda registrado como cancelado con el motivo que captures.",
+    "cancelReason": "Motivo de la cancelación",
+    "cancelledNotice": "Recibo cancelado. Motivo: {{reason}}",
+    "paymentsApplied": "Pagos aplicados a este recibo",
+    "noPayments": "Sin pagos aplicados",
+    "noPaymentsDescription": "Los pagos aplicados a este recibo aparecerán aquí.",
+    "summary": {
+      "invoiced": "Total facturado",
+      "collected": "Cobrado",
+      "pending": "Pendiente",
+      "overdue": "Vencido"
+    },
+    "line": {
+      "description": "Descripción",
+      "category": "Categoría",
+      "quantity": "Cantidad",
+      "amount": "Importe"
+    },
+    "lines": {
+      "rent": "Renta mensual",
+      "parking": "Estacionamiento {{label}}",
+      "lateFee": "Recargo por pago tardío"
+    },
+    "errors": {
+      "descriptionRequired": "Escribe una descripción.",
+      "amountRequired": "Captura el importe.",
+      "reasonRequired": "Escribe el motivo de la cancelación."
     }
   },
   "payments": {
@@ -592,5 +661,17 @@
       "reference": "Referencia",
       "status": "Estado"
     }
+  },
+  "month": {
+    "previous": "Mes anterior",
+    "next": "Mes siguiente"
+  },
+  "lineCategory": {
+    "renta": "Renta",
+    "estacionamiento": "Estacionamiento",
+    "servicios": "Servicios",
+    "cuota_mantenimiento": "Cuota de mantenimiento",
+    "recargo": "Recargo",
+    "otro": "Otro"
   }
 }
