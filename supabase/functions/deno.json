@@ -1,8 +1,5 @@
 {
-  "imports": {
-    "@supabase/supabase-js": "jsr:@supabase/supabase-js@2",
-    "pdf-lib": "npm:pdf-lib@1.17.1"
-  },
+  "//": "Local `deno check` only. The Supabase bundler does NOT read this file, so every import in these functions must stay a fully-qualified npm:/jsr: specifier.",
   "nodeModulesDir": "none",
   "lint": { "rules": { "tags": ["recommended"] } }
 }

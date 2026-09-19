@@ -5,7 +5,7 @@
  * decides whether they may see it — a tenant can only ever generate their own
  * receipt. Only the upload uses the service role.
  */
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 import {
   corsHeaders, json, userClient, serviceClient,
   formatMXN, formatDate, formatPeriod,
