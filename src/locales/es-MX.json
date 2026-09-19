@@ -18,7 +18,8 @@
     "reports": "Reportes",
     "settings": "Configuración",
     "home": "Inicio",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "import": "Importar"
   },
   "pages": {
     "dashboard": {
@@ -76,6 +77,10 @@
     "profile": {
       "title": "Perfil",
       "description": "Consulta y actualiza tu información personal."
+    },
+    "import": {
+      "title": "Importar",
+      "description": "Carga unidades, inquilinos y contratos desde CSV."
     }
   },
   "empty": {
@@ -945,6 +950,88 @@
       "b60": "31–60 días",
       "b90": "61–90 días",
       "b90plus": "90+ días"
+    }
+  },
+  "import": {
+    "title": "Importar datos",
+    "description": "Carga unidades, inquilinos y contratos desde un archivo CSV.",
+    "kinds": {
+      "units": "Unidades",
+      "tenants": "Inquilinos",
+      "leases": "Contratos"
+    },
+    "steps": {
+      "template": "Plantilla",
+      "upload": "Archivo",
+      "mapping": "Columnas",
+      "preview": "Validación",
+      "done": "Resumen"
+    },
+    "templateHint": "Descarga la plantilla con los encabezados correctos y un ejemplo. Puedes agregar columnas extra: se ignoran.",
+    "downloadTemplate": "Descargar plantilla",
+    "dropHere": "Arrastra tu archivo CSV aquí",
+    "dropHint": "O haz clic para seleccionarlo.",
+    "mappingHint": "Encontramos {{count}} filas. Verifica que cada campo apunte a la columna correcta.",
+    "notMapped": "— Sin asignar —",
+    "goToPreview": "Validar filas",
+    "previewNote": "Solo se importarán las filas válidas y las de advertencia. Las filas con error se omiten.",
+    "reason": "Detalle",
+    "errorColumn": "Error",
+    "downloadErrors": "Descargar filas con error",
+    "commit": "Importar {{count}} filas",
+    "importAnother": "Importar otro archivo",
+    "done": "Importación completada.",
+    "counts": {
+      "valid": "Listas",
+      "warning": "Con advertencia",
+      "error": "Con error"
+    },
+    "summary": {
+      "units": "{{inserted}} unidades importadas y {{updated}} actualizadas correctamente.",
+      "tenants": "{{inserted}} inquilinos importados y {{updated}} actualizados correctamente.",
+      "leases": "{{inserted}} contratos importados y {{updated}} actualizados correctamente."
+    },
+    "warnings": {
+      "willUpdate": "Ya existe: se actualizará en lugar de duplicarse."
+    },
+    "errors": {
+      "required": "Falta el campo obligatorio «{{field}}».",
+      "notANumber": "«{{value}}» no es un número válido en «{{field}}».",
+      "badDate": "Formato de fecha inválido: «{{value}}». Usa dd/mm/aaaa.",
+      "unknownProperty": "La propiedad «{{value}}» no existe.",
+      "unknownUnit": "La unidad «{{value}}» no existe.",
+      "unknownTenant": "No encontramos al inquilino «{{value}}».",
+      "datesInvalid": "La fecha de fin debe ser posterior a la de inicio.",
+      "contactRequired": "Captura al menos un correo o un teléfono.",
+      "emptyFile": "El archivo no tiene filas de datos.",
+      "unreadable": "No pudimos leer el archivo. Verifica que sea un CSV."
+    }
+  },
+  "settings": {
+    "saved": "Configuración actualizada.",
+    "logoSaved": "Logo actualizado.",
+    "roleChanged": "Rol actualizado.",
+    "inviteSent": "Invitación enviada.",
+    "adminOnly": "Solo un administrador puede ver esta sección.",
+    "bankNotice": "Estos datos se muestran a los inquilinos en su portal.",
+    "inviteUser": "Invitar usuario",
+    "inviteDescription": "Se enviará un correo para que establezca su contraseña.",
+    "sendInvite": "Enviar invitación",
+    "tabs": {
+      "company": "Empresa",
+      "bank": "Datos bancarios",
+      "invoicing": "Recibos",
+      "users": "Usuarios",
+      "preferences": "Preferencias"
+    },
+    "fields": {
+      "companyName": "Nombre de la empresa",
+      "logo": "Logo",
+      "logoHint": "Se usa en los recibos en PDF.",
+      "clabeHint": "18 dígitos.",
+      "invoicePrefix": "Prefijo de folio",
+      "invoicePrefixHint": "Por ejemplo REC genera REC-00001.",
+      "role": "Rol"
     }
   }
 }

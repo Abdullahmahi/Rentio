@@ -18,7 +18,8 @@
     "reports": "Reports",
     "settings": "Settings",
     "home": "Home",
-    "profile": "Profile"
+    "profile": "Profile",
+    "import": "Import"
   },
   "pages": {
     "dashboard": {
@@ -76,6 +77,10 @@
     "profile": {
       "title": "Profile",
       "description": "Review and update your personal information."
+    },
+    "import": {
+      "title": "Import",
+      "description": "Load units, tenants and leases from CSV."
     }
   },
   "empty": {
@@ -945,6 +950,88 @@
       "b60": "31–60 days",
       "b90": "61–90 days",
       "b90plus": "90+ days"
+    }
+  },
+  "import": {
+    "title": "Import data",
+    "description": "Load units, tenants and leases from a CSV file.",
+    "kinds": {
+      "units": "Units",
+      "tenants": "Tenants",
+      "leases": "Leases"
+    },
+    "steps": {
+      "template": "Template",
+      "upload": "File",
+      "mapping": "Columns",
+      "preview": "Validation",
+      "done": "Summary"
+    },
+    "templateHint": "Download the template with the right headers and one example row. Extra columns are ignored.",
+    "downloadTemplate": "Download template",
+    "dropHere": "Drag your CSV file here",
+    "dropHint": "Or click to choose one.",
+    "mappingHint": "Found {{count}} rows. Check that each field points at the right column.",
+    "notMapped": "— Not mapped —",
+    "goToPreview": "Validate rows",
+    "previewNote": "Only valid and warning rows are imported. Rows with errors are skipped.",
+    "reason": "Detail",
+    "errorColumn": "Error",
+    "downloadErrors": "Download rows with errors",
+    "commit": "Import {{count}} rows",
+    "importAnother": "Import another file",
+    "done": "Import complete.",
+    "counts": {
+      "valid": "Ready",
+      "warning": "With a warning",
+      "error": "With an error"
+    },
+    "summary": {
+      "units": "{{inserted}} units imported and {{updated}} updated.",
+      "tenants": "{{inserted}} tenants imported and {{updated}} updated.",
+      "leases": "{{inserted}} leases imported and {{updated}} updated."
+    },
+    "warnings": {
+      "willUpdate": "Already exists: this will update it rather than duplicate it."
+    },
+    "errors": {
+      "required": "Required field \"{{field}}\" is missing.",
+      "notANumber": "\"{{value}}\" isn't a valid number in \"{{field}}\".",
+      "badDate": "Invalid date format: \"{{value}}\". Use dd/mm/yyyy.",
+      "unknownProperty": "Property \"{{value}}\" doesn't exist.",
+      "unknownUnit": "Unit \"{{value}}\" doesn't exist.",
+      "unknownTenant": "We couldn't find tenant \"{{value}}\".",
+      "datesInvalid": "The end date must be after the start date.",
+      "contactRequired": "Provide at least an email or a phone number.",
+      "emptyFile": "That file has no data rows.",
+      "unreadable": "We couldn't read that file. Check that it's a CSV."
+    }
+  },
+  "settings": {
+    "saved": "Settings updated.",
+    "logoSaved": "Logo updated.",
+    "roleChanged": "Role updated.",
+    "inviteSent": "Invitation sent.",
+    "adminOnly": "Only an administrator can view this section.",
+    "bankNotice": "These details are shown to tenants in their portal.",
+    "inviteUser": "Invite user",
+    "inviteDescription": "They'll get an email to set their password.",
+    "sendInvite": "Send invitation",
+    "tabs": {
+      "company": "Company",
+      "bank": "Bank details",
+      "invoicing": "Receipts",
+      "users": "Users",
+      "preferences": "Preferences"
+    },
+    "fields": {
+      "companyName": "Company name",
+      "logo": "Logo",
+      "logoHint": "Used on PDF receipts.",
+      "clabeHint": "18 digits.",
+      "invoicePrefix": "Receipt number prefix",
+      "invoicePrefixHint": "For example REC produces REC-00001.",
+      "role": "Role"
     }
   }
 }

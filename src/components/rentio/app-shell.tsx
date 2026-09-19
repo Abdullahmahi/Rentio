@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  BarChart3, Building2, CarFront, ChevronLeft, ChevronRight, ClipboardList,
+  BarChart3, Building2, CarFront, ChevronLeft, ChevronRight, Upload,
   FileText, LayoutDashboard, Menu, Moon, ReceiptText, Settings, Sun, Users,
   WalletCards, Wrench, X, Zap,
 } from "lucide-react";
@@ -17,7 +17,7 @@ const navItems = [
   ["dashboard", "/app", LayoutDashboard], ["properties", "/app/properties", Building2], ["units", "/app/units", Menu],
   ["parking", "/app/parking", CarFront], ["tenants", "/app/tenants", Users], ["contracts", "/app/contracts", FileText],
   ["receipts", "/app/receipts", ReceiptText], ["payments", "/app/payments", WalletCards], ["services", "/app/services", Zap],
-  ["maintenance", "/app/maintenance", Wrench], ["reports", "/app/reports", BarChart3], ["settings", "/app/settings", Settings],
+  ["maintenance", "/app/maintenance", Wrench], ["reports", "/app/reports", BarChart3], ["import", "/app/import", Upload], ["settings", "/app/settings", Settings],
 ] as const;
 
 const THEME_STORAGE_KEY = "rentio-theme";

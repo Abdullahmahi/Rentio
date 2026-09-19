@@ -22,6 +22,7 @@ import { Route as PortalProfileRouteImport } from './routes/portal.profile'
 import { Route as PortalReportPaymentRouteImport } from './routes/portal.report-payment'
 import { Route as AppContractsIndexRouteImport } from './routes/app.contracts.index'
 import { Route as AppContractsIdRouteImport } from './routes/app.contracts.$id'
+import { Route as AppImportIndexRouteImport } from './routes/app.import.index'
 import { Route as AppMaintenanceIndexRouteImport } from './routes/app.maintenance.index'
 import { Route as AppMaintenanceIdRouteImport } from './routes/app.maintenance.$id'
 import { Route as AppParkingIndexRouteImport } from './routes/app.parking.index'
@@ -105,6 +106,11 @@ const AppContractsIndexRoute = AppContractsIndexRouteImport.update({
 const AppContractsIdRoute = AppContractsIdRouteImport.update({
   id: '/contracts/$id',
   path: '/contracts/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppImportIndexRoute = AppImportIndexRouteImport.update({
+  id: '/import/',
+  path: '/import/',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMaintenanceIndexRoute = AppMaintenanceIndexRouteImport.update({
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
   '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/app/contracts/': typeof AppContractsIndexRoute
+  '/app/import/': typeof AppImportIndexRoute
   '/app/maintenance/': typeof AppMaintenanceIndexRoute
   '/app/parking/': typeof AppParkingIndexRoute
   '/app/payments/': typeof AppPaymentsIndexRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
   '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/app/contracts': typeof AppContractsIndexRoute
+  '/app/import': typeof AppImportIndexRoute
   '/app/maintenance': typeof AppMaintenanceIndexRoute
   '/app/parking': typeof AppParkingIndexRoute
   '/app/payments': typeof AppPaymentsIndexRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
   '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/app/contracts/': typeof AppContractsIndexRoute
+  '/app/import/': typeof AppImportIndexRoute
   '/app/maintenance/': typeof AppMaintenanceIndexRoute
   '/app/parking/': typeof AppParkingIndexRoute
   '/app/payments/': typeof AppPaymentsIndexRoute
@@ -327,6 +336,7 @@ export interface FileRouteTypes {
     | '/portal/maintenance/$id'
     | '/portal/receipts/$id'
     | '/app/contracts/'
+    | '/app/import/'
     | '/app/maintenance/'
     | '/app/parking/'
     | '/app/payments/'
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/portal/maintenance/$id'
     | '/portal/receipts/$id'
     | '/app/contracts'
+    | '/app/import'
     | '/app/maintenance'
     | '/app/parking'
     | '/app/payments'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/portal/maintenance/$id'
     | '/portal/receipts/$id'
     | '/app/contracts/'
+    | '/app/import/'
     | '/app/maintenance/'
     | '/app/parking/'
     | '/app/payments/'
@@ -507,6 +519,13 @@ declare module '@tanstack/react-router' {
       path: '/contracts/$id'
       fullPath: '/app/contracts/$id'
       preLoaderRoute: typeof AppContractsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/import/': {
+      id: '/app/import/'
+      path: '/import'
+      fullPath: '/app/import/'
+      preLoaderRoute: typeof AppImportIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/maintenance/': {
@@ -654,6 +673,7 @@ interface AppRouteChildren {
   AppTenantsIdRoute: typeof AppTenantsIdRoute
   AppUnitsIdRoute: typeof AppUnitsIdRoute
   AppContractsIndexRoute: typeof AppContractsIndexRoute
+  AppImportIndexRoute: typeof AppImportIndexRoute
   AppMaintenanceIndexRoute: typeof AppMaintenanceIndexRoute
   AppParkingIndexRoute: typeof AppParkingIndexRoute
   AppPaymentsIndexRoute: typeof AppPaymentsIndexRoute
@@ -675,6 +695,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppTenantsIdRoute: AppTenantsIdRoute,
   AppUnitsIdRoute: AppUnitsIdRoute,
   AppContractsIndexRoute: AppContractsIndexRoute,
+  AppImportIndexRoute: AppImportIndexRoute,
   AppMaintenanceIndexRoute: AppMaintenanceIndexRoute,
   AppParkingIndexRoute: AppParkingIndexRoute,
   AppPaymentsIndexRoute: AppPaymentsIndexRoute,
