@@ -892,5 +892,59 @@
       "categoryRequired": "Elige una categoría.",
       "descriptionRequired": "Describe el problema."
     }
+  },
+  "dashboard": {
+    "pendingPayments": "{{count}} pago espera confirmación",
+    "pendingPayments_other": "{{count}} pagos esperan confirmación",
+    "unitsOf": "{{occupied}} / {{total}} unidades",
+    "ofInvoiced": "de {{amount}} facturado",
+    "overdueLeases": "{{count}} contrato vencido",
+    "overdueLeases_other": "{{count}} contratos vencidos",
+    "urgentOrders": "{{count}} urgente",
+    "urgentOrders_other": "{{count}} urgentes",
+    "expiringSoonest": "El más próximo vence en {{days}} días",
+    "trendUp": "+{{percent}}% vs mes anterior",
+    "trendDown": "−{{percent}}% vs mes anterior",
+    "incomeTitle": "Ingresos por mes",
+    "incomeHint": "Facturado y cobrado en los últimos 6 meses.",
+    "invoiced": "Facturado",
+    "collected": "Cobrado",
+    "unitsTitle": "Unidades por estado",
+    "unitsHint": "Distribución actual de la cartera.",
+    "overdueTitle": "Contratos con saldo vencido",
+    "noOverdue": "Ningún contrato tiene saldo vencido.",
+    "daysOverdue": "{{count}} día vencido",
+    "daysOverdue_other": "{{count}} días vencido",
+    "recentPayments": "Pagos recientes",
+    "recentOrders": "Órdenes de trabajo recientes",
+    "kpi": {
+      "occupancy": "Ocupación",
+      "collected": "Cobrado este mes",
+      "overdue": "Morosidad",
+      "openOrders": "Órdenes abiertas",
+      "expiring": "Contratos por vencer"
+    }
+  },
+  "reports": {
+    "daysOverdue": "Días vencido",
+    "bucket": "Antigüedad",
+    "collectionRate": "% cobrado",
+    "vacantSince": "Vacante desde",
+    "daysVacant": "Días vacante",
+    "vacantUnits": "Unidades vacantes",
+    "leaseCount": "{{count}} contrato",
+    "leaseCount_other": "{{count}} contratos",
+    "tabs": {
+      "rentRoll": "Rent roll",
+      "aging": "Morosidad",
+      "income": "Ingresos por mes",
+      "occupancy": "Ocupación"
+    },
+    "buckets": {
+      "b30": "1–30 días",
+      "b60": "31–60 días",
+      "b90": "61–90 días",
+      "b90plus": "90+ días"
+    }
   }
 }

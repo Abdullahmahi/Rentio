@@ -892,5 +892,59 @@
       "categoryRequired": "Pick a category.",
       "descriptionRequired": "Describe the problem."
     }
+  },
+  "dashboard": {
+    "pendingPayments": "{{count}} payment awaits confirmation",
+    "pendingPayments_other": "{{count}} payments await confirmation",
+    "unitsOf": "{{occupied}} / {{total}} units",
+    "ofInvoiced": "of {{amount}} invoiced",
+    "overdueLeases": "{{count}} overdue lease",
+    "overdueLeases_other": "{{count}} overdue leases",
+    "urgentOrders": "{{count}} urgent",
+    "urgentOrders_other": "{{count}} urgent",
+    "expiringSoonest": "Soonest ends in {{days}} days",
+    "trendUp": "+{{percent}}% vs last month",
+    "trendDown": "−{{percent}}% vs last month",
+    "incomeTitle": "Income by month",
+    "incomeHint": "Invoiced and collected over the last 6 months.",
+    "invoiced": "Invoiced",
+    "collected": "Collected",
+    "unitsTitle": "Units by status",
+    "unitsHint": "Current portfolio breakdown.",
+    "overdueTitle": "Leases with an overdue balance",
+    "noOverdue": "No lease has an overdue balance.",
+    "daysOverdue": "{{count}} day overdue",
+    "daysOverdue_other": "{{count}} days overdue",
+    "recentPayments": "Recent payments",
+    "recentOrders": "Recent work orders",
+    "kpi": {
+      "occupancy": "Occupancy",
+      "collected": "Collected this month",
+      "overdue": "Delinquency",
+      "openOrders": "Open work orders",
+      "expiring": "Leases expiring"
+    }
+  },
+  "reports": {
+    "daysOverdue": "Days overdue",
+    "bucket": "Age",
+    "collectionRate": "% collected",
+    "vacantSince": "Vacant since",
+    "daysVacant": "Days vacant",
+    "vacantUnits": "Vacant units",
+    "leaseCount": "{{count}} lease",
+    "leaseCount_other": "{{count}} leases",
+    "tabs": {
+      "rentRoll": "Rent roll",
+      "aging": "Delinquency",
+      "income": "Income by month",
+      "occupancy": "Occupancy"
+    },
+    "buckets": {
+      "b30": "1–30 days",
+      "b60": "31–60 days",
+      "b90": "61–90 days",
+      "b90plus": "90+ days"
+    }
   }
 }

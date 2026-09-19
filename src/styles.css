@@ -65,6 +65,23 @@
   --danger: oklch(from #b3261e l c h);
   --info: oklch(from #2b5d8a l c h);
   --overlay: oklch(0.12 0.01 55 / 45%);
+
+/* Chart palette — validated with the dataviz skill's six checks in BOTH
+   light and dark (lightness band, chroma floor, CVD separation, normal-vision
+   separation, contrast). Do not hand-tweak these: re-run
+   scripts/validate_palette.js if they ever change.
+   The design system's deep green #1B4D3E is too dark to be a chart fill
+   against the surface, and a true gray can never be a categorical slot —
+   green vs gray reads as DeltaE 1.8 to a deuteranope. */
+  --chart-occupied: #35916A;   /* ocupada    */
+  --chart-maintenance: #B8860B;/* mantenimiento — the system's own warning */
+  --chart-reserved: #4F86CC;   /* reservada  */
+  --chart-vacant: #BC6350;     /* vacante    */
+  /* Money series: part-of-whole, so the total is a recessive track rather
+     than a second competing hue. */
+  --chart-collected: #35916A;
+  --chart-track: color-mix(in oklab, var(--foreground) 10%, transparent);
+  --chart-grid: color-mix(in oklab, var(--foreground) 8%, transparent);
   color-scheme: light;
 }
 
@@ -85,6 +102,23 @@
   --danger: oklch(from #b3261e l c h);
   --info: oklch(from #2b5d8a l c h);
   --overlay: oklch(0 0 0 / 65%);
+
+/* Chart palette — validated with the dataviz skill's six checks in BOTH
+   light and dark (lightness band, chroma floor, CVD separation, normal-vision
+   separation, contrast). Do not hand-tweak these: re-run
+   scripts/validate_palette.js if they ever change.
+   The design system's deep green #1B4D3E is too dark to be a chart fill
+   against the surface, and a true gray can never be a categorical slot —
+   green vs gray reads as DeltaE 1.8 to a deuteranope. */
+  --chart-occupied: #35916A;   /* ocupada    */
+  --chart-maintenance: #B8860B;/* mantenimiento — the system's own warning */
+  --chart-reserved: #4F86CC;   /* reservada  */
+  --chart-vacant: #BC6350;     /* vacante    */
+  /* Money series: part-of-whole, so the total is a recessive track rather
+     than a second competing hue. */
+  --chart-collected: #35916A;
+  --chart-track: color-mix(in oklab, var(--foreground) 10%, transparent);
+  --chart-grid: color-mix(in oklab, var(--foreground) 8%, transparent);
   color-scheme: dark;
 }
 
