@@ -1,0 +1,32 @@
+{
+  "brand": { "name": "Rentio", "internal": "Management", "tenant": "Tenant portal" },
+  "nav": {
+    "dashboard": "Dashboard", "properties": "Properties", "units": "Units", "parking": "Parking", "tenants": "Tenants", "contracts": "Contracts", "receipts": "Receipts", "payments": "Payments", "services": "Services", "maintenance": "Maintenance", "reports": "Reports", "settings": "Settings",
+    "home": "Home", "profile": "Profile"
+  },
+  "pages": {
+    "dashboard": { "title": "Dashboard", "description": "A complete overview of Rentio operations." },
+    "properties": { "title": "Properties", "description": "Manage the buildings and properties in your portfolio." },
+    "units": { "title": "Units", "description": "Review and manage available and occupied units." },
+    "parking": { "title": "Parking", "description": "Manage assigned parking spaces." },
+    "tenants": { "title": "Tenants", "description": "Keep tenant information organized." },
+    "contracts": { "title": "Contracts", "description": "Review active, expiring, and historical contracts." },
+    "receipts": { "title": "Receipts", "description": "Review and manage rent receipts." },
+    "payments": { "title": "Payments", "description": "Track received and outstanding payments." },
+    "services": { "title": "Services", "description": "Manage services associated with each property." },
+    "maintenance": { "title": "Maintenance", "description": "Track maintenance requests and work." },
+    "reports": { "title": "Reports", "description": "Review operating indicators and reports." },
+    "settings": { "title": "Settings", "description": "Configure Rentio's general preferences." },
+    "home": { "title": "Home", "description": "Review the most important information about your rental." },
+    "profile": { "title": "Profile", "description": "Review and update your personal information." }
+  },
+  "empty": { "title": "No information yet", "description": "Information for this section will appear here when available.", "table": "No results found", "tableDescription": "Try a different search or review your filters." },
+  "table": { "search": "Search...", "previous": "Previous", "next": "Next", "page": "Page {{current}} of {{total}}", "sortAscending": "Sort ascending", "sortDescending": "Sort descending" },
+  "actions": { "cancel": "Cancel", "confirm": "Confirm", "collapse": "Collapse navigation", "expand": "Expand navigation", "changeLanguage": "Change language", "changeTheme": "Change theme", "openUserMenu": "Open user menu", "signOut": "Sign out" },
+  "language": { "es-MX": "ES", "en": "EN" },
+  "theme": { "light": "Light mode", "dark": "Dark mode" },
+  "user": { "name": "Mariana Torres", "role": "Administrator", "initials": "MT" },
+  "status": { "active": "Active", "inactive": "Inactive", "pending": "Pending", "overdue": "Overdue", "paid": "Paid", "open": "Open" },
+  "dialog": { "title": "Confirm action", "description": "This action cannot be undone. Would you like to continue?" },
+  "meta": { "description": "Rentio, professional property and rental management in Mexico." }
+}
