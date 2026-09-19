@@ -714,5 +714,42 @@
     "cuota_mantenimiento": "Cuota de mantenimiento",
     "recargo": "Recargo",
     "otro": "Otro"
+  },
+  "utilityType": {
+    "agua": "Agua",
+    "luz": "Luz",
+    "gas": "Gas",
+    "cuota_mantenimiento": "Cuota de mantenimiento",
+    "otro": "Otro"
+  },
+  "services": {
+    "new": "Nuevo cargo",
+    "created": "Cargo creado correctamente.",
+    "newDescription": "Se registrará en el periodo {{month}}.",
+    "deleted": "Cargo eliminado.",
+    "bulk": "Captura masiva",
+    "bulkSubmit": "Guardar cargos",
+    "bulkCreated": "Cargos creados correctamente.",
+    "bulkDescription": "Captura el mismo concepto para todas las unidades de una propiedad en {{month}}.",
+    "applyAll": "Aplicar a todos",
+    "applyAllHint": "Llena todas las unidades con el mismo monto, por ejemplo una cuota fija.",
+    "runningTotal": "Total a registrar",
+    "alreadyCharged": "Ya tiene cargo de este tipo este mes",
+    "emptyTitle": "Sin cargos en {{month}}",
+    "emptyDescription": "Registra cargos de servicios o cuotas para este periodo.",
+    "pipelineNote": "Los cargos «pendiente» se agregan automáticamente al generar los recibos del mes y pasan a «facturado». Un cargo facturado ya no se puede editar ni eliminar.",
+    "summary": {
+      "pending": "Total pendiente",
+      "billed": "Total facturado",
+      "byType": "Desglose por tipo"
+    },
+    "columns": {
+      "type": "Tipo",
+      "notes": "Notas"
+    },
+    "errors": {
+      "unitRequired": "Selecciona una unidad.",
+      "amountRequired": "Captura el monto."
+    }
   }
 }

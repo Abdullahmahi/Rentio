@@ -714,5 +714,42 @@
     "cuota_mantenimiento": "Maintenance fee",
     "recargo": "Late fee",
     "otro": "Other"
+  },
+  "utilityType": {
+    "agua": "Water",
+    "luz": "Electricity",
+    "gas": "Gas",
+    "cuota_mantenimiento": "Maintenance fee",
+    "otro": "Other"
+  },
+  "services": {
+    "new": "New charge",
+    "created": "Charge created.",
+    "newDescription": "It will be recorded in the {{month}} period.",
+    "deleted": "Charge deleted.",
+    "bulk": "Bulk capture",
+    "bulkSubmit": "Save charges",
+    "bulkCreated": "Charges created.",
+    "bulkDescription": "Capture the same charge for every unit in a property for {{month}}.",
+    "applyAll": "Apply to all",
+    "applyAllHint": "Fill every unit with the same amount, e.g. a flat maintenance fee.",
+    "runningTotal": "Total to record",
+    "alreadyCharged": "Already has this charge this month",
+    "emptyTitle": "No charges in {{month}}",
+    "emptyDescription": "Record utility charges or fees for this period.",
+    "pipelineNote": "Pending charges are pulled into the monthly receipts automatically and flip to billed. A billed charge can no longer be edited or deleted.",
+    "summary": {
+      "pending": "Total pending",
+      "billed": "Total billed",
+      "byType": "Breakdown by type"
+    },
+    "columns": {
+      "type": "Type",
+      "notes": "Notes"
+    },
+    "errors": {
+      "unitRequired": "Select a unit.",
+      "amountRequired": "Enter the amount."
+    }
   }
 }
