@@ -410,7 +410,100 @@
     },
     "fields": {
       "dueDay": "Payment day",
-      "deposit": "Security deposit"
+      "deposit": "Security deposit",
+      "unit": "Unit",
+      "unitHint": "Only vacant or reserved units are listed.",
+      "unitPlaceholder": "Search by unit number",
+      "primaryTenant": "Primary tenant",
+      "tenantPlaceholder": "Search by name, phone or email",
+      "coTenants": "Co-tenants",
+      "coTenantsHint": "Optional.",
+      "guarantors": "Guarantor",
+      "guarantorsHint": "Optional — the obligado solidario.",
+      "addTenant": "Add tenant",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "period": "Term",
+      "rent": "Monthly rent",
+      "rentHint": "Pre-filled from the unit's base rent.",
+      "graceDays": "Grace days",
+      "lateFee": "Late fee amount",
+      "depositHint": "Usually one month's rent.",
+      "depositStatus": "Deposit status",
+      "depositNotes": "Reason for retention",
+      "moveOut": "Move-out date",
+      "refunded": "Amount refunded",
+      "retained": "Amount retained",
+      "contractFile": "Signed lease (PDF)",
+      "contractFileHint": "Optional — you can upload it later."
+    },
+    "created": "Lease created.",
+    "rentUpdated": "Rent updated.",
+    "terminated": "Lease ended and unit released.",
+    "backToList": "Back to leases",
+    "detailTitle": "Unit {{unit}} — {{tenant}}",
+    "notFound": "Lease not found",
+    "notFoundDescription": "It may have been deleted, or the link is wrong.",
+    "emptyTitle": "No leases yet",
+    "emptyDescription": "Create your first lease to start billing rent.",
+    "monthCount": "{{count}} month",
+    "monthCount_other": "{{count}} months",
+    "expiringHint": "{{count}} lease ends within 60 days.",
+    "expiringHint_other": "{{count}} leases end within 60 days.",
+    "oldestOverdue": "Overdue since {{date}}",
+    "nextStep": "Continue",
+    "previousStep": "Back",
+    "createSubmit": "Create lease",
+    "renew": "Renew",
+    "renewTitle": "Renew lease",
+    "terminate": "End lease",
+    "terminateTitle": "End lease",
+    "terminateDescription": "Unit {{unit}} — {{tenant}}. Record the move-out date and settle the deposit.",
+    "terminateWarning": "On confirm the unit becomes vacant and any assigned parking is released.",
+    "depositHeld": "Deposit held:",
+    "editRent": "Edit rent",
+    "editRentDescription": "Only an administrator can change the rent amount.",
+    "termsTitle": "Lease terms",
+    "peopleTitle": "Tenants",
+    "depositTitle": "Security deposit",
+    "noParking": "No parking assigned",
+    "noParkingDescription": "Assign a space from the Parking module.",
+    "inlineTenantDescription": "They'll be added to the lease without losing what you've entered.",
+    "filters": {
+      "allStatuses": "All statuses"
+    },
+    "balance": {
+      "invoiced": "Total invoiced",
+      "paid": "Total paid",
+      "balance": "Balance",
+      "oldestOverdue": "Overdue since"
+    },
+    "depositStatus": {
+      "retenido": "Held",
+      "liquidado": "Settled",
+      "devuelto": "Refunded"
+    },
+    "steps": {
+      "1": {
+        "title": "Unit and tenants",
+        "description": "Step 1 of 3 — choose the unit and who is renting it."
+      },
+      "2": {
+        "title": "Terms",
+        "description": "Step 2 of 3 — dates, rent and deposit."
+      },
+      "3": {
+        "title": "Confirmation",
+        "description": "Step 3 of 3 — review and attach the signed lease."
+      }
+    },
+    "errors": {
+      "unitRequired": "Select a unit.",
+      "tenantRequired": "Select the primary tenant.",
+      "rentRequired": "Enter the monthly rent.",
+      "datesInvalid": "The end date must be after the start date.",
+      "dueDayRange": "The payment day must be between 1 and 31.",
+      "depositOverflow": "Refunded plus retained can't exceed the deposit."
     }
   },
   "maintenance": {
@@ -422,6 +515,82 @@
       "priority": "Priority",
       "status": "Status",
       "created": "Created"
+    }
+  },
+  "paymentMethod": {
+    "spei": "SPEI",
+    "efectivo": "Cash",
+    "deposito": "Bank deposit",
+    "oxxo": "OXXO",
+    "cheque": "Cheque",
+    "tarjeta": "Card"
+  },
+  "tenants": {
+    "new": "New tenant",
+    "created": "Tenant created.",
+    "invite": "Invite to portal",
+    "invited": "Invitation sent to the tenant.",
+    "portalActiveSince": "Portal active since {{date}}",
+    "backToList": "Back to tenants",
+    "notFound": "Tenant not found",
+    "notFoundDescription": "It may have been deleted, or the link is wrong.",
+    "emptyTitle": "No tenants yet",
+    "emptyDescription": "Add your first tenant so you can create leases.",
+    "noLease": "No lease",
+    "contactTitle": "Contact details",
+    "currentLease": "Current lease",
+    "columns": {
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "unit": "Current unit",
+      "lease": "Lease",
+      "balance": "Balance"
+    },
+    "filters": {
+      "label": "Filter by lease",
+      "all": "All tenants",
+      "withLease": "With an active lease",
+      "withoutLease": "Without a lease"
+    },
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email address",
+      "phone": "Phone",
+      "rfc": "RFC",
+      "rfcHint": "Optional — for future tax invoicing.",
+      "emergencyName": "Emergency contact",
+      "emergencyPhone": "Emergency phone",
+      "notes": "Notes"
+    },
+    "errors": {
+      "nameRequired": "Enter the full name.",
+      "emailInvalid": "That email address isn't valid.",
+      "rfcInvalid": "That RFC doesn't look valid.",
+      "emailRequiredForInvite": "Add an email address before inviting them to the portal."
+    }
+  },
+  "receipts": {
+    "emptyTitle": "No receipts",
+    "emptyDescription": "Generated receipts will appear here.",
+    "columns": {
+      "folio": "Ref.",
+      "period": "Period",
+      "due": "Due",
+      "total": "Total",
+      "balance": "Balance",
+      "status": "Status"
+    }
+  },
+  "payments": {
+    "emptyTitle": "No payments recorded",
+    "emptyDescription": "Payments will appear here once recorded.",
+    "columns": {
+      "date": "Date",
+      "amount": "Amount",
+      "method": "Method",
+      "reference": "Reference",
+      "status": "Status"
     }
   }
 }

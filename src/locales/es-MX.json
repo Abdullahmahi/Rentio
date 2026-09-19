@@ -410,7 +410,100 @@
     },
     "fields": {
       "dueDay": "Día de pago",
-      "deposit": "Depósito en garantía"
+      "deposit": "Depósito en garantía",
+      "unit": "Unidad",
+      "unitHint": "Solo se listan unidades vacantes o reservadas.",
+      "unitPlaceholder": "Busca por número de unidad",
+      "primaryTenant": "Inquilino principal",
+      "tenantPlaceholder": "Busca por nombre, teléfono o correo",
+      "coTenants": "Coinquilinos",
+      "coTenantsHint": "Opcional.",
+      "guarantors": "Obligado solidario",
+      "guarantorsHint": "Opcional — también llamado fiador.",
+      "addTenant": "Agregar inquilino",
+      "startDate": "Fecha de inicio",
+      "endDate": "Fecha de fin",
+      "period": "Periodo",
+      "rent": "Renta mensual",
+      "rentHint": "Precargada con la renta base de la unidad.",
+      "graceDays": "Días de gracia",
+      "lateFee": "Monto de recargo",
+      "depositHint": "Normalmente un mes de renta.",
+      "depositStatus": "Estado del depósito",
+      "depositNotes": "Motivo de la retención",
+      "moveOut": "Fecha de salida",
+      "refunded": "Monto devuelto",
+      "retained": "Monto retenido",
+      "contractFile": "Contrato firmado (PDF)",
+      "contractFileHint": "Opcional — puedes subirlo después."
+    },
+    "created": "Contrato creado correctamente.",
+    "rentUpdated": "Renta actualizada.",
+    "terminated": "Contrato terminado y unidad liberada.",
+    "backToList": "Volver a contratos",
+    "detailTitle": "Unidad {{unit}} — {{tenant}}",
+    "notFound": "Contrato no encontrado",
+    "notFoundDescription": "Es posible que se haya eliminado o que el enlace sea incorrecto.",
+    "emptyTitle": "Aún no hay contratos",
+    "emptyDescription": "Crea el primer contrato para empezar a facturar rentas.",
+    "monthCount": "{{count}} mes",
+    "monthCount_other": "{{count}} meses",
+    "expiringHint": "{{count}} contrato vence en los próximos 60 días.",
+    "expiringHint_other": "{{count}} contratos vencen en los próximos 60 días.",
+    "oldestOverdue": "Vencido desde {{date}}",
+    "nextStep": "Continuar",
+    "previousStep": "Atrás",
+    "createSubmit": "Crear contrato",
+    "renew": "Renovar",
+    "renewTitle": "Renovar contrato",
+    "terminate": "Terminar contrato",
+    "terminateTitle": "Terminar contrato",
+    "terminateDescription": "Unidad {{unit}} — {{tenant}}. Registra la fecha de salida y la liquidación del depósito.",
+    "terminateWarning": "Al confirmar, la unidad pasa a vacante y se liberan los cajones de estacionamiento asignados.",
+    "depositHeld": "Depósito retenido:",
+    "editRent": "Editar renta",
+    "editRentDescription": "Solo un administrador puede modificar el monto de la renta.",
+    "termsTitle": "Términos del contrato",
+    "peopleTitle": "Inquilinos",
+    "depositTitle": "Depósito en garantía",
+    "noParking": "Sin estacionamiento asignado",
+    "noParkingDescription": "Asigna un cajón desde el módulo de Estacionamiento.",
+    "inlineTenantDescription": "Se agregará al contrato sin perder lo que ya capturaste.",
+    "filters": {
+      "allStatuses": "Todos los estados"
+    },
+    "balance": {
+      "invoiced": "Total facturado",
+      "paid": "Total pagado",
+      "balance": "Saldo",
+      "oldestOverdue": "Vencido desde"
+    },
+    "depositStatus": {
+      "retenido": "Retenido",
+      "liquidado": "Liquidado",
+      "devuelto": "Devuelto"
+    },
+    "steps": {
+      "1": {
+        "title": "Unidad e inquilinos",
+        "description": "Paso 1 de 3 — elige la unidad y a quién se le renta."
+      },
+      "2": {
+        "title": "Términos",
+        "description": "Paso 2 de 3 — fechas, renta y depósito."
+      },
+      "3": {
+        "title": "Confirmación",
+        "description": "Paso 3 de 3 — revisa y adjunta el contrato firmado."
+      }
+    },
+    "errors": {
+      "unitRequired": "Selecciona una unidad.",
+      "tenantRequired": "Selecciona al inquilino principal.",
+      "rentRequired": "Captura la renta mensual.",
+      "datesInvalid": "La fecha de fin debe ser posterior a la de inicio.",
+      "dueDayRange": "El día de pago debe estar entre 1 y 31.",
+      "depositOverflow": "La suma devuelta y retenida no puede superar el depósito."
     }
   },
   "maintenance": {
@@ -422,6 +515,82 @@
       "priority": "Prioridad",
       "status": "Estado",
       "created": "Creada"
+    }
+  },
+  "paymentMethod": {
+    "spei": "SPEI",
+    "efectivo": "Efectivo",
+    "deposito": "Depósito bancario",
+    "oxxo": "OXXO",
+    "cheque": "Cheque",
+    "tarjeta": "Tarjeta"
+  },
+  "tenants": {
+    "new": "Nuevo inquilino",
+    "created": "Inquilino creado correctamente.",
+    "invite": "Invitar al portal",
+    "invited": "Invitación enviada al inquilino.",
+    "portalActiveSince": "Portal activo desde {{date}}",
+    "backToList": "Volver a inquilinos",
+    "notFound": "Inquilino no encontrado",
+    "notFoundDescription": "Es posible que se haya eliminado o que el enlace sea incorrecto.",
+    "emptyTitle": "Aún no hay inquilinos",
+    "emptyDescription": "Registra a tu primer inquilino para poder crear contratos.",
+    "noLease": "Sin contrato",
+    "contactTitle": "Datos de contacto",
+    "currentLease": "Contrato actual",
+    "columns": {
+      "name": "Nombre",
+      "phone": "Teléfono",
+      "email": "Correo",
+      "unit": "Unidad actual",
+      "lease": "Contrato",
+      "balance": "Saldo"
+    },
+    "filters": {
+      "label": "Filtrar por contrato",
+      "all": "Todos los inquilinos",
+      "withLease": "Con contrato activo",
+      "withoutLease": "Sin contrato"
+    },
+    "fields": {
+      "fullName": "Nombre completo",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "rfc": "RFC",
+      "rfcHint": "Opcional — para facturación futura.",
+      "emergencyName": "Contacto de emergencia",
+      "emergencyPhone": "Teléfono de emergencia",
+      "notes": "Notas"
+    },
+    "errors": {
+      "nameRequired": "Escribe el nombre completo.",
+      "emailInvalid": "El correo electrónico no es válido.",
+      "rfcInvalid": "El RFC no tiene un formato válido.",
+      "emailRequiredForInvite": "Agrega un correo electrónico antes de invitar al portal."
+    }
+  },
+  "receipts": {
+    "emptyTitle": "Sin recibos",
+    "emptyDescription": "Los recibos generados aparecerán aquí.",
+    "columns": {
+      "folio": "Folio",
+      "period": "Periodo",
+      "due": "Vencimiento",
+      "total": "Total",
+      "balance": "Saldo",
+      "status": "Estado"
+    }
+  },
+  "payments": {
+    "emptyTitle": "Sin pagos registrados",
+    "emptyDescription": "Los pagos aparecerán aquí una vez registrados.",
+    "columns": {
+      "date": "Fecha",
+      "amount": "Monto",
+      "method": "Método",
+      "reference": "Referencia",
+      "status": "Estado"
     }
   }
 }

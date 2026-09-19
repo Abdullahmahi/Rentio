@@ -124,6 +124,45 @@ export function useToastMutation<TVars, TData>({
   });
 }
 
+export interface InvoiceWithPaid extends Tables<"invoices"> {
+  /** Confirmed money applied to this invoice. */
+  paid: number;
+  balance: number;
+}
+
+/**
+ * Invoices with what has actually been paid against each one.
+ *
+ * `invoice_balances` is a view, so PostgREST embedding would need relationship
+ * metadata the generated types don't carry — two small queries joined here
+ * are simpler and type-safe.
+ */
+export function useInvoices({ leaseId, period }: { leaseId?: string; period?: string } = {}) {
+  return useQuery({
+    queryKey: ["invoices", leaseId ?? "all", period ?? "all"],
+    queryFn: async (): Promise<InvoiceWithPaid[]> => {
+      let invoiceQuery = supabase.from("invoices").select("*");
+      let balanceQuery = supabase.from("invoice_balances").select("*");
+      if (leaseId) {
+        invoiceQuery = invoiceQuery.eq("lease_id", leaseId);
+        balanceQuery = balanceQuery.eq("lease_id", leaseId);
+      }
+      if (period) invoiceQuery = invoiceQuery.eq("period_month", period);
+
+      const [invoices, balances] = await Promise.all([
+        invoiceQuery.order("period_month", { ascending: false }).then(unwrap<Tables<"invoices">[]>),
+        balanceQuery.then(unwrap<Views<"invoice_balances">[]>),
+      ]);
+
+      const paidByInvoice = new Map(balances.map((row) => [row.invoice_id, Number(row.paid ?? 0)]));
+      return invoices.map((invoice) => {
+        const paid = paidByInvoice.get(invoice.id) ?? 0;
+        return { ...invoice, paid, balance: Number(invoice.total) - paid };
+      });
+    },
+  });
+}
+
 /** The signed-in staff member's profile id, for recorded_by / actor_id columns. */
 export function useActorId() {
   const { user } = useAuth();
