@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "db:types": "python3 supabase/gen-types.py > src/lib/database.types.ts",
-    "db:test": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/rls_test.sql"
+    "db:test": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/rls_test.sql",
+    "test": "bun test"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -76,6 +77,7 @@
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "^2.23.1",
+    "@types/bun": "^1.4.2",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",

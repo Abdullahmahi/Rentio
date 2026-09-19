@@ -99,6 +99,7 @@ for name, cols in tables.items():
     for col, udt, nullable, _ in cols:
         out.append(f"          {col}?: {ts(udt, nullable)};")
     out.append("        };")
+    out.append("        Relationships: [];")
     out.append("      };")
 
 out.append("    };")
@@ -109,6 +110,7 @@ for name, cols in views.items():
     for col, udt, nullable, _ in cols:
         out.append(f"          {col}: {ts(udt, nullable)};")
     out.append("        };")
+    out.append("        Relationships: [];")
     out.append("      };")
 out.append("    };")
 
@@ -125,6 +127,7 @@ for name, labels in enums.items():
     union = " | ".join(f'"{l}"' for l in labels)
     out.append(f"      {name}: {union};")
 out.append("    };")
+out.append("    CompositeTypes: Record<string, never>;")
 out.append("  };")
 out.append("};")
 out.append("")

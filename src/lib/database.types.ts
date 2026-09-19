@@ -43,6 +43,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       documents: {
         Row: {
@@ -75,6 +76,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       invoice_lines: {
         Row: {
@@ -107,6 +109,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       invoices: {
         Row: {
@@ -148,6 +151,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       lease_tenants: {
         Row: {
@@ -174,6 +178,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       leases: {
         Row: {
@@ -236,6 +241,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       parking_spaces: {
         Row: {
@@ -271,6 +277,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       payment_allocations: {
         Row: {
@@ -297,6 +304,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       payments: {
         Row: {
@@ -353,6 +361,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       profiles: {
         Row: {
@@ -388,6 +397,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       properties: {
         Row: {
@@ -426,6 +436,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       settings: {
         Row: {
@@ -491,6 +502,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       tenants: {
         Row: {
@@ -529,6 +541,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       units: {
         Row: {
@@ -570,6 +583,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       utility_charges: {
         Row: {
@@ -611,6 +625,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       work_order_notes: {
         Row: {
@@ -640,6 +655,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       work_order_photos: {
         Row: {
@@ -666,6 +682,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
       work_orders: {
         Row: {
@@ -725,6 +742,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
     };
     Views: {
@@ -736,6 +754,7 @@ export type Database = {
           paid: number | null;
           balance: number | null;
         };
+        Relationships: [];
       };
       lease_balances: {
         Row: {
@@ -745,6 +764,7 @@ export type Database = {
           balance: number | null;
           oldest_overdue_date: string | null;
         };
+        Relationships: [];
       };
       public_settings: {
         Row: {
@@ -755,6 +775,7 @@ export type Database = {
           account_holder: string | null;
           invoice_prefix: string | null;
         };
+        Relationships: [];
       };
     };
     Functions: {
@@ -780,6 +801,7 @@ export type Database = {
       wo_source: "portal" | "whatsapp" | "telefono" | "personal";
       wo_status: "nueva" | "asignada" | "en_progreso" | "esperando_refacciones" | "resuelta" | "cerrada";
     };
+    CompositeTypes: Record<string, never>;
   };
 };
 

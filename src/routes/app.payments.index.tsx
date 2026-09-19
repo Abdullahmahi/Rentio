@@ -3,7 +3,7 @@ import { WalletCards } from "lucide-react";
 import i18n from "@/lib/i18n";
 import { PlaceholderPage } from "@/components/rentio/placeholder-page";
 
-export const Route = createFileRoute("/app/payments")({
+export const Route = createFileRoute("/app/payments/")({
   head: () => ({ meta: [
     { title: `${i18n.t("pages.payments.title")} — Rentio` },
     { name: "description", content: i18n.t("pages.payments.description") },

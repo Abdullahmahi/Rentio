@@ -16,22 +16,28 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AppIndexRouteImport } from './routes/app.index'
-import { Route as AppContractsRouteImport } from './routes/app.contracts'
-import { Route as AppMaintenanceRouteImport } from './routes/app.maintenance'
-import { Route as AppParkingRouteImport } from './routes/app.parking'
-import { Route as AppPaymentsRouteImport } from './routes/app.payments'
-import { Route as AppPropertiesRouteImport } from './routes/app.properties'
-import { Route as AppReceiptsRouteImport } from './routes/app.receipts'
-import { Route as AppReportsRouteImport } from './routes/app.reports'
-import { Route as AppServicesRouteImport } from './routes/app.services'
-import { Route as AppSettingsRouteImport } from './routes/app.settings'
-import { Route as AppTenantsRouteImport } from './routes/app.tenants'
-import { Route as AppUnitsRouteImport } from './routes/app.units'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
 import { Route as PortalMaintenanceRouteImport } from './routes/portal.maintenance'
 import { Route as PortalProfileRouteImport } from './routes/portal.profile'
 import { Route as PortalReceiptsRouteImport } from './routes/portal.receipts'
+import { Route as AppContractsIndexRouteImport } from './routes/app.contracts.index'
+import { Route as AppContractsIdRouteImport } from './routes/app.contracts.$id'
+import { Route as AppMaintenanceIndexRouteImport } from './routes/app.maintenance.index'
+import { Route as AppMaintenanceIdRouteImport } from './routes/app.maintenance.$id'
+import { Route as AppParkingIndexRouteImport } from './routes/app.parking.index'
+import { Route as AppPaymentsIndexRouteImport } from './routes/app.payments.index'
+import { Route as AppPropertiesIndexRouteImport } from './routes/app.properties.index'
+import { Route as AppPropertiesIdRouteImport } from './routes/app.properties.$id'
+import { Route as AppReceiptsIndexRouteImport } from './routes/app.receipts.index'
+import { Route as AppReceiptsIdRouteImport } from './routes/app.receipts.$id'
+import { Route as AppReportsIndexRouteImport } from './routes/app.reports.index'
+import { Route as AppServicesIndexRouteImport } from './routes/app.services.index'
+import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
+import { Route as AppTenantsIndexRouteImport } from './routes/app.tenants.index'
+import { Route as AppTenantsIdRouteImport } from './routes/app.tenants.$id'
+import { Route as AppUnitsIndexRouteImport } from './routes/app.units.index'
+import { Route as AppUnitsIdRouteImport } from './routes/app.units.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -68,61 +74,6 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppContractsRoute = AppContractsRouteImport.update({
-  id: '/contracts',
-  path: '/contracts',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMaintenanceRoute = AppMaintenanceRouteImport.update({
-  id: '/maintenance',
-  path: '/maintenance',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppParkingRoute = AppParkingRouteImport.update({
-  id: '/parking',
-  path: '/parking',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPaymentsRoute = AppPaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPropertiesRoute = AppPropertiesRouteImport.update({
-  id: '/properties',
-  path: '/properties',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReceiptsRoute = AppReceiptsRouteImport.update({
-  id: '/receipts',
-  path: '/receipts',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReportsRoute = AppReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppServicesRoute = AppServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppTenantsRoute = AppTenantsRouteImport.update({
-  id: '/tenants',
-  path: '/tenants',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppUnitsRoute = AppUnitsRouteImport.update({
-  id: '/units',
-  path: '/units',
-  getParentRoute: () => AppRoute,
-} as any)
 const PortalIndexRoute = PortalIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -148,6 +99,91 @@ const PortalReceiptsRoute = PortalReceiptsRouteImport.update({
   path: '/receipts',
   getParentRoute: () => PortalRoute,
 } as any)
+const AppContractsIndexRoute = AppContractsIndexRouteImport.update({
+  id: '/contracts/',
+  path: '/contracts/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppContractsIdRoute = AppContractsIdRouteImport.update({
+  id: '/contracts/$id',
+  path: '/contracts/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMaintenanceIndexRoute = AppMaintenanceIndexRouteImport.update({
+  id: '/maintenance/',
+  path: '/maintenance/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMaintenanceIdRoute = AppMaintenanceIdRouteImport.update({
+  id: '/maintenance/$id',
+  path: '/maintenance/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppParkingIndexRoute = AppParkingIndexRouteImport.update({
+  id: '/parking/',
+  path: '/parking/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPaymentsIndexRoute = AppPaymentsIndexRouteImport.update({
+  id: '/payments/',
+  path: '/payments/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPropertiesIndexRoute = AppPropertiesIndexRouteImport.update({
+  id: '/properties/',
+  path: '/properties/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPropertiesIdRoute = AppPropertiesIdRouteImport.update({
+  id: '/properties/$id',
+  path: '/properties/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReceiptsIndexRoute = AppReceiptsIndexRouteImport.update({
+  id: '/receipts/',
+  path: '/receipts/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReceiptsIdRoute = AppReceiptsIdRouteImport.update({
+  id: '/receipts/$id',
+  path: '/receipts/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsIndexRoute = AppReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppServicesIndexRoute = AppServicesIndexRouteImport.update({
+  id: '/services/',
+  path: '/services/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTenantsIndexRoute = AppTenantsIndexRouteImport.update({
+  id: '/tenants/',
+  path: '/tenants/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTenantsIdRoute = AppTenantsIdRouteImport.update({
+  id: '/tenants/$id',
+  path: '/tenants/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUnitsIndexRoute = AppUnitsIndexRouteImport.update({
+  id: '/units/',
+  path: '/units/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUnitsIdRoute = AppUnitsIdRouteImport.update({
+  id: '/units/$id',
+  path: '/units/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -156,46 +192,58 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
-  '/app/contracts': typeof AppContractsRoute
-  '/app/maintenance': typeof AppMaintenanceRoute
-  '/app/parking': typeof AppParkingRoute
-  '/app/payments': typeof AppPaymentsRoute
-  '/app/properties': typeof AppPropertiesRoute
-  '/app/receipts': typeof AppReceiptsRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/services': typeof AppServicesRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/tenants': typeof AppTenantsRoute
-  '/app/units': typeof AppUnitsRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/maintenance': typeof PortalMaintenanceRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/receipts': typeof PortalReceiptsRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/app/contracts/$id': typeof AppContractsIdRoute
+  '/app/maintenance/$id': typeof AppMaintenanceIdRoute
+  '/app/properties/$id': typeof AppPropertiesIdRoute
+  '/app/receipts/$id': typeof AppReceiptsIdRoute
+  '/app/tenants/$id': typeof AppTenantsIdRoute
+  '/app/units/$id': typeof AppUnitsIdRoute
+  '/app/contracts/': typeof AppContractsIndexRoute
+  '/app/maintenance/': typeof AppMaintenanceIndexRoute
+  '/app/parking/': typeof AppParkingIndexRoute
+  '/app/payments/': typeof AppPaymentsIndexRoute
+  '/app/properties/': typeof AppPropertiesIndexRoute
+  '/app/receipts/': typeof AppReceiptsIndexRoute
+  '/app/reports/': typeof AppReportsIndexRoute
+  '/app/services/': typeof AppServicesIndexRoute
+  '/app/settings/': typeof AppSettingsIndexRoute
+  '/app/tenants/': typeof AppTenantsIndexRoute
+  '/app/units/': typeof AppUnitsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/app/contracts': typeof AppContractsRoute
-  '/app/maintenance': typeof AppMaintenanceRoute
-  '/app/parking': typeof AppParkingRoute
-  '/app/payments': typeof AppPaymentsRoute
-  '/app/properties': typeof AppPropertiesRoute
-  '/app/receipts': typeof AppReceiptsRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/services': typeof AppServicesRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/tenants': typeof AppTenantsRoute
-  '/app/units': typeof AppUnitsRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/maintenance': typeof PortalMaintenanceRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/receipts': typeof PortalReceiptsRoute
   '/app': typeof AppIndexRoute
   '/portal': typeof PortalIndexRoute
+  '/app/contracts/$id': typeof AppContractsIdRoute
+  '/app/maintenance/$id': typeof AppMaintenanceIdRoute
+  '/app/properties/$id': typeof AppPropertiesIdRoute
+  '/app/receipts/$id': typeof AppReceiptsIdRoute
+  '/app/tenants/$id': typeof AppTenantsIdRoute
+  '/app/units/$id': typeof AppUnitsIdRoute
+  '/app/contracts': typeof AppContractsIndexRoute
+  '/app/maintenance': typeof AppMaintenanceIndexRoute
+  '/app/parking': typeof AppParkingIndexRoute
+  '/app/payments': typeof AppPaymentsIndexRoute
+  '/app/properties': typeof AppPropertiesIndexRoute
+  '/app/receipts': typeof AppReceiptsIndexRoute
+  '/app/reports': typeof AppReportsIndexRoute
+  '/app/services': typeof AppServicesIndexRoute
+  '/app/settings': typeof AppSettingsIndexRoute
+  '/app/tenants': typeof AppTenantsIndexRoute
+  '/app/units': typeof AppUnitsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -205,23 +253,29 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
-  '/app/contracts': typeof AppContractsRoute
-  '/app/maintenance': typeof AppMaintenanceRoute
-  '/app/parking': typeof AppParkingRoute
-  '/app/payments': typeof AppPaymentsRoute
-  '/app/properties': typeof AppPropertiesRoute
-  '/app/receipts': typeof AppReceiptsRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/services': typeof AppServicesRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/tenants': typeof AppTenantsRoute
-  '/app/units': typeof AppUnitsRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/maintenance': typeof PortalMaintenanceRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/receipts': typeof PortalReceiptsRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/app/contracts/$id': typeof AppContractsIdRoute
+  '/app/maintenance/$id': typeof AppMaintenanceIdRoute
+  '/app/properties/$id': typeof AppPropertiesIdRoute
+  '/app/receipts/$id': typeof AppReceiptsIdRoute
+  '/app/tenants/$id': typeof AppTenantsIdRoute
+  '/app/units/$id': typeof AppUnitsIdRoute
+  '/app/contracts/': typeof AppContractsIndexRoute
+  '/app/maintenance/': typeof AppMaintenanceIndexRoute
+  '/app/parking/': typeof AppParkingIndexRoute
+  '/app/payments/': typeof AppPaymentsIndexRoute
+  '/app/properties/': typeof AppPropertiesIndexRoute
+  '/app/receipts/': typeof AppReceiptsIndexRoute
+  '/app/reports/': typeof AppReportsIndexRoute
+  '/app/services/': typeof AppServicesIndexRoute
+  '/app/settings/': typeof AppSettingsIndexRoute
+  '/app/tenants/': typeof AppTenantsIndexRoute
+  '/app/units/': typeof AppUnitsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -232,29 +286,47 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/reset-password'
-    | '/app/contracts'
-    | '/app/maintenance'
-    | '/app/parking'
-    | '/app/payments'
-    | '/app/properties'
-    | '/app/receipts'
-    | '/app/reports'
-    | '/app/services'
-    | '/app/settings'
-    | '/app/tenants'
-    | '/app/units'
     | '/portal/contracts'
     | '/portal/maintenance'
     | '/portal/profile'
     | '/portal/receipts'
     | '/app/'
     | '/portal/'
+    | '/app/contracts/$id'
+    | '/app/maintenance/$id'
+    | '/app/properties/$id'
+    | '/app/receipts/$id'
+    | '/app/tenants/$id'
+    | '/app/units/$id'
+    | '/app/contracts/'
+    | '/app/maintenance/'
+    | '/app/parking/'
+    | '/app/payments/'
+    | '/app/properties/'
+    | '/app/receipts/'
+    | '/app/reports/'
+    | '/app/services/'
+    | '/app/settings/'
+    | '/app/tenants/'
+    | '/app/units/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/forgot-password'
     | '/login'
     | '/reset-password'
+    | '/portal/contracts'
+    | '/portal/maintenance'
+    | '/portal/profile'
+    | '/portal/receipts'
+    | '/app'
+    | '/portal'
+    | '/app/contracts/$id'
+    | '/app/maintenance/$id'
+    | '/app/properties/$id'
+    | '/app/receipts/$id'
+    | '/app/tenants/$id'
+    | '/app/units/$id'
     | '/app/contracts'
     | '/app/maintenance'
     | '/app/parking'
@@ -266,12 +338,6 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/tenants'
     | '/app/units'
-    | '/portal/contracts'
-    | '/portal/maintenance'
-    | '/portal/profile'
-    | '/portal/receipts'
-    | '/app'
-    | '/portal'
   id:
     | '__root__'
     | '/'
@@ -280,23 +346,29 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/reset-password'
-    | '/app/contracts'
-    | '/app/maintenance'
-    | '/app/parking'
-    | '/app/payments'
-    | '/app/properties'
-    | '/app/receipts'
-    | '/app/reports'
-    | '/app/services'
-    | '/app/settings'
-    | '/app/tenants'
-    | '/app/units'
     | '/portal/contracts'
     | '/portal/maintenance'
     | '/portal/profile'
     | '/portal/receipts'
     | '/app/'
     | '/portal/'
+    | '/app/contracts/$id'
+    | '/app/maintenance/$id'
+    | '/app/properties/$id'
+    | '/app/receipts/$id'
+    | '/app/tenants/$id'
+    | '/app/units/$id'
+    | '/app/contracts/'
+    | '/app/maintenance/'
+    | '/app/parking/'
+    | '/app/payments/'
+    | '/app/properties/'
+    | '/app/receipts/'
+    | '/app/reports/'
+    | '/app/services/'
+    | '/app/settings/'
+    | '/app/tenants/'
+    | '/app/units/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -359,83 +431,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/contracts': {
-      id: '/app/contracts'
-      path: '/contracts'
-      fullPath: '/app/contracts'
-      preLoaderRoute: typeof AppContractsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/maintenance': {
-      id: '/app/maintenance'
-      path: '/maintenance'
-      fullPath: '/app/maintenance'
-      preLoaderRoute: typeof AppMaintenanceRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/parking': {
-      id: '/app/parking'
-      path: '/parking'
-      fullPath: '/app/parking'
-      preLoaderRoute: typeof AppParkingRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/payments': {
-      id: '/app/payments'
-      path: '/payments'
-      fullPath: '/app/payments'
-      preLoaderRoute: typeof AppPaymentsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/properties': {
-      id: '/app/properties'
-      path: '/properties'
-      fullPath: '/app/properties'
-      preLoaderRoute: typeof AppPropertiesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/receipts': {
-      id: '/app/receipts'
-      path: '/receipts'
-      fullPath: '/app/receipts'
-      preLoaderRoute: typeof AppReceiptsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/reports': {
-      id: '/app/reports'
-      path: '/reports'
-      fullPath: '/app/reports'
-      preLoaderRoute: typeof AppReportsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/services': {
-      id: '/app/services'
-      path: '/services'
-      fullPath: '/app/services'
-      preLoaderRoute: typeof AppServicesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/tenants': {
-      id: '/app/tenants'
-      path: '/tenants'
-      fullPath: '/app/tenants'
-      preLoaderRoute: typeof AppTenantsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/units': {
-      id: '/app/units'
-      path: '/units'
-      fullPath: '/app/units'
-      preLoaderRoute: typeof AppUnitsRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/portal/': {
       id: '/portal/'
       path: '/'
@@ -471,37 +466,168 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalReceiptsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/app/contracts/': {
+      id: '/app/contracts/'
+      path: '/contracts'
+      fullPath: '/app/contracts/'
+      preLoaderRoute: typeof AppContractsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/contracts/$id': {
+      id: '/app/contracts/$id'
+      path: '/contracts/$id'
+      fullPath: '/app/contracts/$id'
+      preLoaderRoute: typeof AppContractsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/maintenance/': {
+      id: '/app/maintenance/'
+      path: '/maintenance'
+      fullPath: '/app/maintenance/'
+      preLoaderRoute: typeof AppMaintenanceIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/maintenance/$id': {
+      id: '/app/maintenance/$id'
+      path: '/maintenance/$id'
+      fullPath: '/app/maintenance/$id'
+      preLoaderRoute: typeof AppMaintenanceIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/parking/': {
+      id: '/app/parking/'
+      path: '/parking'
+      fullPath: '/app/parking/'
+      preLoaderRoute: typeof AppParkingIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/payments/': {
+      id: '/app/payments/'
+      path: '/payments'
+      fullPath: '/app/payments/'
+      preLoaderRoute: typeof AppPaymentsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/properties/': {
+      id: '/app/properties/'
+      path: '/properties'
+      fullPath: '/app/properties/'
+      preLoaderRoute: typeof AppPropertiesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/properties/$id': {
+      id: '/app/properties/$id'
+      path: '/properties/$id'
+      fullPath: '/app/properties/$id'
+      preLoaderRoute: typeof AppPropertiesIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/receipts/': {
+      id: '/app/receipts/'
+      path: '/receipts'
+      fullPath: '/app/receipts/'
+      preLoaderRoute: typeof AppReceiptsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/receipts/$id': {
+      id: '/app/receipts/$id'
+      path: '/receipts/$id'
+      fullPath: '/app/receipts/$id'
+      preLoaderRoute: typeof AppReceiptsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reports/': {
+      id: '/app/reports/'
+      path: '/reports'
+      fullPath: '/app/reports/'
+      preLoaderRoute: typeof AppReportsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/services/': {
+      id: '/app/services/'
+      path: '/services'
+      fullPath: '/app/services/'
+      preLoaderRoute: typeof AppServicesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings/': {
+      id: '/app/settings/'
+      path: '/settings'
+      fullPath: '/app/settings/'
+      preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/tenants/': {
+      id: '/app/tenants/'
+      path: '/tenants'
+      fullPath: '/app/tenants/'
+      preLoaderRoute: typeof AppTenantsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/tenants/$id': {
+      id: '/app/tenants/$id'
+      path: '/tenants/$id'
+      fullPath: '/app/tenants/$id'
+      preLoaderRoute: typeof AppTenantsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/units/': {
+      id: '/app/units/'
+      path: '/units'
+      fullPath: '/app/units/'
+      preLoaderRoute: typeof AppUnitsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/units/$id': {
+      id: '/app/units/$id'
+      path: '/units/$id'
+      fullPath: '/app/units/$id'
+      preLoaderRoute: typeof AppUnitsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
-  AppContractsRoute: typeof AppContractsRoute
-  AppMaintenanceRoute: typeof AppMaintenanceRoute
-  AppParkingRoute: typeof AppParkingRoute
-  AppPaymentsRoute: typeof AppPaymentsRoute
-  AppPropertiesRoute: typeof AppPropertiesRoute
-  AppReceiptsRoute: typeof AppReceiptsRoute
-  AppReportsRoute: typeof AppReportsRoute
-  AppServicesRoute: typeof AppServicesRoute
-  AppSettingsRoute: typeof AppSettingsRoute
-  AppTenantsRoute: typeof AppTenantsRoute
-  AppUnitsRoute: typeof AppUnitsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppContractsIdRoute: typeof AppContractsIdRoute
+  AppMaintenanceIdRoute: typeof AppMaintenanceIdRoute
+  AppPropertiesIdRoute: typeof AppPropertiesIdRoute
+  AppReceiptsIdRoute: typeof AppReceiptsIdRoute
+  AppTenantsIdRoute: typeof AppTenantsIdRoute
+  AppUnitsIdRoute: typeof AppUnitsIdRoute
+  AppContractsIndexRoute: typeof AppContractsIndexRoute
+  AppMaintenanceIndexRoute: typeof AppMaintenanceIndexRoute
+  AppParkingIndexRoute: typeof AppParkingIndexRoute
+  AppPaymentsIndexRoute: typeof AppPaymentsIndexRoute
+  AppPropertiesIndexRoute: typeof AppPropertiesIndexRoute
+  AppReceiptsIndexRoute: typeof AppReceiptsIndexRoute
+  AppReportsIndexRoute: typeof AppReportsIndexRoute
+  AppServicesIndexRoute: typeof AppServicesIndexRoute
+  AppSettingsIndexRoute: typeof AppSettingsIndexRoute
+  AppTenantsIndexRoute: typeof AppTenantsIndexRoute
+  AppUnitsIndexRoute: typeof AppUnitsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppContractsRoute: AppContractsRoute,
-  AppMaintenanceRoute: AppMaintenanceRoute,
-  AppParkingRoute: AppParkingRoute,
-  AppPaymentsRoute: AppPaymentsRoute,
-  AppPropertiesRoute: AppPropertiesRoute,
-  AppReceiptsRoute: AppReceiptsRoute,
-  AppReportsRoute: AppReportsRoute,
-  AppServicesRoute: AppServicesRoute,
-  AppSettingsRoute: AppSettingsRoute,
-  AppTenantsRoute: AppTenantsRoute,
-  AppUnitsRoute: AppUnitsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppContractsIdRoute: AppContractsIdRoute,
+  AppMaintenanceIdRoute: AppMaintenanceIdRoute,
+  AppPropertiesIdRoute: AppPropertiesIdRoute,
+  AppReceiptsIdRoute: AppReceiptsIdRoute,
+  AppTenantsIdRoute: AppTenantsIdRoute,
+  AppUnitsIdRoute: AppUnitsIdRoute,
+  AppContractsIndexRoute: AppContractsIndexRoute,
+  AppMaintenanceIndexRoute: AppMaintenanceIndexRoute,
+  AppParkingIndexRoute: AppParkingIndexRoute,
+  AppPaymentsIndexRoute: AppPaymentsIndexRoute,
+  AppPropertiesIndexRoute: AppPropertiesIndexRoute,
+  AppReceiptsIndexRoute: AppReceiptsIndexRoute,
+  AppReportsIndexRoute: AppReportsIndexRoute,
+  AppServicesIndexRoute: AppServicesIndexRoute,
+  AppSettingsIndexRoute: AppSettingsIndexRoute,
+  AppTenantsIndexRoute: AppTenantsIndexRoute,
+  AppUnitsIndexRoute: AppUnitsIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

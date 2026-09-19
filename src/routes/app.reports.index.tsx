@@ -3,7 +3,7 @@ import { BarChart3 } from "lucide-react";
 import i18n from "@/lib/i18n";
 import { PlaceholderPage } from "@/components/rentio/placeholder-page";
 
-export const Route = createFileRoute("/app/reports")({
+export const Route = createFileRoute("/app/reports/")({
   head: () => ({ meta: [
     { title: `${i18n.t("pages.reports.title")} — Rentio` },
     { name: "description", content: i18n.t("pages.reports.description") },

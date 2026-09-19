@@ -100,7 +100,18 @@
     "changeLanguage": "Change language",
     "changeTheme": "Change theme",
     "openUserMenu": "Open user menu",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "retry": "Retry",
+    "download": "Download",
+    "back": "Back",
+    "close": "Close",
+    "search": "Search",
+    "apply": "Apply",
+    "export": "Export CSV",
+    "viewAll": "View all"
   },
   "language": {
     "es-MX": "ES",
@@ -174,6 +185,197 @@
     "forbidden": "You don't have permission to do that.",
     "duplicate": "That record already exists.",
     "invalidCredentials": "Incorrect email or password.",
-    "notConfigured": "Supabase isn't connected yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY."
+    "notConfigured": "Supabase isn't connected yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
+    "loadFailed": "We couldn't load this information",
+    "notConfiguredTitle": "Supabase isn't connected"
+  },
+  "unitStatus": {
+    "vacante": "Vacant",
+    "ocupada": "Occupied",
+    "mantenimiento": "Maintenance",
+    "reservada": "Reserved"
+  },
+  "leaseStatus": {
+    "borrador": "Draft",
+    "activo": "Active",
+    "por_vencer": "Expiring soon",
+    "terminado": "Ended",
+    "rescindido": "Terminated"
+  },
+  "invoiceStatus": {
+    "borrador": "Draft",
+    "enviado": "Sent",
+    "pagado_parcial": "Partially paid",
+    "pagado": "Paid",
+    "vencido": "Overdue",
+    "cancelado": "Cancelled"
+  },
+  "paymentStatus": {
+    "pendiente": "Awaiting confirmation",
+    "confirmado": "Confirmed",
+    "cancelado": "Cancelled"
+  },
+  "woStatus": {
+    "nueva": "New",
+    "asignada": "Assigned",
+    "en_progreso": "In progress",
+    "esperando_refacciones": "Awaiting parts",
+    "resuelta": "Resolved",
+    "cerrada": "Closed"
+  },
+  "woPriority": {
+    "baja": "Low",
+    "media": "Medium",
+    "alta": "High",
+    "urgente": "Urgent"
+  },
+  "utilityStatus": {
+    "pendiente": "Pending",
+    "facturado": "Billed"
+  },
+  "documents": {
+    "title": "Documents",
+    "upload": "Upload file",
+    "uploading": "Uploading…",
+    "uploaded": "File uploaded.",
+    "deleted": "File deleted.",
+    "hint": "Files are kept in private storage and opened through short-lived links.",
+    "emptyTitle": "No documents",
+    "emptyDescription": "Upload leases, IDs or proof of income."
+  },
+  "properties": {
+    "new": "New property",
+    "newDescription": "Register a building in your portfolio.",
+    "edit": "Edit property",
+    "created": "Property created.",
+    "updated": "Property updated.",
+    "deleted": "Property deleted.",
+    "backToList": "Back to properties",
+    "notFound": "Property not found",
+    "notFoundDescription": "It may have been deleted, or the link is wrong.",
+    "emptyTitle": "No properties yet",
+    "emptyDescription": "Register your first building to start adding units.",
+    "unitCount": "{{count}} unit",
+    "unitCount_other": "{{count}} units",
+    "occupancyLabel": "{{occupied}} of {{total}} occupied",
+    "deleteTitle": "Delete this property?",
+    "deleteDescription": "This deletes \"{{name}}\" and its {{count}} units. This cannot be undone.",
+    "stats": {
+      "units": "Units",
+      "occupied": "Occupied",
+      "occupancy": "Occupancy"
+    },
+    "fields": {
+      "name": "Name",
+      "street": "Street and number",
+      "colonia": "Neighbourhood",
+      "city": "City",
+      "state": "State",
+      "postalCode": "Postal code",
+      "notes": "Notes"
+    },
+    "errors": {
+      "nameRequired": "Enter the property name."
+    }
+  },
+  "units": {
+    "new": "New unit",
+    "created": "Unit created.",
+    "backToList": "Back to units",
+    "detailTitle": "Unit {{number}}",
+    "notFound": "Unit not found",
+    "notFoundDescription": "It may have been deleted, or the link is wrong.",
+    "emptyTitle": "No units",
+    "emptyDescription": "Add units or adjust your filters.",
+    "noParking": "No parking assigned",
+    "parkingAssigned": "Assigned parking: {{labels}}",
+    "openLease": "Open lease",
+    "vacantTitle": "No active lease",
+    "vacantDescription": "Create a lease to assign a tenant to this unit.",
+    "noHistory": "No previous leases",
+    "noHistoryDescription": "Ended leases will appear here.",
+    "view": {
+      "table": "Table view",
+      "cards": "Card view"
+    },
+    "card": {
+      "specs": "{{bedrooms}} bd · {{bathrooms}} ba · {{sqm}} m²"
+    },
+    "tabs": {
+      "summary": "Summary",
+      "lease": "Current lease",
+      "history": "History",
+      "specs": "Specifications",
+      "current": "Current tenant"
+    },
+    "columns": {
+      "unit": "Unit",
+      "property": "Property",
+      "floor": "Floor",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "sqm": "m²",
+      "baseRent": "Base rent",
+      "status": "Status",
+      "tenant": "Current tenant"
+    },
+    "filters": {
+      "property": "Property",
+      "status": "Status",
+      "bedrooms": "Bedrooms",
+      "allProperties": "All properties",
+      "allStatuses": "All statuses",
+      "allBedrooms": "All",
+      "bedroomCount": "{{count}} bedroom",
+      "bedroomCount_other": "{{count}} bedrooms"
+    },
+    "fields": {
+      "property": "Property",
+      "propertyPlaceholder": "Select a property",
+      "number": "Unit number",
+      "floor": "Floor",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "sqm": "Square metres",
+      "baseRent": "Base rent"
+    },
+    "errors": {
+      "propertyRequired": "Select a property.",
+      "numberRequired": "Enter the unit number."
+    }
+  },
+  "parking": {
+    "emptyTitle": "No parking spaces",
+    "emptyDescription": "Register the parking spaces for this property.",
+    "types": {
+      "techado": "Covered",
+      "descubierto": "Uncovered"
+    }
+  },
+  "contracts": {
+    "new": "New lease",
+    "columns": {
+      "tenant": "Primary tenant",
+      "start": "Start",
+      "end": "End",
+      "rent": "Monthly rent",
+      "status": "Status",
+      "balance": "Balance"
+    },
+    "fields": {
+      "dueDay": "Payment day",
+      "deposit": "Security deposit"
+    }
+  },
+  "maintenance": {
+    "emptyTitle": "No work orders",
+    "emptyDescription": "Maintenance requests will appear here.",
+    "columns": {
+      "folio": "Ref.",
+      "title": "Title",
+      "priority": "Priority",
+      "status": "Status",
+      "created": "Created"
+    }
   }
 }

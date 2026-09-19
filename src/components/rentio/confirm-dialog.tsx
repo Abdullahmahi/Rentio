@@ -7,13 +7,13 @@ import {
 import { Button, type ButtonProps } from "@/components/ui/button";
 
 interface ConfirmDialogProps {
-  title?: string;
-  description?: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
+  title?: string | undefined;
+  description?: string | undefined;
+  confirmLabel?: string | undefined;
+  cancelLabel?: string | undefined;
   triggerLabel: string;
-  triggerVariant?: ButtonProps["variant"];
-  destructive?: boolean;
+  triggerVariant?: ButtonProps["variant"] | undefined;
+  destructive?: boolean | undefined;
   onConfirm: () => void;
 }
 

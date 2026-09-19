@@ -11,20 +11,20 @@ export interface DataTableColumn<T> {
   key: string;
   header: string;
   cell: (row: T) => ReactNode;
-  sortValue?: (row: T) => string | number;
-  numeric?: boolean;
-  className?: string;
+  sortValue?: ((row: T) => string | number) | undefined;
+  numeric?: boolean | undefined;
+  className?: string | undefined;
 }
 
 interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
   data: T[];
   getRowId: (row: T) => string;
-  searchValue?: (row: T) => string;
-  onRowClick?: (row: T) => void;
-  loading?: boolean;
-  pageSize?: number;
-  emptyMessage?: string;
+  searchValue?: ((row: T) => string) | undefined;
+  onRowClick?: ((row: T) => void) | undefined;
+  loading?: boolean | undefined;
+  pageSize?: number | undefined;
+  emptyMessage?: string | undefined;
 }
 
 type SortDirection = "asc" | "desc";

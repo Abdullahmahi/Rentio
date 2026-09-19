@@ -3,7 +3,7 @@ import { Wrench } from "lucide-react";
 import i18n from "@/lib/i18n";
 import { PlaceholderPage } from "@/components/rentio/placeholder-page";
 
-export const Route = createFileRoute("/app/maintenance")({
+export const Route = createFileRoute("/app/maintenance/")({
   head: () => ({ meta: [
     { title: `${i18n.t("pages.maintenance.title")} — Rentio` },
     { name: "description", content: i18n.t("pages.maintenance.description") },

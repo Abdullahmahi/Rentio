@@ -100,7 +100,18 @@
     "changeLanguage": "Cambiar idioma",
     "changeTheme": "Cambiar tema",
     "openUserMenu": "Abrir menú de usuario",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "retry": "Reintentar",
+    "download": "Descargar",
+    "back": "Volver",
+    "close": "Cerrar",
+    "search": "Buscar",
+    "apply": "Aplicar",
+    "export": "Exportar CSV",
+    "viewAll": "Ver todo"
   },
   "language": {
     "es-MX": "ES",
@@ -174,6 +185,197 @@
     "forbidden": "No tienes permiso para realizar esta acción.",
     "duplicate": "Ese registro ya existe.",
     "invalidCredentials": "Correo o contraseña incorrectos.",
-    "notConfigured": "Falta conectar Supabase. Agrega VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY."
+    "notConfigured": "Falta conectar Supabase. Agrega VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.",
+    "loadFailed": "No pudimos cargar la información",
+    "notConfiguredTitle": "Falta conectar Supabase"
+  },
+  "unitStatus": {
+    "vacante": "Vacante",
+    "ocupada": "Ocupada",
+    "mantenimiento": "Mantenimiento",
+    "reservada": "Reservada"
+  },
+  "leaseStatus": {
+    "borrador": "Borrador",
+    "activo": "Activo",
+    "por_vencer": "Por vencer",
+    "terminado": "Terminado",
+    "rescindido": "Rescindido"
+  },
+  "invoiceStatus": {
+    "borrador": "Borrador",
+    "enviado": "Enviado",
+    "pagado_parcial": "Pago parcial",
+    "pagado": "Pagado",
+    "vencido": "Vencido",
+    "cancelado": "Cancelado"
+  },
+  "paymentStatus": {
+    "pendiente": "Por confirmar",
+    "confirmado": "Confirmado",
+    "cancelado": "Cancelado"
+  },
+  "woStatus": {
+    "nueva": "Nueva",
+    "asignada": "Asignada",
+    "en_progreso": "En progreso",
+    "esperando_refacciones": "Esperando refacciones",
+    "resuelta": "Resuelta",
+    "cerrada": "Cerrada"
+  },
+  "woPriority": {
+    "baja": "Baja",
+    "media": "Media",
+    "alta": "Alta",
+    "urgente": "Urgente"
+  },
+  "utilityStatus": {
+    "pendiente": "Pendiente",
+    "facturado": "Facturado"
+  },
+  "documents": {
+    "title": "Documentos",
+    "upload": "Subir archivo",
+    "uploading": "Subiendo…",
+    "uploaded": "Archivo subido correctamente.",
+    "deleted": "Archivo eliminado.",
+    "hint": "Los archivos se guardan en almacenamiento privado y se abren con enlaces temporales.",
+    "emptyTitle": "Sin documentos",
+    "emptyDescription": "Sube contratos, identificaciones o comprobantes."
+  },
+  "properties": {
+    "new": "Nueva propiedad",
+    "newDescription": "Registra un edificio o propiedad de la cartera.",
+    "edit": "Editar propiedad",
+    "created": "Propiedad creada correctamente.",
+    "updated": "Propiedad actualizada.",
+    "deleted": "Propiedad eliminada.",
+    "backToList": "Volver a propiedades",
+    "notFound": "Propiedad no encontrada",
+    "notFoundDescription": "Es posible que se haya eliminado o que el enlace sea incorrecto.",
+    "emptyTitle": "Aún no hay propiedades",
+    "emptyDescription": "Registra tu primer edificio para empezar a cargar unidades.",
+    "unitCount": "{{count}} unidad",
+    "unitCount_other": "{{count}} unidades",
+    "occupancyLabel": "{{occupied}} de {{total}} ocupadas",
+    "deleteTitle": "¿Eliminar esta propiedad?",
+    "deleteDescription": "Se eliminará «{{name}}» y sus {{count}} unidades. Esta acción no se puede deshacer.",
+    "stats": {
+      "units": "Unidades",
+      "occupied": "Ocupadas",
+      "occupancy": "Ocupación"
+    },
+    "fields": {
+      "name": "Nombre",
+      "street": "Calle y número",
+      "colonia": "Colonia",
+      "city": "Ciudad",
+      "state": "Estado",
+      "postalCode": "Código postal",
+      "notes": "Notas"
+    },
+    "errors": {
+      "nameRequired": "Escribe el nombre de la propiedad."
+    }
+  },
+  "units": {
+    "new": "Nueva unidad",
+    "created": "Unidad creada correctamente.",
+    "backToList": "Volver a unidades",
+    "detailTitle": "Unidad {{number}}",
+    "notFound": "Unidad no encontrada",
+    "notFoundDescription": "Es posible que se haya eliminado o que el enlace sea incorrecto.",
+    "emptyTitle": "Sin unidades",
+    "emptyDescription": "Agrega unidades o ajusta los filtros de búsqueda.",
+    "noParking": "Sin cajón asignado",
+    "parkingAssigned": "Cajones asignados: {{labels}}",
+    "openLease": "Ver contrato",
+    "vacantTitle": "Unidad sin contrato activo",
+    "vacantDescription": "Crea un contrato para asignar un inquilino a esta unidad.",
+    "noHistory": "Sin contratos anteriores",
+    "noHistoryDescription": "Los contratos terminados aparecerán aquí.",
+    "view": {
+      "table": "Ver como tabla",
+      "cards": "Ver como tarjetas"
+    },
+    "card": {
+      "specs": "{{bedrooms}} rec · {{bathrooms}} baños · {{sqm}} m²"
+    },
+    "tabs": {
+      "summary": "Resumen",
+      "lease": "Contrato actual",
+      "history": "Historial",
+      "specs": "Características",
+      "current": "Inquilino actual"
+    },
+    "columns": {
+      "unit": "Unidad",
+      "property": "Propiedad",
+      "floor": "Piso",
+      "bedrooms": "Recámaras",
+      "bathrooms": "Baños",
+      "sqm": "m²",
+      "baseRent": "Renta base",
+      "status": "Estado",
+      "tenant": "Inquilino actual"
+    },
+    "filters": {
+      "property": "Propiedad",
+      "status": "Estado",
+      "bedrooms": "Recámaras",
+      "allProperties": "Todas las propiedades",
+      "allStatuses": "Todos los estados",
+      "allBedrooms": "Todas",
+      "bedroomCount": "{{count}} recámara",
+      "bedroomCount_other": "{{count}} recámaras"
+    },
+    "fields": {
+      "property": "Propiedad",
+      "propertyPlaceholder": "Selecciona una propiedad",
+      "number": "Número de unidad",
+      "floor": "Piso",
+      "bedrooms": "Recámaras",
+      "bathrooms": "Baños",
+      "sqm": "Metros cuadrados",
+      "baseRent": "Renta base"
+    },
+    "errors": {
+      "propertyRequired": "Selecciona una propiedad.",
+      "numberRequired": "Escribe el número de unidad."
+    }
+  },
+  "parking": {
+    "emptyTitle": "Sin cajones",
+    "emptyDescription": "Registra los cajones de estacionamiento de esta propiedad.",
+    "types": {
+      "techado": "Techado",
+      "descubierto": "Descubierto"
+    }
+  },
+  "contracts": {
+    "new": "Nuevo contrato",
+    "columns": {
+      "tenant": "Inquilino principal",
+      "start": "Inicio",
+      "end": "Fin",
+      "rent": "Renta mensual",
+      "status": "Estado",
+      "balance": "Saldo"
+    },
+    "fields": {
+      "dueDay": "Día de pago",
+      "deposit": "Depósito en garantía"
+    }
+  },
+  "maintenance": {
+    "emptyTitle": "Sin órdenes de trabajo",
+    "emptyDescription": "Las solicitudes de mantenimiento aparecerán aquí.",
+    "columns": {
+      "folio": "Folio",
+      "title": "Título",
+      "priority": "Prioridad",
+      "status": "Estado",
+      "created": "Creada"
+    }
   }
 }

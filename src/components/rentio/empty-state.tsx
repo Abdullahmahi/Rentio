@@ -4,11 +4,11 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
-  icon?: LucideIcon;
-  message?: string;
-  description?: string;
-  actionLabel?: string;
-  onAction?: () => void;
+  icon?: LucideIcon | undefined;
+  message?: string | undefined;
+  description?: string | undefined;
+  actionLabel?: string | undefined;
+  onAction?: (() => void) | undefined;
 }
 
 export function EmptyState({ icon: Icon = Building2, message, description, actionLabel, onAction }: EmptyStateProps) {

@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 
 interface PageHeaderProps {
   title: string;
-  description?: string;
-  actions?: ReactNode;
-  className?: string;
+  description?: string | undefined;
+  actions?: ReactNode | undefined;
+  className?: string | undefined;
 }
 
 export function PageHeader({ title, description, actions, className }: PageHeaderProps) {
