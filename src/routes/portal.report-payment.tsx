@@ -121,7 +121,9 @@ function ReportPaymentPage() {
             label={t("payments.columns.amount")}
             hint={balance > 0 ? t("portal.balanceHint", { amount: formatMXN(balance) }) : undefined}
           >
+            {/* 48px like every other control on this phone-first form. */}
             <MoneyInput
+              className="[&_input]:h-12"
               value={form.amount}
               onChange={(value) => setForm({ ...form, amount: value })}
             />
