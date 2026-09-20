@@ -147,6 +147,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      lease_notices: {
+        Row: {
+          id: string;
+          lease_id: string;
+          type: Database["public"]["Enums"]["notice_type"];
+          reason: string | null;
+          vacate_date: string;
+          delivery: Database["public"]["Enums"]["notice_delivery"];
+          delivered_at: string;
+          document_url: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          lease_id: string;
+          type: Database["public"]["Enums"]["notice_type"];
+          reason?: string | null;
+          vacate_date: string;
+          delivery: Database["public"]["Enums"]["notice_delivery"];
+          delivered_at?: string;
+          document_url?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          lease_id?: string;
+          type?: Database["public"]["Enums"]["notice_type"];
+          reason?: string | null;
+          vacate_date?: string;
+          delivery?: Database["public"]["Enums"]["notice_delivery"];
+          delivered_at?: string;
+          document_url?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       lease_tenants: {
         Row: {
           id: string;
@@ -579,6 +621,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      unit_turnover_checklist: {
+        Row: {
+          id: string;
+          unit_id: string;
+          lease_id: string;
+          item: string;
+          item_key: string;
+          position: number;
+          completed: boolean;
+          completed_at: string | null;
+          completed_by: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          unit_id: string;
+          lease_id: string;
+          item: string;
+          item_key: string;
+          position?: number;
+          completed?: boolean;
+          completed_at?: string | null;
+          completed_by?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          unit_id?: string;
+          lease_id?: string;
+          item?: string;
+          item_key?: string;
+          position?: number;
+          completed?: boolean;
+          completed_at?: string | null;
+          completed_by?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       units: {
         Row: {
           id: string;
@@ -739,6 +826,8 @@ export type Database = {
           resolved_at: string | null;
           created_at: string;
           updated_at: string | null;
+          affects_health_safety: boolean;
+          written_notice_at: string | null;
         };
         Insert: {
           id?: string;
@@ -758,6 +847,8 @@ export type Database = {
           resolved_at?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          affects_health_safety?: boolean;
+          written_notice_at?: string | null;
         };
         Update: {
           id?: string;
@@ -777,6 +868,8 @@ export type Database = {
           resolved_at?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          affects_health_safety?: boolean;
+          written_notice_at?: string | null;
         };
         Relationships: [];
       };
@@ -880,6 +973,8 @@ export type Database = {
         | "recargo"
         | "otro"
         | "nsf_fee";
+      notice_delivery: "in_person" | "mail" | "affixed_to_door";
+      notice_type: "non_payment" | "lease_violation" | "end_of_term";
       payment_method: "ach" | "zelle" | "check" | "money_order" | "cash" | "card" | "other";
       payment_status: "pendiente" | "confirmado" | "cancelado";
       unit_status: "vacante" | "ocupada" | "mantenimiento" | "reservada";

@@ -25,6 +25,7 @@ import {
   lateFeePercentOfRent,
   unitsInStructure,
 } from "@/lib/late-fee";
+import { turnoverRowsFor } from "@/lib/texas";
 import { PHONE_HINT, formatUsPhone } from "@/lib/us";
 import { isActive, unitContexts } from "@/lib/portfolio";
 import {
@@ -260,6 +261,13 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
       ];
       const { error: linkError } = await supabase.from("lease_tenants").insert(links);
       if (linkError) throw linkError;
+
+      // §92.156 starts a 7-day rekey clock the moment the tenant takes
+      // possession, so the checklist exists from the lease's first second.
+      const { error: checklistError } = await supabase
+        .from("unit_turnover_checklist")
+        .insert(turnoverRowsFor(unitId, lease.id));
+      if (checklistError) throw checklistError;
 
       if (contractFile) {
         const path = await uploadFile("contracts", lease.id, contractFile);

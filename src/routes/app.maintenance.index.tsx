@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -41,6 +42,7 @@ import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/l
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
 import { CATEGORY_ICONS, SOURCE_ICONS, daysOpen } from "@/lib/maintenance";
+import { repairClock } from "@/lib/texas";
 import { cn } from "@/lib/utils";
 import type { Enums, Tables, TablesUpdate } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
@@ -104,11 +106,13 @@ function MaintenancePage() {
     category: ALL,
     property: ALL,
     source: ALL,
+    healthSafety: ALL,
   });
   const [form, setForm] = useState({
     unit_id: null as string | null,
     category: "plomeria" as Enums<"wo_category">,
     priority: "media" as Enums<"wo_priority">,
+    affects_health_safety: false,
     title: "",
     description: "",
     photos: [] as File[],
@@ -154,6 +158,7 @@ function MaintenancePage() {
         if (filters.category !== ALL && row.category !== filters.category) return false;
         if (filters.property !== ALL && row.propertyId !== filters.property) return false;
         if (filters.source !== ALL && row.source !== filters.source) return false;
+        if (filters.healthSafety === "yes" && !row.affects_health_safety) return false;
         return true;
       });
   }, [orders.data, units, filters]);
@@ -170,8 +175,17 @@ function MaintenancePage() {
     const durations = all
       .filter((order) => order.resolved_at)
       .map((order) => daysOpen(order.created_at, order.resolved_at));
+    // §92.056 — 7 days presumed reasonable, counted from the tenant's
+    // written notice. Past that is the number the client needs to see.
+    const healthSafetyOverdue = open.filter(
+      (order) =>
+        order.affects_health_safety &&
+        order.written_notice_at &&
+        repairClock(order.written_notice_at, undefined, order.resolved_at).overdue,
+    );
     return {
       open: open.length,
+      healthSafetyOverdue: healthSafetyOverdue.length,
       urgent: open.filter((order) => order.priority === "urgente").length,
       resolvedThisMonth: resolvedThisMonth.length,
       averageDays:
@@ -222,6 +236,7 @@ function MaintenancePage() {
           source: "personal",
           category: form.category,
           priority: form.priority,
+          affects_health_safety: form.affects_health_safety,
           title: form.title.trim(),
           description: form.description.trim() || null,
         })
@@ -249,6 +264,7 @@ function MaintenancePage() {
         unit_id: null,
         category: "plomeria",
         priority: "media",
+        affects_health_safety: false,
         title: "",
         description: "",
         photos: [],
@@ -322,6 +338,11 @@ function MaintenancePage() {
 
   const summaryCards = [
     { key: "open", value: String(summary.open), tone: "" },
+    {
+      key: "healthSafetyOverdue",
+      value: String(summary.healthSafetyOverdue),
+      tone: summary.healthSafetyOverdue > 0 ? "text-danger" : "",
+    },
     { key: "urgent", value: String(summary.urgent), tone: summary.urgent > 0 ? "text-accent" : "" },
     { key: "resolved", value: String(summary.resolvedThisMonth), tone: "text-success" },
     {
@@ -373,7 +394,7 @@ function MaintenancePage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {summaryCards.map((card) => (
           <div
             key={card.key}
@@ -387,7 +408,7 @@ function MaintenancePage() {
         ))}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
         {(
           [
             [
@@ -412,6 +433,11 @@ function MaintenancePage() {
                 label: t(`woSource.${value}`),
               })),
               "maintenance.columns.source",
+            ],
+            [
+              "healthSafety",
+              [{ value: "yes", label: t("maintenance.healthSafetyOnly") }],
+              "maintenance.columns.healthSafety",
             ],
           ] as const
         ).map(([key, options, labelKey]) => (
@@ -661,6 +687,21 @@ function MaintenancePage() {
             onChange={(event) => setForm({ ...form, description: event.target.value })}
           />
         </Field>
+        {/* §92.052 — this is the flag that starts the 7-day repair clock. */}
+        <label className="flex items-start gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-sm">
+          <Checkbox
+            checked={form.affects_health_safety}
+            onCheckedChange={(checked) =>
+              setForm({ ...form, affects_health_safety: checked === true })
+            }
+          />
+          <span>
+            <span className="font-medium">{t("maintenance.fields.healthSafety")}</span>
+            <span className="mt-0.5 block text-xs text-muted-foreground">
+              {t("maintenance.fields.healthSafetyHint")}
+            </span>
+          </span>
+        </label>
         <Field label={t("maintenance.fields.photos")} htmlFor="wo-photos">
           <Input
             id="wo-photos"

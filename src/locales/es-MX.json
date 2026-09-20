@@ -565,7 +565,10 @@
     "refundDue": "Monto a reembolsar",
     "deductionsExceedDeposit": "Las deducciones suman más que el depósito retenido.",
     "deductionsExceedDepositAck": "Revisé estas cifras y aun así quiero guardarlas.",
-    "downloadDisposition": "Descargar disposición (PDF)"
+    "downloadDisposition": "Descargar disposición (PDF)",
+    "tabs": {
+      "compliance": "Cumplimiento"
+    }
   },
   "maintenance": {
     "emptyTitle": "Sin órdenes de trabajo",
@@ -579,7 +582,8 @@
       "category": "Categoría",
       "source": "Origen",
       "assignee": "Asignado a",
-      "daysOpen": "Días abierta"
+      "daysOpen": "Días abierta",
+      "healthSafety": "Salud y seguridad"
     },
     "new": "Nueva orden",
     "created": "Orden de trabajo creada.",
@@ -620,7 +624,8 @@
       "open": "Órdenes abiertas",
       "urgent": "Urgentes",
       "resolved": "Resueltas este mes",
-      "average": "Tiempo promedio de resolución"
+      "average": "Tiempo promedio de resolución",
+      "healthSafetyOverdue": "S y S a más de 7 días"
     },
     "fields": {
       "unitHint": "Al elegir la unidad se vinculan el contrato y el inquilino.",
@@ -629,7 +634,9 @@
       "vendorName": "Proveedor",
       "vendorPhone": "Teléfono del proveedor",
       "cost": "Costo",
-      "costHint": "Solo visible para el equipo."
+      "costHint": "Solo visible para el equipo.",
+      "healthSafety": "La condición afecta materialmente la salud o la seguridad",
+      "healthSafetyHint": "El Código de Propiedad de Texas §92.056 presume 7 días como plazo razonable de reparación, contados desde el aviso escrito del inquilino. Una solicitud del portal es aviso escrito."
     },
     "actions": {
       "create": "Orden creada",
@@ -638,7 +645,11 @@
     },
     "errors": {
       "titleRequired": "Escribe un título para la orden."
-    }
+    },
+    "healthSafetyOnly": "Solo salud y seguridad",
+    "repairWindow": "Día {{day}} de {{total}} — plazo legal de reparación.",
+    "repairOverdue": "Día {{count}} — fuera del plazo legal de 7 días para reparar.",
+    "writtenNoticeOn": "Aviso escrito recibido el {{date}}."
   },
   "paymentMethod": {
     "ach": "Transferencia ACH",
@@ -983,12 +994,16 @@
       "overdue": "Morosidad",
       "openOrders": "Órdenes abiertas",
       "expiring": "Contratos por vencer",
-      "depositsDue": "Depósitos por devolver"
+      "depositsDue": "Depósitos por devolver",
+      "healthSafetyOverdue": "Reparaciones S y S a más de 7 días",
+      "turnoverOverdue": "Tareas de entrega vencidas"
     },
     "depositsOverdue": "{{count}} depósito fuera del plazo legal",
     "depositsOverdue_other": "{{count}} depósitos fuera del plazo legal",
     "depositsSoonest": "El más próximo en {{count}} día",
-    "depositsSoonest_other": "El más próximo en {{count}} días"
+    "depositsSoonest_other": "El más próximo en {{count}} días",
+    "healthSafetyHint": "Código de Propiedad de Texas §92.056",
+    "turnoverHint": "Cambio de cerraduras en 7 días — §92.156"
   },
   "reports": {
     "daysOverdue": "Días vencido",
@@ -1116,5 +1131,57 @@
     },
     "paymentInstructionsNotice": "Todo lo que pongas aquí se muestra a los inquilinos en su portal. Llena solo los métodos que aceptas — una fila vacía nunca se muestra.",
     "noBankNumbersNotice": "A propósito no hay campo para número de ruta ni de cuenta. Publicarlos a todos los inquilinos invita cargos no autorizados y fraude con cheques; eso va detrás de un procesador de pagos."
+  },
+  "turnover": {
+    "title": "Lista de entrada",
+    "hint": "Texas exige cambiar las cerraduras dentro de los 7 días de la posesión (§92.156) y mantener los detectores de humo.",
+    "none": "Todavía no hay lista para este contrato.",
+    "create": "Crear lista",
+    "created": "Lista creada.",
+    "updated": "Lista actualizada.",
+    "rekeyCountdown": "Queda {{count}} día — cambiar cerraduras antes del {{date}}.",
+    "rekeyCountdown_other": "Quedan {{count}} días — cambiar cerraduras antes del {{date}}.",
+    "rekeyOverdue": "{{count}} día fuera del plazo de 7 días para cambiar cerraduras.",
+    "rekeyOverdue_other": "{{count}} días fuera del plazo de 7 días para cambiar cerraduras.",
+    "items": {
+      "rekey_locks": "Cambiar cerraduras (obligatorio en 7 días)",
+      "test_smoke_alarms": "Probar detectores de humo",
+      "verify_deadbolt_keyless": "Verificar cerrojo y pasador sin llave",
+      "verify_window_latches": "Verificar pestillos de ventanas",
+      "document_condition_photos": "Documentar el estado de la unidad con fotos",
+      "collect_renters_insurance": "Recabar el certificado de seguro del inquilino"
+    }
+  },
+  "notices": {
+    "title": "Avisos",
+    "hint": "Avisos para desocupar generados para este contrato (Código de Propiedad de Texas §24.005).",
+    "none": "No hay avisos en este contrato.",
+    "generate": "Generar aviso para desocupar",
+    "generateTitle": "Generar aviso para desocupar",
+    "generateDescription": "Esto produce un PDF con fecha y registra que fue entregado.",
+    "created": "Aviso registrado.",
+    "notACourtFiling": "Esto genera un documento y guarda un registro. NO presenta nada ante un tribunal ni inicia un juicio de desalojo.",
+    "summary": "Entregado {{delivered}} · {{method}} · desocupar antes del {{vacate}}",
+    "types": {
+      "non_payment": "Falta de pago de la renta",
+      "lease_violation": "Incumplimiento del contrato",
+      "end_of_term": "Fin de la vigencia"
+    },
+    "delivery": {
+      "in_person": "En persona",
+      "mail": "Por correo",
+      "affixed_to_door": "Fijado en el interior de la puerta principal"
+    },
+    "fields": {
+      "type": "Tipo de aviso",
+      "vacateDate": "Desocupar antes del",
+      "vacateDateHint": "Tres días es el plazo legal por defecto si el contrato no fija uno mayor.",
+      "deliveredAt": "Entregado el",
+      "delivery": "Forma de entrega",
+      "reason": "Motivo"
+    },
+    "errors": {
+      "vacateBeforeDelivery": "La fecha para desocupar no puede ser anterior a la de entrega."
+    }
   }
 }

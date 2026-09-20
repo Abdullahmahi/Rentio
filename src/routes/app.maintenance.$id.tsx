@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Eye, Lock, Send, Wrench } from "lucide-react";
+import { ArrowLeft, Eye, Lock, Send, ShieldAlert, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/rentio/status";
 import { CATEGORY_ICONS, SOURCE_ICONS, daysOpen } from "@/lib/maintenance";
+import { repairClock } from "@/lib/texas";
 import { formatDate } from "@/lib/format";
 import { leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
@@ -208,6 +209,11 @@ function WorkOrderDetailPage() {
   const CategoryIcon = data ? CATEGORY_ICONS[data.category] : Wrench;
   const SourceIcon = data ? SOURCE_ICONS[data.source] : Wrench;
 
+  const repair =
+    data?.affects_health_safety && data.written_notice_at
+      ? repairClock(data.written_notice_at, undefined, data.resolved_at)
+      : null;
+
   const internalNotes = (notes.data ?? []).filter((note) => note.is_internal);
   const tenantNotes = (notes.data ?? []).filter((note) => !note.is_internal);
 
@@ -289,6 +295,33 @@ function WorkOrderDetailPage() {
                 </span>
               ) : null}
             </div>
+
+            {/* §92.056 — the statutory repair window, counted from the
+                tenant's written notice. A portal order IS that notice. */}
+            {data.affects_health_safety && data.written_notice_at ? (
+              <div
+                className={cn(
+                  "rounded-lg border p-4",
+                  repair?.tone === "danger"
+                    ? "border-danger/40 bg-danger/10"
+                    : repair?.tone === "warning"
+                      ? "border-warning/40 bg-warning/10"
+                      : "border-border bg-muted/40",
+                )}
+              >
+                <p className="flex items-center gap-2 text-sm font-medium">
+                  <ShieldAlert className="size-4 shrink-0" />
+                  {repair?.overdue
+                    ? t("maintenance.repairOverdue", { count: repair.day })
+                    : t("maintenance.repairWindow", { day: repair?.day ?? 1, total: 7 })}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("maintenance.writtenNoticeOn", {
+                    date: formatDate(data.written_notice_at),
+                  })}
+                </p>
+              </div>
+            ) : null}
 
             {data.description ? (
               <section className="rounded-lg border border-border bg-surface p-5 shadow-subtle">

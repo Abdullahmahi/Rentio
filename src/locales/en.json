@@ -565,7 +565,10 @@
     "refundDue": "Amount to refund",
     "deductionsExceedDeposit": "The deductions come to more than the deposit held.",
     "deductionsExceedDepositAck": "I have checked these figures and want to save them anyway.",
-    "downloadDisposition": "Download disposition (PDF)"
+    "downloadDisposition": "Download disposition (PDF)",
+    "tabs": {
+      "compliance": "Compliance"
+    }
   },
   "maintenance": {
     "emptyTitle": "No work orders",
@@ -579,7 +582,8 @@
       "category": "Category",
       "source": "Source",
       "assignee": "Assigned to",
-      "daysOpen": "Days open"
+      "daysOpen": "Days open",
+      "healthSafety": "Health & safety"
     },
     "new": "New work order",
     "created": "Work order created.",
@@ -620,7 +624,8 @@
       "open": "Open orders",
       "urgent": "Urgent",
       "resolved": "Resolved this month",
-      "average": "Average time to resolve"
+      "average": "Average time to resolve",
+      "healthSafetyOverdue": "H&S past 7 days"
     },
     "fields": {
       "unitHint": "Choosing the unit links the lease and tenant automatically.",
@@ -629,7 +634,9 @@
       "vendorName": "Vendor",
       "vendorPhone": "Vendor phone",
       "cost": "Cost",
-      "costHint": "Visible to staff only."
+      "costHint": "Visible to staff only.",
+      "healthSafety": "Condition materially affects health or safety",
+      "healthSafetyHint": "Texas Property Code §92.056 presumes 7 days a reasonable time to repair, counted from the tenant's written notice. A portal request is written notice."
     },
     "actions": {
       "create": "Order created",
@@ -638,7 +645,11 @@
     },
     "errors": {
       "titleRequired": "Enter a title for the work order."
-    }
+    },
+    "healthSafetyOnly": "Health & safety only",
+    "repairWindow": "Day {{day}} of {{total}} — statutory repair window.",
+    "repairOverdue": "Day {{count}} — past the 7-day statutory repair window.",
+    "writtenNoticeOn": "Written notice received {{date}}."
   },
   "paymentMethod": {
     "ach": "ACH / Bank transfer",
@@ -983,12 +994,16 @@
       "overdue": "Delinquency",
       "openOrders": "Open work orders",
       "expiring": "Leases expiring",
-      "depositsDue": "Deposits due"
+      "depositsDue": "Deposits due",
+      "healthSafetyOverdue": "H&S repairs past 7 days",
+      "turnoverOverdue": "Turnover tasks overdue"
     },
     "depositsOverdue": "{{count}} deposit past its statutory deadline",
     "depositsOverdue_other": "{{count}} deposits past their statutory deadline",
     "depositsSoonest": "Soonest in {{count}} day",
-    "depositsSoonest_other": "Soonest in {{count}} days"
+    "depositsSoonest_other": "Soonest in {{count}} days",
+    "healthSafetyHint": "Texas Property Code §92.056",
+    "turnoverHint": "Rekey within 7 days — §92.156"
   },
   "reports": {
     "daysOverdue": "Days overdue",
@@ -1116,5 +1131,57 @@
     },
     "paymentInstructionsNotice": "Everything here is shown to tenants in their portal. Fill in only the methods you accept — an empty row is never displayed.",
     "noBankNumbersNotice": "There is deliberately no field for a routing or account number. Publishing one to every tenant invites unauthorized debits and check fraud; that belongs behind a payment processor."
+  },
+  "turnover": {
+    "title": "Move-in checklist",
+    "hint": "Texas requires security devices rekeyed within 7 days of possession (§92.156) and smoke alarms maintained.",
+    "none": "No checklist for this lease yet.",
+    "create": "Create checklist",
+    "created": "Checklist created.",
+    "updated": "Checklist updated.",
+    "rekeyCountdown": "{{count}} day left — rekey by {{date}}.",
+    "rekeyCountdown_other": "{{count}} days left — rekey by {{date}}.",
+    "rekeyOverdue": "{{count}} day past the 7-day rekey deadline.",
+    "rekeyOverdue_other": "{{count}} days past the 7-day rekey deadline.",
+    "items": {
+      "rekey_locks": "Rekey locks (required within 7 days)",
+      "test_smoke_alarms": "Test smoke alarms",
+      "verify_deadbolt_keyless": "Verify deadbolt and keyless bolting device",
+      "verify_window_latches": "Verify window latches",
+      "document_condition_photos": "Document unit condition with photos",
+      "collect_renters_insurance": "Collect renters insurance certificate"
+    }
+  },
+  "notices": {
+    "title": "Notices",
+    "hint": "Notices to vacate generated for this lease (Texas Property Code §24.005).",
+    "none": "No notices on this lease.",
+    "generate": "Generate notice to vacate",
+    "generateTitle": "Generate notice to vacate",
+    "generateDescription": "This produces a dated PDF and records that it was delivered.",
+    "created": "Notice recorded.",
+    "notACourtFiling": "This generates a document and keeps a record. It does NOT file anything with a court and does not start an eviction suit.",
+    "summary": "Delivered {{delivered}} · {{method}} · vacate by {{vacate}}",
+    "types": {
+      "non_payment": "Non-payment of rent",
+      "lease_violation": "Lease violation",
+      "end_of_term": "End of term"
+    },
+    "delivery": {
+      "in_person": "In person",
+      "mail": "By mail",
+      "affixed_to_door": "Affixed to the inside of the main entry door"
+    },
+    "fields": {
+      "type": "Notice type",
+      "vacateDate": "Vacate by",
+      "vacateDateHint": "Three days is the statutory default absent a longer period in the lease.",
+      "deliveredAt": "Delivered on",
+      "delivery": "Delivery method",
+      "reason": "Reason"
+    },
+    "errors": {
+      "vacateBeforeDelivery": "The vacate date cannot be before the delivery date."
+    }
   }
 }

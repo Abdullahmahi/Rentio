@@ -16,6 +16,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable, type DataTableColumn } from "@/components/rentio/data-table";
@@ -36,6 +43,16 @@ import {
 import { AdminOnly } from "@/lib/auth";
 import { formatDate, formatMoney, todayIso } from "@/lib/format";
 import { lateFeeAmount } from "@/lib/late-fee";
+import {
+  NOTICE_DELIVERY,
+  NOTICE_TYPES,
+  REKEY_ITEM_KEY,
+  type NoticeDelivery,
+  type NoticeType,
+  defaultVacateDate,
+  rekeyClock,
+  turnoverRowsFor,
+} from "@/lib/texas";
 import {
   type DepositItem,
   deductionsExceedDeposit,
@@ -97,6 +114,14 @@ function ContractDetailPage() {
   });
   const [itemization, setItemization] = useState<DepositItem[]>([]);
   const [settleAck, setSettleAck] = useState(false);
+  const [noticeOpen, setNoticeOpen] = useState(false);
+  const [noticeForm, setNoticeForm] = useState({
+    type: "non_payment" as NoticeType,
+    reason: "",
+    vacate_date: defaultVacateDate(),
+    delivery: "in_person" as NoticeDelivery,
+    delivered_at: todayIso(),
+  });
 
   const context = useMemo(
     () =>
@@ -245,6 +270,110 @@ function ContractDetailPage() {
     invalidate: [qk.portfolio],
     onSuccess: () => setSettleOpen(false),
   });
+
+  const turnover = useQuery({
+    queryKey: ["turnover", id],
+    queryFn: async () => {
+      const { data, error: caught } = await supabase
+        .from("unit_turnover_checklist")
+        .select("*")
+        .eq("lease_id", id)
+        .order("position");
+      if (caught) throw caught;
+      return data;
+    },
+  });
+  const turnoverDone = (turnover.data ?? []).filter((item) => item.completed).length;
+
+  const notices = useQuery({
+    queryKey: ["lease-notices", id],
+    queryFn: async () => {
+      const { data, error: caught } = await supabase
+        .from("lease_notices")
+        .select("*")
+        .eq("lease_id", id)
+        .order("delivered_at", { ascending: false });
+      if (caught) throw caught;
+      return data;
+    },
+  });
+
+  /** Backfill for leases activated before the checklist existed. */
+  const createChecklist = useToastMutation({
+    mutationFn: async () => {
+      if (!lease) throw new Error("missing-lease");
+      const { error: caught } = await supabase
+        .from("unit_turnover_checklist")
+        .upsert(turnoverRowsFor(lease.unit_id, lease.id), { onConflict: "lease_id,item_key" });
+      if (caught) throw caught;
+    },
+    successKey: "turnover.created",
+    invalidate: [
+      ["turnover", id],
+      ["turnover", "overdue"],
+    ],
+  });
+
+  const toggleTurnover = useToastMutation({
+    mutationFn: async ({ id: itemId, completed }: { id: string; completed: boolean }) => {
+      const { error: caught } = await supabase
+        .from("unit_turnover_checklist")
+        .update({ completed, completed_by: completed ? actorId : null })
+        .eq("id", itemId);
+      if (caught) throw caught;
+    },
+    successKey: "turnover.updated",
+    invalidate: [
+      ["turnover", id],
+      ["turnover", "overdue"],
+    ],
+  });
+
+  const createNotice = useToastMutation({
+    mutationFn: async (values: typeof noticeForm) => {
+      const { data, error: caught } = await supabase
+        .from("lease_notices")
+        .insert({
+          lease_id: id,
+          type: values.type,
+          reason: values.reason.trim() || null,
+          vacate_date: values.vacate_date,
+          delivery: values.delivery,
+          delivered_at: values.delivered_at,
+          created_by: actorId,
+        })
+        .select("id")
+        .single();
+      if (caught) throw caught;
+      await logActivity(actorId, "lease", id, "notice_to_vacate", {
+        notice_id: data.id,
+        type: values.type,
+        vacate_date: values.vacate_date,
+        delivery: values.delivery,
+      });
+      return data.id;
+    },
+    successKey: "notices.created",
+    invalidate: [["lease-notices", id]],
+    onSuccess: (noticeId) => {
+      setNoticeOpen(false);
+      void downloadNotice(noticeId as string);
+    },
+  });
+
+  const downloadNotice = async (noticeId: string) => {
+    try {
+      const { data, error: caught } = await supabase.functions.invoke("generate-notice-to-vacate", {
+        body: { notice_id: noticeId },
+      });
+      if (caught) throw caught;
+      const url = (data as { url?: string } | null)?.url;
+      if (!url) throw new Error("no-url");
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (caught) {
+      toast.error(t(describeError(caught)));
+    }
+  };
 
   const downloadDisposition = async () => {
     try {
@@ -439,6 +568,7 @@ function ContractDetailPage() {
                 <TabsTrigger value="invoices">{t("nav.receipts")}</TabsTrigger>
                 <TabsTrigger value="payments">{t("nav.payments")}</TabsTrigger>
                 <TabsTrigger value="parking">{t("nav.parking")}</TabsTrigger>
+                <TabsTrigger value="compliance">{t("contracts.tabs.compliance")}</TabsTrigger>
                 <TabsTrigger value="documents">{t("documents.title")}</TabsTrigger>
               </TabsList>
 
@@ -687,6 +817,170 @@ function ContractDetailPage() {
                     ))}
                   </ul>
                 )}
+              </TabsContent>
+
+              <TabsContent value="compliance" className="mt-4 space-y-6">
+                {/* ------------------------------- move-in / turnover */}
+                <section className="rounded-lg border border-border bg-surface p-5 shadow-subtle">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h2 className="text-base font-semibold">{t("turnover.title")}</h2>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{t("turnover.hint")}</p>
+                    </div>
+                    <span className="numeric text-sm font-medium">
+                      {turnoverDone}/{turnover.data?.length ?? 0}
+                    </span>
+                  </div>
+
+                  <QueryState
+                    isLoading={turnover.isLoading}
+                    error={turnover.error}
+                    isEmpty={(turnover.data?.length ?? 0) === 0}
+                    onRetry={() => void turnover.refetch()}
+                    skeleton={<RowsSkeleton count={4} />}
+                    empty={
+                      <div className="mt-3 space-y-3">
+                        <p className="text-sm text-muted-foreground">{t("turnover.none")}</p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => createChecklist.mutate(undefined)}
+                        >
+                          {t("turnover.create")}
+                        </Button>
+                      </div>
+                    }
+                  >
+                    <ul className="mt-3 space-y-1">
+                      {(turnover.data ?? []).map((item) => {
+                        const rekey =
+                          item.item_key === REKEY_ITEM_KEY && !item.completed
+                            ? rekeyClock(lease.start_date)
+                            : null;
+                        return (
+                          <li
+                            key={item.id}
+                            className="flex items-start gap-3 rounded-md px-1 py-2 hover:bg-muted/50"
+                          >
+                            <Checkbox
+                              className="mt-0.5"
+                              checked={item.completed}
+                              aria-label={t(`turnover.items.${item.item_key}`, {
+                                defaultValue: item.item,
+                              })}
+                              onCheckedChange={(checked) =>
+                                toggleTurnover.mutate({ id: item.id, completed: checked === true })
+                              }
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span
+                                className={cn(
+                                  "text-sm",
+                                  item.completed && "text-muted-foreground line-through",
+                                )}
+                              >
+                                {t(`turnover.items.${item.item_key}`, { defaultValue: item.item })}
+                              </span>
+                              {rekey ? (
+                                <span
+                                  className={cn(
+                                    "mt-0.5 block text-xs",
+                                    rekey.overdue
+                                      ? "font-medium text-danger"
+                                      : "text-muted-foreground",
+                                  )}
+                                >
+                                  {rekey.overdue
+                                    ? t("turnover.rekeyOverdue", {
+                                        count: Math.abs(rekey.daysRemaining),
+                                      })
+                                    : t("turnover.rekeyCountdown", {
+                                        count: rekey.daysRemaining,
+                                        date: formatDate(rekey.deadline),
+                                      })}
+                                </span>
+                              ) : null}
+                              {item.completed && item.completed_at ? (
+                                <span className="mt-0.5 block text-xs text-muted-foreground">
+                                  {formatDate(item.completed_at)}
+                                </span>
+                              ) : null}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </QueryState>
+                </section>
+
+                {/* ----------------------------------------- notices */}
+                <section className="rounded-lg border border-border bg-surface p-5 shadow-subtle">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h2 className="text-base font-semibold">{t("notices.title")}</h2>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{t("notices.hint")}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setNoticeForm({
+                          type: "non_payment",
+                          reason: "",
+                          vacate_date: defaultVacateDate(),
+                          delivery: "in_person",
+                          delivered_at: todayIso(),
+                        });
+                        setNoticeOpen(true);
+                      }}
+                    >
+                      <Plus className="size-4" />
+                      {t("notices.generate")}
+                    </Button>
+                  </div>
+
+                  <p className="mt-3 rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-xs text-info">
+                    {t("notices.notACourtFiling")}
+                  </p>
+
+                  <QueryState
+                    isLoading={notices.isLoading}
+                    error={notices.error}
+                    isEmpty={(notices.data?.length ?? 0) === 0}
+                    onRetry={() => void notices.refetch()}
+                    skeleton={<RowsSkeleton count={2} />}
+                    empty={
+                      <p className="mt-3 text-sm text-muted-foreground">{t("notices.none")}</p>
+                    }
+                  >
+                    <ul className="mt-3 divide-y divide-border">
+                      {(notices.data ?? []).map((notice) => (
+                        <li key={notice.id} className="flex flex-wrap items-center gap-3 py-2.5">
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-medium">
+                              {t(`notices.types.${notice.type}`)}
+                            </span>
+                            <span className="numeric block text-xs text-muted-foreground">
+                              {t("notices.summary", {
+                                delivered: formatDate(notice.delivered_at),
+                                method: t(`notices.delivery.${notice.delivery}`),
+                                vacate: formatDate(notice.vacate_date),
+                              })}
+                            </span>
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => void downloadNotice(notice.id)}
+                          >
+                            <Download className="size-4" />
+                            {t("actions.download")}
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </QueryState>
+                </section>
               </TabsContent>
 
               <TabsContent value="documents" className="mt-4">
@@ -950,6 +1244,104 @@ function ContractDetailPage() {
                 <Download className="size-4" />
                 {t("contracts.downloadDisposition")}
               </Button>
+            </FormDialog>
+
+            {/* --------------------------------- notice to vacate */}
+            <FormDialog
+              open={noticeOpen}
+              onOpenChange={(next) => {
+                setNoticeOpen(next);
+                if (!next) setError(null);
+              }}
+              title={t("notices.generateTitle")}
+              description={t("notices.generateDescription")}
+              error={error}
+              pending={createNotice.isPending}
+              submitLabel={t("notices.generate")}
+              onSubmit={() => {
+                setError(null);
+                if (noticeForm.vacate_date < noticeForm.delivered_at)
+                  return setError(t("notices.errors.vacateBeforeDelivery"));
+                createNotice.mutate(noticeForm);
+              }}
+            >
+              <Field label={t("notices.fields.type")}>
+                <Select
+                  value={noticeForm.type}
+                  onValueChange={(value) =>
+                    setNoticeForm({ ...noticeForm, type: value as NoticeType })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {NOTICE_TYPES.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {t(`notices.types.${value}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label={t("notices.fields.vacateDate")}
+                  htmlFor="notice-vacate"
+                  hint={t("notices.fields.vacateDateHint")}
+                >
+                  <Input
+                    id="notice-vacate"
+                    type="date"
+                    className="numeric"
+                    value={noticeForm.vacate_date}
+                    onChange={(event) =>
+                      setNoticeForm({ ...noticeForm, vacate_date: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label={t("notices.fields.deliveredAt")} htmlFor="notice-delivered">
+                  <Input
+                    id="notice-delivered"
+                    type="date"
+                    className="numeric"
+                    value={noticeForm.delivered_at}
+                    onChange={(event) =>
+                      setNoticeForm({ ...noticeForm, delivered_at: event.target.value })
+                    }
+                  />
+                </Field>
+              </div>
+              <Field label={t("notices.fields.delivery")}>
+                <Select
+                  value={noticeForm.delivery}
+                  onValueChange={(value) =>
+                    setNoticeForm({ ...noticeForm, delivery: value as NoticeDelivery })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {NOTICE_DELIVERY.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {t(`notices.delivery.${value}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label={t("notices.fields.reason")} htmlFor="notice-reason">
+                <Textarea
+                  id="notice-reason"
+                  rows={3}
+                  value={noticeForm.reason}
+                  onChange={(event) => setNoticeForm({ ...noticeForm, reason: event.target.value })}
+                />
+              </Field>
+              <p className="rounded-lg border border-warning/25 bg-warning/10 px-3 py-2 text-sm text-warning">
+                {t("notices.notACourtFiling")}
+              </p>
             </FormDialog>
 
             <LeaseWizard

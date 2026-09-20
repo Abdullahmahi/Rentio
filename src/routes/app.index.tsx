@@ -27,6 +27,7 @@ import { daysBetween, formatDate, formatMoney, todayIso } from "@/lib/format";
 import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
 import { daysUntilEnd, isActive, isExpiringSoon, leaseContexts, occupancy } from "@/lib/portfolio";
 import { depositClock } from "@/lib/deposit";
+import { REKEY_ITEM_KEY, rekeyClock, repairClock } from "@/lib/texas";
 import { qk, usePortfolio } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Enums } from "@/lib/database.types";
@@ -174,15 +175,42 @@ function DashboardPage() {
     },
   });
 
+  const turnoverOverdue = useQuery({
+    queryKey: ["turnover", "overdue"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("unit_turnover_checklist")
+        .select("id, item_key, completed, leases!inner(start_date, status)")
+        .eq("completed", false);
+      if (error) throw error;
+      // The rekey item has a statutory deadline; the rest are house rules and
+      // only count once the lease has actually started.
+      return (data ?? []).filter((row) => {
+        const start = (row.leases as unknown as { start_date: string } | null)?.start_date;
+        if (!start) return false;
+        return row.item_key === REKEY_ITEM_KEY ? rekeyClock(start).overdue : start <= todayIso();
+      }).length;
+    },
+  });
+
   const openOrderCounts = useQuery({
     queryKey: [...qk.workOrders, "open-counts"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("work_orders").select("status, priority");
+      const { data, error } = await supabase
+        .from("work_orders")
+        .select("status, priority, affects_health_safety, written_notice_at, resolved_at");
       if (error) throw error;
       const open = (data ?? []).filter((order) => !["resuelta", "cerrada"].includes(order.status));
       return {
         open: open.length,
         urgent: open.filter((order) => order.priority === "urgente").length,
+        // §92.056 — past the 7 days presumed reasonable to repair.
+        healthSafetyOverdue: open.filter(
+          (order) =>
+            order.affects_health_safety &&
+            order.written_notice_at &&
+            repairClock(order.written_notice_at, undefined, order.resolved_at).overdue,
+        ).length,
       };
     },
   });
@@ -302,7 +330,7 @@ function DashboardPage() {
           </Link>
         ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
           <Kpi
             label={t("dashboard.kpi.occupancy")}
             value={t("dashboard.unitsOf", { occupied: stats.occupied, total: stats.total })}
@@ -320,6 +348,18 @@ function DashboardPage() {
             value={formatMoney(overdue.reduce((sum, row) => sum + row.amount, 0))}
             note={t("dashboard.overdueLeases", { count: overdue.length })}
             tone="text-danger"
+          />
+          <Kpi
+            label={t("dashboard.kpi.healthSafetyOverdue")}
+            value={String(openOrderCounts.data?.healthSafetyOverdue ?? 0)}
+            note={t("dashboard.healthSafetyHint")}
+            tone={(openOrderCounts.data?.healthSafetyOverdue ?? 0) > 0 ? "text-danger" : undefined}
+          />
+          <Kpi
+            label={t("dashboard.kpi.turnoverOverdue")}
+            value={String(turnoverOverdue.data ?? 0)}
+            note={t("dashboard.turnoverHint")}
+            tone={(turnoverOverdue.data ?? 0) > 0 ? "text-danger" : undefined}
           />
           <Kpi
             label={t("dashboard.kpi.openOrders")}
