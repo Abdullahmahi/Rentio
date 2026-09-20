@@ -19,8 +19,8 @@ import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { InvoiceStatusBadge, effectiveInvoiceStatus } from "@/components/rentio/status";
-import { formatMXN, formatMexicoDate } from "@/lib/format";
-import { periodKey, planMonthlyInvoices } from "@/lib/invoicing";
+import { formatDate, formatMoney, todayIso } from "@/lib/format";
+import { currentPeriod, planMonthlyInvoices } from "@/lib/invoicing";
 import { leaseContexts } from "@/lib/portfolio";
 import {
   logActivity,
@@ -59,7 +59,7 @@ function ReceiptsPage() {
   const portfolio = usePortfolio();
   const actorId = useActorId();
 
-  const [period, setPeriod] = useState(() => periodKey(new Date()));
+  const [period, setPeriod] = useState(() => currentPeriod());
   const [statusFilter, setStatusFilter] = useState(ALL);
   const [propertyFilter, setPropertyFilter] = useState(ALL);
   const [selected, setSelected] = useState<string[]>([]);
@@ -146,7 +146,7 @@ function ReceiptsPage() {
             lease_id: planned.leaseId,
             period_month: period,
             invoice_number: folio,
-            issue_date: new Date().toISOString().slice(0, 10),
+            issue_date: todayIso(),
             due_date: planned.dueDate,
             status: "borrador",
             total: planned.total,
@@ -235,13 +235,13 @@ function ReceiptsPage() {
       key: "issue",
       header: t("receipts.columns.issue"),
       sortValue: (row) => row.issue_date,
-      cell: (row) => <span className="numeric">{formatMexicoDate(row.issue_date)}</span>,
+      cell: (row) => <span className="numeric">{formatDate(row.issue_date)}</span>,
     },
     {
       key: "due",
       header: t("receipts.columns.due"),
       sortValue: (row) => row.due_date,
-      cell: (row) => <span className="numeric">{formatMexicoDate(row.due_date)}</span>,
+      cell: (row) => <span className="numeric">{formatDate(row.due_date)}</span>,
     },
     {
       key: "total",
@@ -275,12 +275,12 @@ function ReceiptsPage() {
   ];
 
   const summaryCards = [
-    { key: "invoiced", value: formatMXN(summary.invoiced), tone: "" },
-    { key: "collected", value: formatMXN(summary.collected), tone: "text-success" },
-    { key: "pending", value: formatMXN(summary.pending), tone: "" },
+    { key: "invoiced", value: formatMoney(summary.invoiced), tone: "" },
+    { key: "collected", value: formatMoney(summary.collected), tone: "text-success" },
+    { key: "pending", value: formatMoney(summary.pending), tone: "" },
     {
       key: "overdue",
-      value: formatMXN(summary.overdueAmount),
+      value: formatMoney(summary.overdueAmount),
       tone: "text-danger",
       note: t("receipts.overdueCount", { count: summary.overdueCount }),
     },
@@ -417,7 +417,7 @@ function ReceiptsPage() {
               {plan.toCreate.length > 0
                 ? t("receipts.generatePreview", {
                     count: plan.toCreate.length,
-                    total: formatMXN(plan.total),
+                    total: formatMoney(plan.total),
                   })
                 : t("receipts.generateNothing")}
             </p>
@@ -439,7 +439,7 @@ function ReceiptsPage() {
                       <tr key={planned.leaseId} className="border-t border-border">
                         <td className="px-3 py-2 font-medium">{planned.unitNumber}</td>
                         <td className="px-3 py-2">{planned.tenantName}</td>
-                        <td className="numeric px-3 py-2">{formatMexicoDate(planned.dueDate)}</td>
+                        <td className="numeric px-3 py-2">{formatDate(planned.dueDate)}</td>
                         <td className="px-3 py-2 text-xs text-muted-foreground">
                           {planned.lines.map((line) => line.description).join(" · ")}
                         </td>

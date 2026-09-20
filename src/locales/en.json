@@ -150,7 +150,7 @@
     "description": "This action cannot be undone. Would you like to continue?"
   },
   "meta": {
-    "description": "Rentio, professional property and rental management in Mexico."
+    "description": "Rentio, professional property and rental management in El Paso, Texas."
   },
   "auth": {
     "signIn": "Sign in",
@@ -277,7 +277,7 @@
     "fields": {
       "name": "Name",
       "street": "Street and number",
-      "colonia": "Neighbourhood",
+      "addressLine2": "Address line 2",
       "city": "City",
       "state": "State",
       "postalCode": "Postal code",
@@ -628,8 +628,6 @@
       "fullName": "Full name",
       "email": "Email address",
       "phone": "Phone",
-      "rfc": "RFC",
-      "rfcHint": "Optional — for future tax invoicing.",
       "emergencyName": "Emergency contact",
       "emergencyPhone": "Emergency phone",
       "notes": "Notes"
@@ -637,7 +635,6 @@
     "errors": {
       "nameRequired": "Enter the full name.",
       "emailInvalid": "That email address isn't valid.",
-      "rfcInvalid": "That RFC doesn't look valid.",
       "emailRequiredForInvite": "Add an email address before inviting them to the portal."
     }
   },
@@ -998,7 +995,7 @@
     "errors": {
       "required": "Required field \"{{field}}\" is missing.",
       "notANumber": "\"{{value}}\" isn't a valid number in \"{{field}}\".",
-      "badDate": "Invalid date format: \"{{value}}\". Use dd/mm/yyyy.",
+      "badDate": "Invalid date format: \"{{value}}\". Use mm/dd/yyyy.",
       "unknownProperty": "Property \"{{value}}\" doesn't exist.",
       "unknownUnit": "Unit \"{{value}}\" doesn't exist.",
       "unknownTenant": "We couldn't find tenant \"{{value}}\".",

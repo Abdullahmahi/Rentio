@@ -15,7 +15,7 @@ import {
 import { effectiveInvoiceStatus } from "@/components/rentio/status";
 import type { Portfolio } from "@/lib/queries";
 
-const TODAY = new Date("2026-09-19T12:00:00");
+const TODAY = "2026-09-19";
 
 function fixture(): Portfolio {
   return {

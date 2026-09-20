@@ -1,8 +1,8 @@
-import { useEffect } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { FileText, Home, ReceiptText, UserRound, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { LANGUAGE_STORAGE_KEY } from "@/lib/i18n";
+import { PORTAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
+import { useLanguagePreference } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 const tenantItems = [
@@ -14,17 +14,9 @@ const tenantItems = [
 ] as const;
 
 export function PortalShell() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  useEffect(() => {
-    const storedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    const language = storedLanguage === "en" ? "en" : "es-MX";
-    const timer = window.setTimeout(() => {
-      if (i18n.language !== language) void i18n.changeLanguage(language);
-      document.documentElement.lang = language;
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [i18n]);
+  useLanguagePreference(PORTAL_DEFAULT_LANGUAGE);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border bg-surface">

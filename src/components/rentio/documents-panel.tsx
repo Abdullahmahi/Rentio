@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/rentio/empty-state";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { AdminOnly } from "@/lib/auth";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { logActivity, qk, useActorId, useToastMutation } from "@/lib/queries";
 import { describeError, supabase } from "@/lib/supabase";
 import { openSigned, uploadFile, type Bucket } from "@/lib/storage";
@@ -125,9 +125,7 @@ export function DocumentsPanel({
               <FileText className="size-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{document.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatMexicoDate(document.created_at)}
-                </p>
+                <p className="text-xs text-muted-foreground">{formatDate(document.created_at)}</p>
               </div>
               <Button
                 size="icon"

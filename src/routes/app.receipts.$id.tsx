@@ -26,7 +26,7 @@ import {
   effectiveInvoiceStatus,
 } from "@/components/rentio/status";
 import { AdminOnly } from "@/lib/auth";
-import { formatMXN, formatMexicoDate } from "@/lib/format";
+import { formatMoney, formatDate } from "@/lib/format";
 import { formatPeriod } from "@/components/rentio/month-selector";
 import { leaseContexts } from "@/lib/portfolio";
 import {
@@ -321,7 +321,9 @@ function ReceiptDetailPage() {
               <div>
                 <p className="text-base font-semibold">{settings.data?.company_name ?? "Rentio"}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {[settings.data?.street, settings.data?.colonia].filter(Boolean).join(", ")}
+                  {[settings.data?.street, settings.data?.address_line_2]
+                    .filter(Boolean)
+                    .join(", ")}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {[settings.data?.city, settings.data?.state, settings.data?.postal_code]
@@ -345,13 +347,11 @@ function ReceiptDetailPage() {
                 </div>
                 <div>
                   <dt className="inline text-muted-foreground">{t("receipts.columns.issue")}: </dt>
-                  <dd className="numeric inline font-medium">
-                    {formatMexicoDate(head.issue_date)}
-                  </dd>
+                  <dd className="numeric inline font-medium">{formatDate(head.issue_date)}</dd>
                 </div>
                 <div>
                   <dt className="inline text-muted-foreground">{t("receipts.columns.due")}: </dt>
-                  <dd className="numeric inline font-medium">{formatMexicoDate(head.due_date)}</dd>
+                  <dd className="numeric inline font-medium">{formatDate(head.due_date)}</dd>
                 </div>
                 <div>
                   <dt className="inline text-muted-foreground">{t("units.columns.unit")}: </dt>
@@ -468,7 +468,7 @@ function ReceiptDetailPage() {
                   >
                     <p className="text-xs font-medium text-muted-foreground">{t(key)}</p>
                     <p className={`numeric mt-1 text-xl font-semibold ${tone}`}>
-                      {formatMXN(value)}
+                      {formatMoney(value)}
                     </p>
                   </div>
                 ))}
@@ -499,7 +499,7 @@ function ReceiptDetailPage() {
                       >
                         <div className="min-w-0">
                           <p className="text-sm font-medium">
-                            {payment ? formatMexicoDate(payment.paid_at) : "—"} ·{" "}
+                            {payment ? formatDate(payment.paid_at) : "—"} ·{" "}
                             {payment ? t(`paymentMethod.${payment.method}`) : "—"}
                           </p>
                           <p className="numeric truncate text-xs text-muted-foreground">

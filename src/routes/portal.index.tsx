@@ -12,7 +12,7 @@ import {
   WorkOrderStatusBadge,
   effectiveInvoiceStatus,
 } from "@/components/rentio/status";
-import { formatMXN, formatMexicoDate } from "@/lib/format";
+import { formatMoney, formatDate } from "@/lib/format";
 import { useMyPortal, usePublicSettings } from "@/lib/queries";
 import i18n from "@/lib/i18n";
 
@@ -91,11 +91,11 @@ function PortalHome() {
             <>
               <p className="text-sm font-medium text-muted-foreground">{t("portal.balanceDue")}</p>
               <p className="numeric mt-1 text-4xl font-semibold text-danger sm:text-5xl">
-                {formatMXN(balance)}
+                {formatMoney(balance)}
               </p>
               {nextInvoice ? (
                 <p className="numeric mt-2 text-sm text-muted-foreground">
-                  {t("portal.dueOn", { date: formatMexicoDate(nextInvoice.due_date) })}
+                  {t("portal.dueOn", { date: formatDate(nextInvoice.due_date) })}
                 </p>
               ) : null}
             </>
@@ -112,7 +112,9 @@ function PortalHome() {
           {pendingReport ? (
             <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/10 px-3 py-1.5 text-sm font-medium text-warning">
               <Clock className="size-4" />
-              {t("portal.paymentUnderReview", { amount: formatMXN(Number(pendingReport.amount)) })}
+              {t("portal.paymentUnderReview", {
+                amount: formatMoney(Number(pendingReport.amount)),
+              })}
             </p>
           ) : null}
 
@@ -169,7 +171,7 @@ function PortalHome() {
               <div className="mt-3 space-y-1">
                 <MoneyText value={nextInvoice.balance} className="block text-2xl font-semibold" />
                 <p className="numeric text-sm text-muted-foreground">
-                  {t("portal.dueOn", { date: formatMexicoDate(nextInvoice.due_date) })}
+                  {t("portal.dueOn", { date: formatDate(nextInvoice.due_date) })}
                 </p>
                 <InvoiceStatusBadge value={effectiveInvoiceStatus(nextInvoice, nextInvoice.paid)} />
               </div>
@@ -225,7 +227,7 @@ function PortalHome() {
                       {t(`paymentMethod.${payment.method}`)}
                     </p>
                     <p className="numeric text-xs text-muted-foreground">
-                      {formatMexicoDate(payment.paid_at)}
+                      {formatDate(payment.paid_at)}
                     </p>
                   </div>
                   <div className="text-right">

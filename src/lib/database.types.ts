@@ -363,7 +363,7 @@ export type Database = {
           full_name: string | null;
           phone: string | null;
           role: Database["public"]["Enums"]["user_role"];
-          locale: string;
+          locale: string | null;
           tenant_id: string | null;
           avatar_url: string | null;
           created_at: string;
@@ -374,7 +374,7 @@ export type Database = {
           full_name?: string | null;
           phone?: string | null;
           role?: Database["public"]["Enums"]["user_role"];
-          locale?: string;
+          locale?: string | null;
           tenant_id?: string | null;
           avatar_url?: string | null;
           created_at?: string;
@@ -385,7 +385,7 @@ export type Database = {
           full_name?: string | null;
           phone?: string | null;
           role?: Database["public"]["Enums"]["user_role"];
-          locale?: string;
+          locale?: string | null;
           tenant_id?: string | null;
           avatar_url?: string | null;
           created_at?: string;
@@ -398,7 +398,7 @@ export type Database = {
           id: string;
           name: string;
           street: string | null;
-          colonia: string | null;
+          address_line_2: string | null;
           city: string | null;
           state: string | null;
           postal_code: string | null;
@@ -410,7 +410,7 @@ export type Database = {
           id?: string;
           name: string;
           street?: string | null;
-          colonia?: string | null;
+          address_line_2?: string | null;
           city?: string | null;
           state?: string | null;
           postal_code?: string | null;
@@ -422,7 +422,7 @@ export type Database = {
           id?: string;
           name?: string;
           street?: string | null;
-          colonia?: string | null;
+          address_line_2?: string | null;
           city?: string | null;
           state?: string | null;
           postal_code?: string | null;
@@ -445,7 +445,7 @@ export type Database = {
           default_late_fee: number;
           default_grace_days: number;
           street: string | null;
-          colonia: string | null;
+          address_line_2: string | null;
           city: string | null;
           state: string | null;
           postal_code: string | null;
@@ -466,7 +466,7 @@ export type Database = {
           default_late_fee?: number;
           default_grace_days?: number;
           street?: string | null;
-          colonia?: string | null;
+          address_line_2?: string | null;
           city?: string | null;
           state?: string | null;
           postal_code?: string | null;
@@ -487,7 +487,7 @@ export type Database = {
           default_late_fee?: number;
           default_grace_days?: number;
           street?: string | null;
-          colonia?: string | null;
+          address_line_2?: string | null;
           city?: string | null;
           state?: string | null;
           postal_code?: string | null;
@@ -504,7 +504,6 @@ export type Database = {
           full_name: string;
           email: string | null;
           phone: string | null;
-          rfc: string | null;
           emergency_contact_name: string | null;
           emergency_contact_phone: string | null;
           notes: string | null;
@@ -516,7 +515,6 @@ export type Database = {
           full_name: string;
           email?: string | null;
           phone?: string | null;
-          rfc?: string | null;
           emergency_contact_name?: string | null;
           emergency_contact_phone?: string | null;
           notes?: string | null;
@@ -528,7 +526,6 @@ export type Database = {
           full_name?: string;
           email?: string | null;
           phone?: string | null;
-          rfc?: string | null;
           emergency_contact_name?: string | null;
           emergency_contact_phone?: string | null;
           notes?: string | null;
@@ -771,7 +768,7 @@ export type Database = {
           sqm: number | null;
           property_name: string | null;
           street: string | null;
-          colonia: string | null;
+          address_line_2: string | null;
           city: string | null;
           state: string | null;
           postal_code: string | null;
@@ -786,6 +783,13 @@ export type Database = {
           clabe: string | null;
           account_holder: string | null;
           invoice_prefix: string | null;
+          street: string | null;
+          address_line_2: string | null;
+          city: string | null;
+          state: string | null;
+          postal_code: string | null;
+          phone: string | null;
+          email: string | null;
         };
         Relationships: [];
       };

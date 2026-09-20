@@ -31,8 +31,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LANGUAGE_STORAGE_KEY, type AppLanguage } from "@/lib/i18n";
+import { INTERNAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import { useLanguagePreference } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -84,14 +85,9 @@ export function AppShell() {
     const shouldUseDark = stored === "dark";
     setDark(shouldUseDark);
     document.documentElement.classList.toggle("dark", shouldUseDark);
-    const storedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    const language = storedLanguage === "en" ? "en" : "es-MX";
-    const timer = window.setTimeout(() => {
-      if (i18n.language !== language) void i18n.changeLanguage(language);
-      document.documentElement.lang = language;
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [i18n]);
+  }, []);
+
+  const { setLanguage } = useLanguagePreference(INTERNAL_DEFAULT_LANGUAGE);
 
   const toggleTheme = () => {
     setDark((current) => {
@@ -100,12 +96,6 @@ export function AppShell() {
       window.localStorage.setItem(THEME_STORAGE_KEY, next ? "dark" : "light");
       return next;
     });
-  };
-
-  const setLanguage = (language: AppLanguage) => {
-    void i18n.changeLanguage(language);
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    document.documentElement.lang = language;
   };
 
   const displayName = profile?.full_name?.trim() || t("user.fallbackName");

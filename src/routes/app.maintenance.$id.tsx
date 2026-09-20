@@ -22,7 +22,7 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/rentio/status";
 import { CATEGORY_ICONS, SOURCE_ICONS, daysOpen } from "@/lib/maintenance";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
@@ -244,7 +244,7 @@ function WorkOrderDetailPage() {
                 `${t("units.columns.unit")} ${context?.unit?.unit_number ?? "—"}`,
                 context?.property?.name,
                 context?.tenant?.full_name,
-                formatMexicoDate(data.created_at),
+                formatDate(data.created_at),
               ]
                 .filter(Boolean)
                 .join(" · ")}
@@ -285,7 +285,7 @@ function WorkOrderDetailPage() {
               </span>
               {data.resolved_at ? (
                 <span className="numeric text-success">
-                  {t("maintenance.resolvedOn", { date: formatMexicoDate(data.resolved_at) })}
+                  {t("maintenance.resolvedOn", { date: formatDate(data.resolved_at) })}
                 </span>
               ) : null}
             </div>
@@ -358,7 +358,7 @@ function WorkOrderDetailPage() {
                           >
                             <p className="whitespace-pre-wrap text-sm">{note.body}</p>
                             <p className="numeric mt-1 text-xs text-muted-foreground">
-                              {formatMexicoDate(note.created_at)}
+                              {formatDate(note.created_at)}
                             </p>
                           </li>
                         ))
@@ -387,7 +387,7 @@ function WorkOrderDetailPage() {
                           >
                             <p className="whitespace-pre-wrap text-sm">{note.body}</p>
                             <p className="numeric mt-1 text-xs text-muted-foreground">
-                              {formatMexicoDate(note.created_at)}
+                              {formatDate(note.created_at)}
                             </p>
                           </li>
                         ))
@@ -543,7 +543,7 @@ function WorkOrderDetailPage() {
                                     })}
                               </p>
                               <p className="numeric text-xs text-muted-foreground">
-                                {formatMexicoDate(entry.created_at)}
+                                {formatDate(entry.created_at)}
                               </p>
                             </div>
                           </li>

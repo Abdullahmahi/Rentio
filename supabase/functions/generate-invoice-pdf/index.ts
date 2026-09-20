@@ -8,7 +8,7 @@
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 import {
   corsHeaders, json, userClient, serviceClient,
-  formatMXN, formatDate, formatPeriod,
+  formatMoney, formatDate, formatPeriod,
 } from "../_shared/common.ts";
 
 const INK = rgb(0.11, 0.10, 0.09);
@@ -139,7 +139,7 @@ Deno.serve(async (request) => {
       subtotal += amount;
       text(String(line.description).slice(0, 56), left + 8, 10);
       rightText(String(Number(line.quantity)), left + 380, 10);
-      rightText(formatMXN(amount), right - 8, 10);
+      rightText(formatMoney(amount), right - 8, 10);
       y -= 8;
       page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.5, color: LINE });
       y -= 14;
@@ -154,7 +154,7 @@ Deno.serve(async (request) => {
       ["Saldo", subtotal - paid, true],
     ] as const) {
       rightText(label, right - 130, 10, strong ? bold : regular, strong ? INK : MUTED);
-      rightText(formatMXN(value), right - 8, 10, strong ? bold : regular);
+      rightText(formatMoney(value), right - 8, 10, strong ? bold : regular);
       y -= 16;
     }
 

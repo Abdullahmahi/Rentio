@@ -20,7 +20,7 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { LeaseStatusBadge } from "@/components/rentio/status";
 import { isActive, leaseContexts } from "@/lib/portfolio";
-import { PHONE_HINT, isPlausibleRfc } from "@/lib/mx";
+import { PHONE_HINT, formatUsPhone } from "@/lib/us";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Tables } from "@/lib/database.types";
@@ -47,7 +47,6 @@ const EMPTY_FORM = {
   full_name: "",
   email: "",
   phone: "",
-  rfc: "",
   emergency_contact_name: "",
   emergency_contact_phone: "",
   notes: "",
@@ -103,7 +102,6 @@ function TenantsPage() {
           full_name: values.full_name.trim(),
           email: values.email.trim() || null,
           phone: values.phone.trim() || null,
-          rfc: values.rfc.trim().toUpperCase() || null,
           emergency_contact_name: values.emergency_contact_name.trim() || null,
           emergency_contact_phone: values.emergency_contact_phone.trim() || null,
           notes: values.notes.trim() || null,
@@ -239,8 +237,6 @@ function TenantsPage() {
           if (!form.full_name.trim()) return setError(t("tenants.errors.nameRequired"));
           if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email.trim()))
             return setError(t("tenants.errors.emailInvalid"));
-          if (form.rfc.trim() && !isPlausibleRfc(form.rfc))
-            return setError(t("tenants.errors.rfcInvalid"));
           create.mutate(form);
         }}
       >
@@ -267,23 +263,10 @@ function TenantsPage() {
               inputMode="tel"
               className="numeric"
               value={form.phone}
-              onChange={(event) => setForm({ ...form, phone: event.target.value })}
+              onChange={(event) => setForm({ ...form, phone: formatUsPhone(event.target.value) })}
             />
           </Field>
         </div>
-        <Field
-          label={t("tenants.fields.rfc")}
-          htmlFor="tenant-rfc"
-          hint={t("tenants.fields.rfcHint")}
-        >
-          <Input
-            id="tenant-rfc"
-            maxLength={13}
-            className="uppercase"
-            value={form.rfc}
-            onChange={(event) => setForm({ ...form, rfc: event.target.value.toUpperCase() })}
-          />
-        </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t("tenants.fields.emergencyName")} htmlFor="tenant-ename">
             <Input
@@ -292,14 +275,18 @@ function TenantsPage() {
               onChange={(event) => setForm({ ...form, emergency_contact_name: event.target.value })}
             />
           </Field>
-          <Field label={t("tenants.fields.emergencyPhone")} htmlFor="tenant-ephone">
+          <Field
+            label={t("tenants.fields.emergencyPhone")}
+            htmlFor="tenant-ephone"
+            hint={PHONE_HINT}
+          >
             <Input
               id="tenant-ephone"
               inputMode="tel"
               className="numeric"
               value={form.emergency_contact_phone}
               onChange={(event) =>
-                setForm({ ...form, emergency_contact_phone: event.target.value })
+                setForm({ ...form, emergency_contact_phone: formatUsPhone(event.target.value) })
               }
             />
           </Field>

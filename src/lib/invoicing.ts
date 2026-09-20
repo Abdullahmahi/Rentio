@@ -1,6 +1,7 @@
 import type { Portfolio } from "@/lib/queries";
 import { isActive, leaseContexts, type LeaseContext } from "@/lib/portfolio";
 import type { Enums, Tables } from "@/lib/database.types";
+import { todayIso } from "@/lib/format";
 
 export interface PlannedLine {
   description: string;
@@ -36,6 +37,11 @@ export interface GenerationPlan {
 /** First day of a month, as the `period_month` date column stores it. */
 export function periodKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+/** The month we are in *in El Paso* — not in the browser's zone. */
+export function currentPeriod() {
+  return `${todayIso().slice(0, 7)}-01`;
 }
 
 export function shiftPeriod(period: string, months: number) {

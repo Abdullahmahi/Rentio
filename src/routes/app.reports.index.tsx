@@ -19,8 +19,8 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { LeaseStatusBadge, UnitStatusBadge } from "@/components/rentio/status";
 import { formatPeriod } from "@/components/rentio/month-selector";
 import { downloadCsv } from "@/lib/csv";
-import { formatMXN, formatMexicoDate } from "@/lib/format";
-import { periodKey, shiftPeriod } from "@/lib/invoicing";
+import { daysBetween, formatDate, formatMoney, todayIso } from "@/lib/format";
+import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
 import { isActive, leaseContexts, occupancy, unitContexts } from "@/lib/portfolio";
 import { usePortfolio } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
@@ -38,7 +38,6 @@ export const Route = createFileRoute("/app/reports/")({
 
 const ALL = "__all__";
 const MONTHS = 12;
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
 interface RentRollRow {
   unitNumber: string;
@@ -67,7 +66,7 @@ function ReportsPage() {
   const portfolio = usePortfolio();
   const [propertyFilter, setPropertyFilter] = useState(ALL);
 
-  const firstMonth = shiftPeriod(periodKey(new Date()), -(MONTHS - 1));
+  const firstMonth = shiftPeriod(currentPeriod(), -(MONTHS - 1));
 
   const income = useQuery({
     queryKey: ["report-income", firstMonth],
@@ -140,10 +139,7 @@ function ReportsPage() {
           const amount = Number(context.balance?.balance ?? 0);
           const oldest = context.balance?.oldest_overdue_date;
           if (amount <= 0.005 || !oldest) return [];
-          const days = Math.max(
-            0,
-            Math.floor((Date.now() - new Date(`${oldest}T00:00:00`).getTime()) / 86_400_000),
-          );
+          const days = Math.max(0, daysBetween(oldest, todayIso()));
           const bucket: AgingRow["bucket"] =
             days <= 30 ? "b30" : days <= 60 ? "b60" : days <= 90 ? "b90" : "b90plus";
           return [
@@ -176,7 +172,7 @@ function ReportsPage() {
   const monthlyIncome = useMemo(() => {
     const buckets = new Map<string, { invoiced: number; collected: number }>();
     for (let index = MONTHS - 1; index >= 0; index -= 1) {
-      buckets.set(shiftPeriod(periodKey(new Date()), -index), { invoiced: 0, collected: 0 });
+      buckets.set(shiftPeriod(currentPeriod(), -index), { invoiced: 0, collected: 0 });
     }
     for (const row of income.data ?? []) {
       if (!matchesProperty(leasePropertyId.get(row.leaseId) ?? null)) continue;
@@ -207,12 +203,7 @@ function ReportsPage() {
             propertyName: row.property?.name ?? "—",
             baseRent: Number(row.unit.base_rent),
             since: ended ?? null,
-            days: ended
-              ? Math.max(
-                  0,
-                  Math.floor((Date.now() - new Date(`${ended}T00:00:00`).getTime()) / 86_400_000),
-                )
-              : null,
+            days: ended ? Math.max(0, daysBetween(ended, todayIso())) : null,
           };
         })
         .sort((a, b) => (b.days ?? 0) - (a.days ?? 0)),
@@ -254,15 +245,13 @@ function ReportsPage() {
       key: "start",
       header: t("contracts.columns.start"),
       sortValue: (row) => row.start ?? "",
-      cell: (row) => (
-        <span className="numeric">{row.start ? formatMexicoDate(row.start) : "—"}</span>
-      ),
+      cell: (row) => <span className="numeric">{row.start ? formatDate(row.start) : "—"}</span>,
     },
     {
       key: "end",
       header: t("contracts.columns.end"),
       sortValue: (row) => row.end ?? "",
-      cell: (row) => <span className="numeric">{row.end ? formatMexicoDate(row.end) : "—"}</span>,
+      cell: (row) => <span className="numeric">{row.end ? formatDate(row.end) : "—"}</span>,
     },
     {
       key: "unitStatus",
@@ -378,9 +367,7 @@ function ReportsPage() {
       key: "since",
       header: t("reports.vacantSince"),
       sortValue: (row) => row.since ?? "",
-      cell: (row) => (
-        <span className="numeric">{row.since ? formatMexicoDate(row.since) : "—"}</span>
-      ),
+      cell: (row) => <span className="numeric">{row.since ? formatDate(row.since) : "—"}</span>,
     },
     {
       key: "days",
@@ -528,7 +515,7 @@ function ReportsPage() {
                     {t(`reports.buckets.${entry.bucket}`)}
                   </p>
                   <p className="numeric mt-1 text-xl font-semibold text-danger">
-                    {formatMXN(entry.total)}
+                    {formatMoney(entry.total)}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {t("reports.leaseCount", { count: entry.count })}

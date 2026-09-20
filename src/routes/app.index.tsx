@@ -22,9 +22,9 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { CardsSkeleton, QueryState } from "@/components/rentio/query-state";
 import { WorkOrderStatusBadge } from "@/components/rentio/status";
 import { formatPeriod } from "@/components/rentio/month-selector";
-import { CHART, UNIT_STATUS_COLOR, compactMXN } from "@/lib/chart";
-import { formatMXN, formatMexicoDate } from "@/lib/format";
-import { periodKey, shiftPeriod } from "@/lib/invoicing";
+import { CHART, UNIT_STATUS_COLOR, compactMoney } from "@/lib/chart";
+import { daysBetween, formatDate, formatMoney, todayIso } from "@/lib/format";
+import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
 import { daysUntilEnd, isActive, isExpiringSoon, leaseContexts, occupancy } from "@/lib/portfolio";
 import { qk, usePortfolio } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
@@ -93,7 +93,7 @@ function ChartTooltip({
             className="mr-1.5 inline-block size-2 rounded-full align-middle"
             style={{ background: entry.color }}
           />
-          {entry.name}: {formatMXN(Number(entry.value ?? 0))}
+          {entry.name}: {formatMoney(Number(entry.value ?? 0))}
         </p>
       ))}
     </div>
@@ -105,7 +105,7 @@ function DashboardPage() {
   const navigate = useNavigate();
   const portfolio = usePortfolio();
 
-  const thisMonth = periodKey(new Date());
+  const thisMonth = currentPeriod();
   const lastMonth = shiftPeriod(thisMonth, -1);
   const firstMonth = shiftPeriod(thisMonth, -(MONTHS_BACK - 1));
 
@@ -226,12 +226,7 @@ function DashboardPage() {
           return {
             context,
             amount: Number(context.balance?.balance ?? 0),
-            days: oldest
-              ? Math.max(
-                  0,
-                  Math.floor((Date.now() - new Date(`${oldest}T00:00:00`).getTime()) / 86_400_000),
-                )
-              : 0,
+            days: oldest ? Math.max(0, daysBetween(oldest, todayIso())) : 0,
           };
         })
         .filter((row) => row.days > 0)
@@ -291,13 +286,13 @@ function DashboardPage() {
           />
           <Kpi
             label={t("dashboard.kpi.collected")}
-            value={formatMXN(current.collected)}
-            note={t("dashboard.ofInvoiced", { amount: formatMXN(current.invoiced) })}
+            value={formatMoney(current.collected)}
+            note={t("dashboard.ofInvoiced", { amount: formatMoney(current.invoiced) })}
             bar={current.invoiced > 0 ? current.collected / current.invoiced : 0}
           />
           <Kpi
             label={t("dashboard.kpi.overdue")}
-            value={formatMXN(overdue.reduce((sum, row) => sum + row.amount, 0))}
+            value={formatMoney(overdue.reduce((sum, row) => sum + row.amount, 0))}
             note={t("dashboard.overdueLeases", { count: overdue.length })}
             tone="text-danger"
           />
@@ -342,7 +337,7 @@ function DashboardPage() {
                     tick={{ fill: CHART.axis, fontSize: 12 }}
                   />
                   <YAxis
-                    tickFormatter={compactMXN}
+                    tickFormatter={compactMoney}
                     tickLine={false}
                     axisLine={false}
                     width={52}
@@ -476,7 +471,7 @@ function DashboardPage() {
                       <div className="min-w-0">
                         <p className="truncate text-sm">{t(`paymentMethod.${payment.method}`)}</p>
                         <p className="numeric text-xs text-muted-foreground">
-                          {formatMexicoDate(payment.paid_at)}
+                          {formatDate(payment.paid_at)}
                         </p>
                       </div>
                       <MoneyText value={Number(payment.amount)} />

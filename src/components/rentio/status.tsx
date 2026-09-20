@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { StatusBadge } from "@/components/rentio/status-badge";
 import type { Enums } from "@/lib/database.types";
+import { todayIso } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Variant = "success" | "warning" | "danger" | "info" | "neutral";
@@ -87,7 +88,6 @@ export function effectiveInvoiceStatus(
   if (invoice.status === "cancelado" || invoice.status === "borrador") return invoice.status;
   const balance = Number(invoice.total) - paid;
   if (balance <= 0.005) return "pagado";
-  const due = new Date(`${invoice.due_date}T23:59:59`);
-  if (due.getTime() < Date.now()) return "vencido";
+  if (invoice.due_date < todayIso()) return "vencido";
   return paid > 0 ? "pagado_parcial" : invoice.status;
 }

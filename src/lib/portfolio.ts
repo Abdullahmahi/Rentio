@@ -1,5 +1,6 @@
 import type { Portfolio } from "@/lib/queries";
 import type { Tables, Views } from "@/lib/database.types";
+import { daysBetween, todayIso } from "@/lib/format";
 
 export interface LeaseContext {
   lease: Tables<"leases">;
@@ -87,15 +88,13 @@ export function isActive(lease: Tables<"leases">) {
   return ACTIVE.includes(lease.status);
 }
 
-/** Days until a lease ends. Negative once it has already ended. */
-export function daysUntilEnd(lease: Tables<"leases">, today = new Date()) {
-  const end = new Date(`${lease.end_date}T00:00:00`);
-  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  return Math.round((end.getTime() - start.getTime()) / 86_400_000);
+/** Days until a lease ends, counted in El Paso. Negative once it has ended. */
+export function daysUntilEnd(lease: Tables<"leases">, today = todayIso()) {
+  return daysBetween(today, lease.end_date);
 }
 
 /** A lease inside its final 60 days is flagged "Por vencer" in every list. */
-export function isExpiringSoon(lease: Tables<"leases">, today = new Date()) {
+export function isExpiringSoon(lease: Tables<"leases">, today = todayIso()) {
   if (!isActive(lease)) return false;
   const days = daysUntilEnd(lease, today);
   return days >= 0 && days <= 60;

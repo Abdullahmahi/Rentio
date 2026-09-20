@@ -25,8 +25,8 @@ export const UNIT_STATUS_COLOR = {
   reservada: CHART.reserved,
 } as const;
 
-/** Compact MXN for axis ticks — "$12.5k" keeps the axis narrow. */
-export function compactMXN(value: number) {
+/** Compact dollars for axis ticks — "$12.5k" keeps the axis narrow. */
+export function compactMoney(value: number) {
   if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
   if (Math.abs(value) >= 1_000) return `$${Math.round(value / 1_000)}k`;
   return `$${Math.round(value)}`;

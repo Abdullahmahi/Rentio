@@ -170,7 +170,6 @@ function Importer({ kind }: { kind: ImportKind }) {
             full_name: String(value["full_name"]),
             email: (value["email"] as string | null) || null,
             phone: (value["phone"] as string | null) || null,
-            rfc: (value["rfc"] as string | null) || null,
             emergency_contact_name: (value["emergency_contact_name"] as string | null) || null,
             emergency_contact_phone: (value["emergency_contact_phone"] as string | null) || null,
             notes: (value["notes"] as string | null) || null,

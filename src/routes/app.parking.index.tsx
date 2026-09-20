@@ -21,7 +21,7 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { CardsSkeleton, QueryState } from "@/components/rentio/query-state";
 import { StatusBadge } from "@/components/rentio/status-badge";
 import { isActive, leaseContexts, leaseLabel } from "@/lib/portfolio";
-import { formatMXN } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Tables } from "@/lib/database.types";
@@ -252,7 +252,7 @@ function ParkingPage() {
                       ["parking.stats.total", String(stats.total)],
                       ["parking.stats.available", String(stats.available)],
                       ["parking.stats.assigned", String(stats.assigned)],
-                      ["parking.stats.revenue", formatMXN(stats.revenue)],
+                      ["parking.stats.revenue", formatMoney(stats.revenue)],
                     ] as const
                   ).map(([key, value]) => (
                     <div key={key} className="flex items-baseline gap-1.5">

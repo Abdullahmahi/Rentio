@@ -24,11 +24,12 @@ const context = (over: Partial<ValidationContext> = {}): ValidationContext => ({
   ...over,
 });
 
-test("parseDate reads dd/mm/aaaa first, then ISO", () => {
-  expect(parseDate("01/03/2026")).toBe("2026-03-01"); // 1 March, not 3 January
-  expect(parseDate("31/12/2026")).toBe("2026-12-31");
-  expect(parseDate("1-3-2026")).toBe("2026-03-01");
+test("parseDate reads mm/dd/yyyy first, then ISO", () => {
+  expect(parseDate("01/03/2026")).toBe("2026-01-03"); // 3 January, not 1 March
+  expect(parseDate("12/31/2026")).toBe("2026-12-31");
+  expect(parseDate("3-1-2026")).toBe("2026-03-01");
   expect(parseDate("2026-03-01")).toBe("2026-03-01");
+  expect(parseDate("31/12/2026")).toBeNull(); // dd/mm is refused, not silently swapped
   expect(parseDate("March 1 2026")).toBeNull();
   expect(parseDate("")).toBeNull();
 });
@@ -108,10 +109,10 @@ test("leases: the unit and tenant must already exist, and dates must run forward
   );
   const rows = validateRows(
     [
-      ["Edificio Roma 214", "101", "maria.rios@example.mx", "01/01/2026", "31/12/2026", "15000"],
-      ["Edificio Roma 214", "999", "maria.rios@example.mx", "01/01/2026", "31/12/2026", "15000"],
-      ["Edificio Roma 214", "101", "nadie@example.mx", "01/01/2026", "31/12/2026", "15000"],
-      ["Edificio Roma 214", "101", "maria.rios@example.mx", "31/12/2026", "01/01/2026", "15000"],
+      ["Edificio Roma 214", "101", "maria.rios@example.mx", "01/01/2026", "12/31/2026", "15000"],
+      ["Edificio Roma 214", "999", "maria.rios@example.mx", "01/01/2026", "12/31/2026", "15000"],
+      ["Edificio Roma 214", "101", "nadie@example.mx", "01/01/2026", "12/31/2026", "15000"],
+      ["Edificio Roma 214", "101", "maria.rios@example.mx", "12/31/2026", "01/01/2026", "15000"],
     ],
     mapping,
     schema,

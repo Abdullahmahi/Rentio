@@ -16,7 +16,7 @@ import {
   PaymentStatusBadge,
   WorkOrderStatusBadge,
 } from "@/components/rentio/status";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { isActive, leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
@@ -118,7 +118,7 @@ function TenantDetailPage() {
       key: "date",
       header: t("payments.columns.date"),
       sortValue: (row) => row.paid_at,
-      cell: (row) => formatMexicoDate(row.paid_at),
+      cell: (row) => formatDate(row.paid_at),
     },
     {
       key: "amount",
@@ -170,7 +170,7 @@ function TenantDetailPage() {
       key: "created",
       header: t("maintenance.columns.created"),
       sortValue: (row) => row.created_at,
-      cell: (row) => formatMexicoDate(row.created_at),
+      cell: (row) => formatDate(row.created_at),
     },
   ];
 
@@ -210,7 +210,7 @@ function TenantDetailPage() {
                   <span className="inline-flex items-center gap-2 rounded-lg border border-success/25 bg-success/10 px-3 py-2 text-sm font-medium text-success">
                     <CheckCircle2 className="size-4" />
                     {t("tenants.portalActiveSince", {
-                      date: formatMexicoDate(portalProfile.data.created_at),
+                      date: formatDate(portalProfile.data.created_at),
                     })}
                   </span>
                 ) : (
@@ -254,7 +254,6 @@ function TenantDetailPage() {
                       <Row label={t("tenants.fields.phone")}>
                         <span className="numeric">{tenant.phone ?? "—"}</span>
                       </Row>
-                      <Row label={t("tenants.fields.rfc")}>{tenant.rfc ?? "—"}</Row>
                       <Row label={t("tenants.fields.emergencyName")}>
                         {tenant.emergency_contact_name ?? "—"}
                       </Row>
@@ -279,7 +278,7 @@ function TenantDetailPage() {
                       {currentLease?.balance?.oldest_overdue_date ? (
                         <p className="mt-1 text-xs text-danger">
                           {t("contracts.oldestOverdue", {
-                            date: formatMexicoDate(currentLease.balance.oldest_overdue_date),
+                            date: formatDate(currentLease.balance.oldest_overdue_date),
                           })}
                         </p>
                       ) : null}

@@ -18,7 +18,7 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { LeaseStatusBadge } from "@/components/rentio/status";
 import { StatusBadge } from "@/components/rentio/status-badge";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { daysUntilEnd, isExpiringSoon, leaseContexts, type LeaseContext } from "@/lib/portfolio";
 import { usePortfolio } from "@/lib/queries";
 import i18n from "@/lib/i18n";
@@ -74,13 +74,13 @@ function ContractsPage() {
       key: "start",
       header: t("contracts.columns.start"),
       sortValue: (row) => row.lease.start_date,
-      cell: (row) => <span className="numeric">{formatMexicoDate(row.lease.start_date)}</span>,
+      cell: (row) => <span className="numeric">{formatDate(row.lease.start_date)}</span>,
     },
     {
       key: "end",
       header: t("contracts.columns.end"),
       sortValue: (row) => row.lease.end_date,
-      cell: (row) => <span className="numeric">{formatMexicoDate(row.lease.end_date)}</span>,
+      cell: (row) => <span className="numeric">{formatDate(row.lease.end_date)}</span>,
     },
     {
       key: "rent",

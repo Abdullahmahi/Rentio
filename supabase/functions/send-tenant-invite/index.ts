@@ -1,11 +1,30 @@
 /**
  * Invites a tenant to the portal: creates the auth user, links
- * profiles.tenant_id, and emails a Spanish invitation with a set-password
- * link. Staff only — creating auth users needs the service role.
+ * profiles.tenant_id, and emails a bilingual invitation (English above,
+ * Spanish below) with a set-password link. Staff only — creating auth users
+ * needs the service role.
  */
 import {
   corsHeaders, json, userClient, requireStaff, serviceClient, sendEmail, emailLayout,
 } from "../_shared/common.ts";
+
+/** English above, Spanish below — most El Paso tenants prefer Spanish, but the
+ *  invitation is the one email that has to be readable either way. */
+function inviteBody(fullName: string | null | undefined, actionLink: string) {
+  const button = (label: string) =>
+    `<p style="margin:20px 0"><a href="${actionLink}"
+       style="display:inline-block;background:#1B4D3E;color:#FFFFFF;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600">
+       ${label}</a></p>`;
+  return `<p>Hello ${fullName ?? ""},</p>
+     <p>Your tenant portal is ready. You can view your receipts and your lease, and report a payment.</p>
+     ${button("Set my password")}
+     <p style="color:#6B655C">If you did not expect this, you can ignore this message.</p>
+     <hr style="border:none;border-top:1px solid #E7E3DD;margin:24px 0" />
+     <p>Hola ${fullName ?? ""},</p>
+     <p>Ya puedes entrar a tu portal para consultar tus recibos, tu contrato y reportar pagos.</p>
+     ${button("Establecer mi contraseña")}
+     <p style="color:#6B655C">Si no solicitaste este acceso, puedes ignorar este mensaje.</p>`;
+}
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -45,15 +64,10 @@ Deno.serve(async (request) => {
 
       await sendEmail({
         to: email,
-        subject: `Acceso a tu portal de inquilino — ${company}`,
+        subject: `Your tenant portal · Tu portal de inquilino — ${company}`,
         html: emailLayout(
-          "Tu portal de inquilino",
-          `<p>Hola ${fullName ?? ""},</p>
-           <p>Ya puedes entrar a tu portal para consultar tus recibos, tu contrato y reportar pagos.</p>
-           <p style="margin:24px 0"><a href="${link.properties?.action_link ?? siteUrl}"
-             style="display:inline-block;background:#1B4D3E;color:#FFFFFF;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600">
-             Establecer mi contraseña</a></p>
-           <p style="color:#6B655C">Si no solicitaste este acceso, puedes ignorar este mensaje.</p>`,
+          "Your tenant portal · Tu portal de inquilino",
+          inviteBody(fullName, link.properties?.action_link ?? siteUrl),
           company,
         ),
       });
@@ -63,7 +77,9 @@ Deno.serve(async (request) => {
 
     // Link the login to the tenant record — this is what my_lease_ids() uses.
     const { error: profileError } = await service.from("profiles").upsert({
-      id: userId, full_name: fullName ?? null, role: "tenant", tenant_id: tenantId, locale: "es-MX",
+      // locale stays NULL: the tenant portal already defaults to Spanish, and
+      // a NULL here means "the tenant has not chosen", so their own pick wins.
+      id: userId, full_name: fullName ?? null, role: "tenant", tenant_id: tenantId,
     });
     if (profileError) throw profileError;
 

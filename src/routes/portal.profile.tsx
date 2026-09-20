@@ -10,11 +10,12 @@ import { Field } from "@/components/rentio/form-dialog";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { useAuth } from "@/lib/auth";
-import { LANGUAGE_STORAGE_KEY, type AppLanguage } from "@/lib/i18n";
-import { useMyTenant, useToastMutation } from "@/lib/queries";
+import { PORTAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
+import { useLanguagePreference, useMyTenant, useToastMutation } from "@/lib/queries";
 import { describeError, supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
+import { formatUsPhone } from "@/lib/us";
 
 export const Route = createFileRoute("/portal/profile")({
   head: () => ({ meta: [{ title: `${i18n.t("pages.profile.title")} — Rentio` }] }),
@@ -86,11 +87,7 @@ function PortalProfile() {
     onSuccess: () => setPassword({ next: "", confirm: "" }),
   });
 
-  const setLanguage = (language: AppLanguage) => {
-    void i18nInstance.changeLanguage(language);
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    document.documentElement.lang = language;
-  };
+  const { setLanguage } = useLanguagePreference(PORTAL_DEFAULT_LANGUAGE);
 
   const toggleTheme = () => {
     setDark((current) => {
@@ -137,7 +134,7 @@ function PortalProfile() {
               inputMode="tel"
               className="numeric h-12"
               value={form.phone}
-              onChange={(event) => setForm({ ...form, phone: event.target.value })}
+              onChange={(event) => setForm({ ...form, phone: formatUsPhone(event.target.value) })}
             />
           </Field>
           <Field label={t("tenants.fields.email")} htmlFor="profile-email">
@@ -164,7 +161,7 @@ function PortalProfile() {
               className="numeric h-12"
               value={form.emergency_contact_phone}
               onChange={(event) =>
-                setForm({ ...form, emergency_contact_phone: event.target.value })
+                setForm({ ...form, emergency_contact_phone: formatUsPhone(event.target.value) })
               }
             />
           </Field>

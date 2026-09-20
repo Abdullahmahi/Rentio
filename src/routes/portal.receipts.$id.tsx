@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { InvoiceStatusBadge, effectiveInvoiceStatus } from "@/components/rentio/status";
 import { formatPeriod } from "@/components/rentio/month-selector";
-import { formatMXN, formatMexicoDate } from "@/lib/format";
+import { formatMoney, formatDate } from "@/lib/format";
 import { useMyPortal } from "@/lib/queries";
 import { describeError, supabase } from "@/lib/supabase";
 
@@ -78,7 +78,7 @@ function PortalReceiptDetail() {
           <>
             <PageHeader
               title={formatPeriod(invoice.period_month, i18n.language)}
-              description={`${invoice.invoice_number ?? "—"} · ${t("receipts.columns.due")} ${formatMexicoDate(invoice.due_date)}`}
+              description={`${invoice.invoice_number ?? "—"} · ${t("receipts.columns.due")} ${formatDate(invoice.due_date)}`}
               actions={<InvoiceStatusBadge value={effectiveInvoiceStatus(invoice, invoice.paid)} />}
             />
 
@@ -113,7 +113,7 @@ function PortalReceiptDetail() {
                 ).map(([key, value, tone]) => (
                   <div key={key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
                     <dt className="text-muted-foreground">{t(key)}</dt>
-                    <dd className={`numeric font-semibold ${tone}`}>{formatMXN(value)}</dd>
+                    <dd className={`numeric font-semibold ${tone}`}>{formatMoney(value)}</dd>
                   </div>
                 ))}
               </dl>

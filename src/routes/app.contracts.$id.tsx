@@ -23,7 +23,7 @@ import {
   effectiveInvoiceStatus,
 } from "@/components/rentio/status";
 import { AdminOnly } from "@/lib/auth";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate, todayIso } from "@/lib/format";
 import { isActive, leaseContexts } from "@/lib/portfolio";
 import {
   logActivity,
@@ -47,8 +47,6 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
     </div>
   );
 }
-
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
 function ContractDetailPage() {
   const { id } = Route.useParams();
@@ -160,13 +158,13 @@ function ContractDetailPage() {
       key: "period",
       header: t("receipts.columns.period"),
       sortValue: (row) => row.period_month,
-      cell: (row) => <span className="numeric">{formatMexicoDate(row.period_month)}</span>,
+      cell: (row) => <span className="numeric">{formatDate(row.period_month)}</span>,
     },
     {
       key: "due",
       header: t("receipts.columns.due"),
       sortValue: (row) => row.due_date,
-      cell: (row) => <span className="numeric">{formatMexicoDate(row.due_date)}</span>,
+      cell: (row) => <span className="numeric">{formatDate(row.due_date)}</span>,
     },
     {
       key: "total",
@@ -195,7 +193,7 @@ function ContractDetailPage() {
       key: "date",
       header: t("payments.columns.date"),
       sortValue: (row) => row.paid_at,
-      cell: (row) => <span className="numeric">{formatMexicoDate(row.paid_at)}</span>,
+      cell: (row) => <span className="numeric">{formatDate(row.paid_at)}</span>,
     },
     {
       key: "amount",
@@ -257,7 +255,7 @@ function ContractDetailPage() {
                 unit: context.unit?.unit_number ?? "—",
                 tenant: context.primaryTenant?.full_name ?? "—",
               })}
-              description={`${context.property?.name ?? ""} · ${formatMexicoDate(lease.start_date)} — ${formatMexicoDate(lease.end_date)}`}
+              description={`${context.property?.name ?? ""} · ${formatDate(lease.start_date)} — ${formatDate(lease.end_date)}`}
               actions={
                 <div className="flex flex-wrap items-center gap-2">
                   <LeaseStatusBadge value={lease.status} />
@@ -320,7 +318,7 @@ function ContractDetailPage() {
                   className={`numeric mt-1 text-xl font-semibold ${context.balance?.oldest_overdue_date ? "text-danger" : ""}`}
                 >
                   {context.balance?.oldest_overdue_date
-                    ? formatMexicoDate(context.balance.oldest_overdue_date)
+                    ? formatDate(context.balance.oldest_overdue_date)
                     : "—"}
                 </p>
               </div>
@@ -342,12 +340,8 @@ function ContractDetailPage() {
                     <dl className="mt-3">
                       <Row label={t("units.columns.unit")}>{context.unit?.unit_number ?? "—"}</Row>
                       <Row label={t("units.columns.property")}>{context.property?.name ?? "—"}</Row>
-                      <Row label={t("contracts.columns.start")}>
-                        {formatMexicoDate(lease.start_date)}
-                      </Row>
-                      <Row label={t("contracts.columns.end")}>
-                        {formatMexicoDate(lease.end_date)}
-                      </Row>
+                      <Row label={t("contracts.columns.start")}>{formatDate(lease.start_date)}</Row>
+                      <Row label={t("contracts.columns.end")}>{formatDate(lease.end_date)}</Row>
                       <Row label={t("contracts.fields.rent")}>
                         <span className="inline-flex items-center gap-2">
                           <MoneyText value={Number(lease.rent_amount)} />
@@ -406,7 +400,7 @@ function ContractDetailPage() {
                       {lease.move_out_date ? (
                         <>
                           <Row label={t("contracts.fields.moveOut")}>
-                            {formatMexicoDate(lease.move_out_date)}
+                            {formatDate(lease.move_out_date)}
                           </Row>
                           <Row label={t("contracts.fields.refunded")}>
                             <MoneyText value={Number(lease.deposit_refunded ?? 0)} />

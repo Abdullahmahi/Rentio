@@ -3,18 +3,52 @@
 
 The supabase CLI needs Docker for `gen types`; this reads pg_catalog directly.
 """
-import collections, os, subprocess, sys
+import collections, json, os, subprocess, sys
 
 DSN = os.environ.get("DATABASE_URL", "postgresql://postgres@127.0.0.1:55432/rentio")
 SEP = "\x1f"
 
+# Direct 5432 access needs the database password. When only a Supabase access
+# token is on hand (SUPABASE_ACCESS_TOKEN + SUPABASE_PROJECT_REF), the same
+# catalog queries go through the Management API instead.
+API_TOKEN = os.environ.get("SUPABASE_ACCESS_TOKEN")
+PROJECT_REF = os.environ.get("SUPABASE_PROJECT_REF")
 
-def q(sql):
+
+def q_api(sql):
+    out = subprocess.run(
+        ["curl", "-sS", "-X", "POST",
+         f"https://api.supabase.com/v1/projects/{PROJECT_REF}/database/query",
+         "-H", f"Authorization: Bearer {API_TOKEN}",
+         "-H", "Content-Type: application/json",
+         "--data-binary", json.dumps({"query": sql})],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    rows = json.loads(out)
+    if isinstance(rows, dict):
+        sys.exit(f"management api: {rows}")
+    # psql -tA renders booleans as t/f and NULL as empty; match that exactly
+    # so the two backends produce byte-identical output.
+    def cell(v):
+        if v is None:
+            return ""
+        if isinstance(v, bool):
+            return "t" if v else "f"
+        return str(v)
+
+    return [[cell(v) for v in row.values()] for row in rows]
+
+
+def q_psql(sql):
     out = subprocess.run(
         ["psql", DSN, "-tAF", SEP, "-c", sql],
         capture_output=True, text=True, check=True,
     ).stdout
     return [line.split(SEP) for line in out.strip().split("\n") if line.strip()]
+
+
+def q(sql):
+    return q_api(sql) if API_TOKEN and PROJECT_REF else q_psql(sql)
 
 
 SCALARS = {

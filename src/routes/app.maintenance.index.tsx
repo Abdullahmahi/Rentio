@@ -35,7 +35,7 @@ import { Field, FormDialog } from "@/components/rentio/form-dialog";
 import { PageHeader } from "@/components/rentio/page-header";
 import { CardsSkeleton, QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/rentio/status";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { unitContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
@@ -309,7 +309,7 @@ function MaintenancePage() {
       key: "created",
       header: t("maintenance.columns.created"),
       sortValue: (row) => row.created_at,
-      cell: (row) => <span className="numeric">{formatMexicoDate(row.created_at)}</span>,
+      cell: (row) => <span className="numeric">{formatDate(row.created_at)}</span>,
     },
     {
       key: "age",

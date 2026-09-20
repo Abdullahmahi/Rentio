@@ -26,7 +26,7 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { CardsSkeleton, QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { PaymentStatusBadge } from "@/components/rentio/status";
 import { AdminOnly } from "@/lib/auth";
-import { formatMXN, formatMexicoDate } from "@/lib/format";
+import { formatDate, formatMoney, todayIso } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { allocateOldestFirst, type OpenInvoice } from "@/lib/invoicing";
 import { isActive, leaseContexts, leaseLabel } from "@/lib/portfolio";
@@ -55,7 +55,6 @@ const METHODS: Enums<"payment_method">[] = [
   "cheque",
   "tarjeta",
 ];
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
 interface PaymentRow extends Tables<"payments"> {
   unitNumber: string;
@@ -203,7 +202,7 @@ function PaymentsPage() {
           value: context.lease.id,
           label: leaseLabel(context, t("units.columns.unit")),
           hint: t("payments.currentBalance", {
-            amount: formatMXN(Number(context.balance?.balance ?? 0)),
+            amount: formatMoney(Number(context.balance?.balance ?? 0)),
           }),
           keywords: `${context.unit?.unit_number ?? ""} ${context.primaryTenant?.full_name ?? ""}`,
         })),
@@ -417,7 +416,7 @@ function PaymentsPage() {
       key: "date",
       header: t("payments.columns.date"),
       sortValue: (row) => row.paid_at,
-      cell: (row) => <span className="numeric">{formatMexicoDate(row.paid_at)}</span>,
+      cell: (row) => <span className="numeric">{formatDate(row.paid_at)}</span>,
     },
     {
       key: "tenant",
@@ -576,9 +575,7 @@ function PaymentsPage() {
                       <dl className="mt-3 space-y-1 text-sm">
                         <div className="flex gap-2">
                           <dt className="text-muted-foreground">{t("payments.columns.date")}:</dt>
-                          <dd className="numeric font-medium">
-                            {formatMexicoDate(payment.paid_at)}
-                          </dd>
+                          <dd className="numeric font-medium">{formatDate(payment.paid_at)}</dd>
                         </div>
                         <div className="flex gap-2">
                           <dt className="text-muted-foreground">{t("payments.columns.method")}:</dt>
@@ -832,8 +829,8 @@ function PaymentsPage() {
                           {invoice.invoiceNumber ?? "—"}
                         </p>
                         <p className="numeric text-xs text-muted-foreground">
-                          {t("receipts.columns.due")} {formatMexicoDate(invoice.dueDate)} ·{" "}
-                          {t("receipts.columns.balance")} {formatMXN(invoice.balance)}
+                          {t("receipts.columns.due")} {formatDate(invoice.dueDate)} ·{" "}
+                          {t("receipts.columns.balance")} {formatMoney(invoice.balance)}
                         </p>
                       </div>
                       <MoneyInput
@@ -850,7 +847,7 @@ function PaymentsPage() {
 
             {credit > 0.005 ? (
               <p className="rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-sm text-info">
-                {t("payments.creditNotice", { amount: formatMXN(credit) })}
+                {t("payments.creditNotice", { amount: formatMoney(credit) })}
               </p>
             ) : null}
           </div>

@@ -1,7 +1,7 @@
 /** Emails a recibo to the tenant with the PDF attached. Staff only. */
 import {
   corsHeaders, json, userClient, requireStaff, serviceClient,
-  sendEmail, emailLayout, formatMXN, formatDate, formatPeriod,
+  sendEmail, emailLayout, formatMoney, formatDate, formatPeriod,
 } from "../_shared/common.ts";
 
 Deno.serve(async (request) => {
@@ -60,8 +60,8 @@ Deno.serve(async (request) => {
       <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;font-size:14px">
         <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Folio</td><td style="font-weight:600">${invoice.invoice_number ?? "—"}</td></tr>
         <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Vencimiento</td><td style="font-weight:600">${formatDate(invoice.due_date)}</td></tr>
-        <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Total</td><td style="font-weight:600">${formatMXN(total)}</td></tr>
-        <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Saldo</td><td style="font-weight:600">${formatMXN(due)}</td></tr>
+        <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Total</td><td style="font-weight:600">${formatMoney(total)}</td></tr>
+        <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Saldo</td><td style="font-weight:600">${formatMoney(due)}</td></tr>
       </table>
       ${settings?.clabe ? `<p style="color:#6B655C">Puedes pagar por transferencia a la CLABE <strong>${settings.clabe}</strong>
         (${settings.bank_name ?? ""}, ${settings.account_holder ?? ""}) usando <strong>${details?.unit_number ?? ""}</strong> como referencia.</p>` : ""}

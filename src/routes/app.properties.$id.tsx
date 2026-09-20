@@ -24,7 +24,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { UnitStatusBadge } from "@/components/rentio/status";
 import { AdminOnly } from "@/lib/auth";
 import { occupancy, unitContexts, type UnitContext } from "@/lib/portfolio";
-import { MEXICAN_STATES } from "@/lib/mx";
+import { DEFAULT_CITY, DEFAULT_STATE, US_STATES, formatCityStateZip } from "@/lib/us";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 
@@ -40,7 +40,7 @@ function PropertyDetailPage() {
   const [form, setForm] = useState({
     name: "",
     street: "",
-    colonia: "",
+    address_line_2: "",
     city: "",
     state: "",
     postal_code: "",
@@ -158,14 +158,11 @@ function PropertyDetailPage() {
             <PageHeader
               title={property.name}
               description={[
-                property.street,
-                property.colonia,
-                property.city,
-                property.state,
-                property.postal_code,
+                [property.street, property.address_line_2].filter(Boolean).join(", "),
+                formatCityStateZip(property.city, property.state, property.postal_code),
               ]
                 .filter(Boolean)
-                .join(", ")}
+                .join(" · ")}
               actions={
                 <div className="flex gap-2">
                   <Button
@@ -174,9 +171,9 @@ function PropertyDetailPage() {
                       setForm({
                         name: property.name,
                         street: property.street ?? "",
-                        colonia: property.colonia ?? "",
+                        address_line_2: property.address_line_2 ?? "",
                         city: property.city ?? "",
-                        state: property.state ?? "Ciudad de México",
+                        state: property.state ?? DEFAULT_STATE,
                         postal_code: property.postal_code ?? "",
                         notes: property.notes ?? "",
                       });
@@ -312,11 +309,11 @@ function PropertyDetailPage() {
                 />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t("properties.fields.colonia")} htmlFor="edit-colonia">
+                <Field label={t("properties.fields.addressLine2")} htmlFor="edit-address-2">
                   <Input
-                    id="edit-colonia"
-                    value={form.colonia}
-                    onChange={(event) => setForm({ ...form, colonia: event.target.value })}
+                    id="edit-address-2"
+                    value={form.address_line_2}
+                    onChange={(event) => setForm({ ...form, address_line_2: event.target.value })}
                   />
                 </Field>
                 <Field label={t("properties.fields.postalCode")} htmlFor="edit-cp">
@@ -348,9 +345,9 @@ function PropertyDetailPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {MEXICAN_STATES.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
+                      {US_STATES.map(([code, name]) => (
+                        <SelectItem key={code} value={code}>
+                          {code} — {name}
                         </SelectItem>
                       ))}
                     </SelectContent>

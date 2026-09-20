@@ -12,7 +12,7 @@ interface MoneyInputProps {
   "aria-invalid"?: boolean | undefined;
 }
 
-/** MXN amount field: $ prefix, thousands separators while idle, tabular digits. */
+/** USD amount field: $ prefix, right-aligned, tabular digits. */
 export function MoneyInput({
   value,
   onChange,
@@ -33,7 +33,7 @@ export function MoneyInput({
       <Input
         id={id ?? fallbackId}
         inputMode="decimal"
-        className="numeric pl-7 text-right"
+        className="numeric pl-7 pr-3 text-right"
         value={display}
         disabled={disabled}
         placeholder={placeholder}
@@ -45,9 +45,6 @@ export function MoneyInput({
           onChange(Number.isFinite(parsed) ? parsed : "");
         }}
       />
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-        MXN
-      </span>
     </div>
   );
 }

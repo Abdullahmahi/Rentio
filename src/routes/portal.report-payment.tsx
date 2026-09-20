@@ -9,7 +9,7 @@ import { Field } from "@/components/rentio/form-dialog";
 import { MoneyInput } from "@/components/rentio/money-input";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
-import { formatMXN } from "@/lib/format";
+import { formatMoney, todayIso } from "@/lib/format";
 import { useMyPortal, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
@@ -22,7 +22,6 @@ export const Route = createFileRoute("/portal/report-payment")({
 });
 
 const METHODS: Enums<"payment_method">[] = ["spei", "efectivo", "deposito", "oxxo", "cheque"];
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
 function ReportPaymentPage() {
   const { t } = useTranslation();
@@ -119,7 +118,9 @@ function ReportPaymentPage() {
         >
           <Field
             label={t("payments.columns.amount")}
-            hint={balance > 0 ? t("portal.balanceHint", { amount: formatMXN(balance) }) : undefined}
+            hint={
+              balance > 0 ? t("portal.balanceHint", { amount: formatMoney(balance) }) : undefined
+            }
           >
             {/* 48px like every other control on this phone-first form. */}
             <MoneyInput

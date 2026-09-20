@@ -126,15 +126,7 @@ export const IMPORT_SCHEMAS: Record<ImportKind, ImportSchema> = {
         required: false,
         type: "text",
         aliases: ["telefono", "phone", "celular", "movil", "tel"],
-        example: "+52 55 1234 5678",
-      },
-      {
-        key: "rfc",
-        label: "tenants.fields.rfc",
-        required: false,
-        type: "text",
-        aliases: ["rfc"],
-        example: "RIFM850101ABC",
+        example: "(915) 555-0123",
       },
       {
         key: "emergency_contact_name",
@@ -258,14 +250,20 @@ export function autoMapColumns(
   return mapping;
 }
 
-/** dd/mm/aaaa first — that is what Mexican spreadsheets hold — then ISO. */
+/**
+ * mm/dd/yyyy first — that is what a US spreadsheet holds — then ISO.
+ *
+ * The order matters: read as dd/mm, `03/04/2026` silently becomes April 3rd
+ * instead of March 4th, and a lease start date is off by a month.
+ */
 export function parseDate(raw: string): string | null {
   const value = raw.trim();
   if (!value) return null;
 
   const slash = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/.exec(value);
   if (slash) {
-    const [, day, month, year] = slash;
+    const [, month, day, year] = slash;
+    if (Number(month) > 12 || Number(day) > 31) return null;
     const iso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     return Number.isNaN(new Date(`${iso}T00:00:00`).getTime()) ? null : iso;
   }
@@ -279,7 +277,7 @@ export function parseDate(raw: string): string | null {
   return null;
 }
 
-/** "$15,000.00" and "15 000,00" both mean fifteen thousand pesos. */
+/** "$1,500.00" and "1500" both mean one thousand five hundred dollars. */
 export function parseMoney(raw: string): number | null {
   const value = raw.trim().replace(/[$\s]/g, "");
   if (!value) return null;

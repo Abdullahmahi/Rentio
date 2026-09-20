@@ -17,7 +17,7 @@ import { Field, FormDialog } from "@/components/rentio/form-dialog";
 import { PageHeader } from "@/components/rentio/page-header";
 import { CardsSkeleton, QueryState } from "@/components/rentio/query-state";
 import { occupancy } from "@/lib/portfolio";
-import { MEXICAN_STATES } from "@/lib/mx";
+import { DEFAULT_CITY, DEFAULT_STATE, US_STATES, formatCityStateZip } from "@/lib/us";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import i18n from "@/lib/i18n";
@@ -35,9 +35,9 @@ export const Route = createFileRoute("/app/properties/")({
 const EMPTY_FORM = {
   name: "",
   street: "",
-  colonia: "",
-  city: "Ciudad de México",
-  state: "Ciudad de México",
+  address_line_2: "",
+  city: DEFAULT_CITY,
+  state: DEFAULT_STATE,
   postal_code: "",
   notes: "",
 };
@@ -129,12 +129,10 @@ function PropertiesPage() {
                 <div className="min-w-0">
                   <h2 className="truncate text-base font-semibold">{property.name}</h2>
                   <p className="mt-0.5 truncate text-sm text-muted-foreground">
-                    {[property.street, property.colonia].filter(Boolean).join(", ")}
+                    {[property.street, property.address_line_2].filter(Boolean).join(", ")}
                   </p>
                   <p className="truncate text-sm text-muted-foreground">
-                    {[property.city, property.state, property.postal_code]
-                      .filter(Boolean)
-                      .join(", ")}
+                    {formatCityStateZip(property.city, property.state, property.postal_code)}
                   </p>
                 </div>
               </div>
@@ -195,11 +193,11 @@ function PropertiesPage() {
           />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t("properties.fields.colonia")} htmlFor="property-colonia">
+          <Field label={t("properties.fields.addressLine2")} htmlFor="property-address-2">
             <Input
-              id="property-colonia"
-              value={form.colonia}
-              onChange={(event) => setForm({ ...form, colonia: event.target.value })}
+              id="property-address-2"
+              value={form.address_line_2}
+              onChange={(event) => setForm({ ...form, address_line_2: event.target.value })}
             />
           </Field>
           <Field label={t("properties.fields.postalCode")} htmlFor="property-cp">
@@ -231,9 +229,9 @@ function PropertiesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {MEXICAN_STATES.map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state}
+                {US_STATES.map(([code, name]) => (
+                  <SelectItem key={code} value={code}>
+                    {code} — {name}
                   </SelectItem>
                 ))}
               </SelectContent>

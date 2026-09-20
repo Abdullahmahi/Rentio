@@ -8,7 +8,7 @@ import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { LeaseStatusBadge } from "@/components/rentio/status";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { useMyPortal } from "@/lib/queries";
 import { describeError } from "@/lib/supabase";
 import { openSigned } from "@/lib/storage";
@@ -36,7 +36,7 @@ function PortalContract() {
 
   const address = [
     details?.street,
-    details?.colonia,
+    details?.address_line_2,
     details?.city,
     details?.state,
     details?.postal_code,
@@ -78,10 +78,10 @@ function PortalContract() {
 
               <dl className="mt-4">
                 <Row label={t("contracts.columns.start")}>
-                  <span className="numeric">{formatMexicoDate(lease.start_date)}</span>
+                  <span className="numeric">{formatDate(lease.start_date)}</span>
                 </Row>
                 <Row label={t("contracts.columns.end")}>
-                  <span className="numeric">{formatMexicoDate(lease.end_date)}</span>
+                  <span className="numeric">{formatDate(lease.end_date)}</span>
                 </Row>
                 <Row label={t("contracts.fields.rent")}>
                   <MoneyText value={Number(lease.rent_amount)} />

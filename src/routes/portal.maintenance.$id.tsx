@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/rentio/empty-state";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/rentio/status";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { useMyPortal } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import { signedUrl } from "@/lib/storage";
@@ -98,7 +98,7 @@ function PortalRequestDetail() {
           <>
             <PageHeader
               title={order.title}
-              description={`${order.folio ?? "—"} · ${formatMexicoDate(order.created_at)}`}
+              description={`${order.folio ?? "—"} · ${formatDate(order.created_at)}`}
               actions={
                 <div className="flex flex-wrap gap-2">
                   <WorkOrderStatusBadge value={order.status} />
@@ -139,7 +139,7 @@ function PortalRequestDetail() {
                     >
                       <p className="whitespace-pre-wrap text-sm">{note.body}</p>
                       <p className="numeric mt-1 text-xs text-muted-foreground">
-                        {formatMexicoDate(note.created_at)}
+                        {formatDate(note.created_at)}
                       </p>
                     </li>
                   ))}
@@ -149,7 +149,7 @@ function PortalRequestDetail() {
 
             {order.resolved_at ? (
               <p className="numeric rounded-lg border border-success/25 bg-success/10 px-3 py-2 text-sm text-success">
-                {t("maintenance.resolvedOn", { date: formatMexicoDate(order.resolved_at) })}
+                {t("maintenance.resolvedOn", { date: formatDate(order.resolved_at) })}
               </p>
             ) : null}
           </>

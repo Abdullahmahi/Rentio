@@ -17,7 +17,7 @@ import {
   WorkOrderPriorityBadge,
   WorkOrderStatusBadge,
 } from "@/components/rentio/status";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { leaseContexts, type LeaseContext } from "@/lib/portfolio";
 import { qk, usePortfolio } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
@@ -80,13 +80,13 @@ function UnitDetailPage() {
       key: "start",
       header: t("contracts.columns.start"),
       sortValue: (row) => row.lease.start_date,
-      cell: (row) => formatMexicoDate(row.lease.start_date),
+      cell: (row) => formatDate(row.lease.start_date),
     },
     {
       key: "end",
       header: t("contracts.columns.end"),
       sortValue: (row) => row.lease.end_date,
-      cell: (row) => formatMexicoDate(row.lease.end_date),
+      cell: (row) => formatDate(row.lease.end_date),
     },
     {
       key: "rent",
@@ -132,7 +132,7 @@ function UnitDetailPage() {
       key: "created",
       header: t("maintenance.columns.created"),
       sortValue: (row) => row.created_at,
-      cell: (row) => formatMexicoDate(row.created_at),
+      cell: (row) => formatDate(row.created_at),
     },
   ];
 
@@ -205,10 +205,10 @@ function UnitDetailPage() {
                           <MoneyText value={Number(current.lease.rent_amount)} />
                         </Row>
                         <Row label={t("contracts.columns.start")}>
-                          {formatMexicoDate(current.lease.start_date)}
+                          {formatDate(current.lease.start_date)}
                         </Row>
                         <Row label={t("contracts.columns.end")}>
-                          {formatMexicoDate(current.lease.end_date)}
+                          {formatDate(current.lease.end_date)}
                         </Row>
                         <Row label={t("nav.parking")}>
                           {current.parking.length > 0 ? (
@@ -242,8 +242,8 @@ function UnitDetailPage() {
                           {current.primaryTenant?.full_name ?? t("units.tabs.lease")}
                         </h2>
                         <p className="mt-0.5 text-sm text-muted-foreground">
-                          {formatMexicoDate(current.lease.start_date)} —{" "}
-                          {formatMexicoDate(current.lease.end_date)}
+                          {formatDate(current.lease.start_date)} —{" "}
+                          {formatDate(current.lease.end_date)}
                         </p>
                       </div>
                       <LeaseStatusBadge value={current.lease.status} />

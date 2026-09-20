@@ -23,8 +23,8 @@ import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { UtilityStatusBadge } from "@/components/rentio/status";
-import { formatMXN } from "@/lib/format";
-import { periodKey } from "@/lib/invoicing";
+import { formatMoney } from "@/lib/format";
+import { currentPeriod } from "@/lib/invoicing";
 import { unitContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
@@ -57,7 +57,7 @@ function ServicesPage() {
   const portfolio = usePortfolio();
   const actorId = useActorId();
 
-  const [period, setPeriod] = useState(() => periodKey(new Date()));
+  const [period, setPeriod] = useState(() => currentPeriod());
   const [propertyFilter, setPropertyFilter] = useState(ALL);
   const [createOpen, setCreateOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
@@ -364,7 +364,7 @@ function ServicesPage() {
             {t("services.summary.pending")}
           </p>
           <p className="numeric mt-1 text-xl font-semibold text-warning">
-            {formatMXN(summary.pending)}
+            {formatMoney(summary.pending)}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-surface p-4 shadow-subtle">
@@ -372,7 +372,7 @@ function ServicesPage() {
             {t("services.summary.billed")}
           </p>
           <p className="numeric mt-1 text-xl font-semibold text-success">
-            {formatMXN(summary.billed)}
+            {formatMoney(summary.billed)}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-surface p-4 shadow-subtle sm:col-span-2">
@@ -386,7 +386,7 @@ function ServicesPage() {
               {summary.byType.map((entry) => (
                 <div key={entry.type} className="flex items-baseline gap-1.5">
                   <dt className="text-muted-foreground">{t(`utilityType.${entry.type}`)}</dt>
-                  <dd className="numeric font-semibold">{formatMXN(entry.total)}</dd>
+                  <dd className="numeric font-semibold">{formatMoney(entry.total)}</dd>
                 </div>
               ))}
             </dl>

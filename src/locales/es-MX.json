@@ -150,7 +150,7 @@
     "description": "Esta acción no se puede deshacer. ¿Deseas continuar?"
   },
   "meta": {
-    "description": "Rentio, administración profesional de propiedades y rentas en México."
+    "description": "Rentio, administración profesional de propiedades y rentas en El Paso, Texas."
   },
   "auth": {
     "signIn": "Iniciar sesión",
@@ -277,7 +277,7 @@
     "fields": {
       "name": "Nombre",
       "street": "Calle y número",
-      "colonia": "Colonia",
+      "addressLine2": "Línea 2 de dirección",
       "city": "Ciudad",
       "state": "Estado",
       "postalCode": "Código postal",
@@ -628,8 +628,6 @@
       "fullName": "Nombre completo",
       "email": "Correo electrónico",
       "phone": "Teléfono",
-      "rfc": "RFC",
-      "rfcHint": "Opcional — para facturación futura.",
       "emergencyName": "Contacto de emergencia",
       "emergencyPhone": "Teléfono de emergencia",
       "notes": "Notas"
@@ -637,7 +635,6 @@
     "errors": {
       "nameRequired": "Escribe el nombre completo.",
       "emailInvalid": "El correo electrónico no es válido.",
-      "rfcInvalid": "El RFC no tiene un formato válido.",
       "emailRequiredForInvite": "Agrega un correo electrónico antes de invitar al portal."
     }
   },
@@ -998,7 +995,7 @@
     "errors": {
       "required": "Falta el campo obligatorio «{{field}}».",
       "notANumber": "«{{value}}» no es un número válido en «{{field}}».",
-      "badDate": "Formato de fecha inválido: «{{value}}». Usa dd/mm/aaaa.",
+      "badDate": "Formato de fecha inválido: «{{value}}». Usa mm/dd/aaaa.",
       "unknownProperty": "La propiedad «{{value}}» no existe.",
       "unknownUnit": "La unidad «{{value}}» no existe.",
       "unknownTenant": "No encontramos al inquilino «{{value}}».",

@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/rentio/status";
 import { CATEGORY_ICONS } from "@/lib/maintenance";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { useMyPortal, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
@@ -242,7 +242,7 @@ function PortalMaintenance() {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{order.title}</p>
                   <p className="numeric mt-0.5 text-xs text-muted-foreground">
-                    {order.folio ?? "—"} · {formatMexicoDate(order.created_at)}
+                    {order.folio ?? "—"} · {formatDate(order.created_at)}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <WorkOrderStatusBadge value={order.status} />

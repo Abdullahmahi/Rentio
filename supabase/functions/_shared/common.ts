@@ -44,20 +44,25 @@ export async function requireStaff(client: SupabaseClient) {
   return { user, isStaff: data?.role === "admin" || data?.role === "manager" };
 }
 
-const MXN = new Intl.NumberFormat("es-MX", {
-  style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2,
+// El Paso is Mountain Time. Keep this in step with src/lib/format.ts.
+export const APP_TIMEZONE = "America/Denver";
+
+const USD = new Intl.NumberFormat("en-US", {
+  style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2,
 });
 
-export const formatMXN = (value: number) => `${MXN.format(value)} MXN`;
+export const formatMoney = (value: number) => USD.format(value);
 
-export const formatDate = (value: string) =>
-  new Intl.DateTimeFormat("es-MX", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "America/Mexico_City" })
-    .format(new Date(`${value}T12:00:00`));
+/** `YYYY-MM-DD` is a calendar date; render its own day rather than an instant. */
+export const formatDate = (value: string) => {
+  const [year, month, day] = value.slice(0, 10).split("-");
+  return `${month}/${day}/${year}`;
+};
 
-export const formatPeriod = (value: string) => {
-  const label = new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric", timeZone: "America/Mexico_City" })
-    .format(new Date(`${value}T12:00:00`));
-  return label.charAt(0).toLocaleUpperCase("es-MX") + label.slice(1);
+export const formatPeriod = (value: string, locale = "en-US") => {
+  const label = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: APP_TIMEZONE })
+    .format(new Date(`${value.slice(0, 10)}T12:00:00Z`));
+  return label.charAt(0).toLocaleUpperCase(locale) + label.slice(1);
 };
 
 /** Resend is optional: without a key the caller gets a clear, actionable error
@@ -67,7 +72,7 @@ export async function sendEmail(options: {
   attachments?: { filename: string; content: string }[];
 }) {
   const apiKey = Deno.env.get("RESEND_API_KEY");
-  const from = Deno.env.get("RESEND_FROM") ?? "Rentio <no-reply@rentio.mx>";
+  const from = Deno.env.get("RESEND_FROM") ?? "Rentio <no-reply@rentio.com>";
   if (!apiKey) throw new Error("RESEND_API_KEY is not configured");
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -79,9 +84,9 @@ export async function sendEmail(options: {
   return await response.json();
 }
 
-/** Shared Spanish email chrome. */
-export function emailLayout(title: string, body: string, companyName: string) {
-  return `<!doctype html><html lang="es-MX"><body style="margin:0;background:#FAF9F7;font-family:Inter,Helvetica,Arial,sans-serif;color:#1C1A17">
+/** Shared email chrome. `lang` follows the recipient's language. */
+export function emailLayout(title: string, body: string, companyName: string, lang = "en") {
+  return `<!doctype html><html lang="${lang}"><body style="margin:0;background:#FAF9F7;font-family:Inter,Helvetica,Arial,sans-serif;color:#1C1A17">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px">
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #E7E3DD;border-radius:10px">
@@ -91,7 +96,9 @@ export function emailLayout(title: string, body: string, companyName: string) {
         </td></tr>
         <tr><td style="padding:16px 24px 24px;font-size:14px;line-height:1.6">${body}</td></tr>
         <tr><td style="padding:0 24px 24px;font-size:12px;color:#6B655C;border-top:1px solid #E7E3DD;padding-top:16px">
-          Este mensaje fue enviado automáticamente por ${companyName}. Si tienes dudas, responde a este correo.
+          ${lang === "es-MX"
+            ? `Este mensaje fue enviado automáticamente por ${companyName}. Si tienes dudas, responde a este correo.`
+            : `This message was sent automatically by ${companyName}. Reply to this email with any questions.`}
         </td></tr>
       </table>
     </td></tr>

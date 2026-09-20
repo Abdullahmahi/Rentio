@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { InvoiceStatusBadge, effectiveInvoiceStatus } from "@/components/rentio/status";
 import { formatPeriod } from "@/components/rentio/month-selector";
-import { formatMexicoDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { useMyPortal } from "@/lib/queries";
 import i18n from "@/lib/i18n";
 
@@ -54,7 +54,7 @@ function PortalReceipts() {
                   </p>
                   <p className="numeric mt-0.5 text-xs text-muted-foreground">
                     {invoice.invoice_number ?? "—"} · {t("receipts.columns.due")}{" "}
-                    {formatMexicoDate(invoice.due_date)}
+                    {formatDate(invoice.due_date)}
                   </p>
                   <div className="mt-2">
                     <InvoiceStatusBadge value={effectiveInvoiceStatus(invoice, invoice.paid)} />

@@ -18,9 +18,16 @@ import { MoneyInput } from "@/components/rentio/money-input";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { AdminOnly, useAuth } from "@/lib/auth";
-import { LANGUAGE_STORAGE_KEY, type AppLanguage } from "@/lib/i18n";
-import { MEXICAN_STATES } from "@/lib/mx";
-import { logActivity, qk, useActorId, useSettings, useToastMutation } from "@/lib/queries";
+import { INTERNAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
+import { DEFAULT_STATE, PHONE_HINT, US_STATES, formatUsPhone } from "@/lib/us";
+import {
+  logActivity,
+  qk,
+  useActorId,
+  useLanguagePreference,
+  useSettings,
+  useToastMutation,
+} from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
@@ -49,9 +56,9 @@ function SettingsPage() {
   const [company, setCompany] = useState({
     company_name: "",
     street: "",
-    colonia: "",
+    address_line_2: "",
     city: "",
-    state: "Ciudad de México",
+    state: DEFAULT_STATE,
     postal_code: "",
     phone: "",
     email: "",
@@ -90,9 +97,9 @@ function SettingsPage() {
     setCompany({
       company_name: settings.data.company_name ?? "",
       street: settings.data.street ?? "",
-      colonia: settings.data.colonia ?? "",
+      address_line_2: settings.data.address_line_2 ?? "",
       city: settings.data.city ?? "",
-      state: settings.data.state ?? "Ciudad de México",
+      state: settings.data.state ?? DEFAULT_STATE,
       postal_code: settings.data.postal_code ?? "",
       phone: settings.data.phone ?? "",
       email: settings.data.email ?? "",
@@ -175,11 +182,7 @@ function SettingsPage() {
     },
   });
 
-  const setLanguage = (language: AppLanguage) => {
-    void i18nInstance.changeLanguage(language);
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    document.documentElement.lang = language;
-  };
+  const { setLanguage } = useLanguagePreference(INTERNAL_DEFAULT_LANGUAGE);
 
   const toggleTheme = () => {
     setDark((current) => {
@@ -248,11 +251,13 @@ function SettingsPage() {
                 />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t("properties.fields.colonia")} htmlFor="company-colonia">
+                <Field label={t("properties.fields.addressLine2")} htmlFor="company-address-2">
                   <Input
-                    id="company-colonia"
-                    value={company.colonia}
-                    onChange={(event) => setCompany({ ...company, colonia: event.target.value })}
+                    id="company-address-2"
+                    value={company.address_line_2}
+                    onChange={(event) =>
+                      setCompany({ ...company, address_line_2: event.target.value })
+                    }
                   />
                 </Field>
                 <Field label={t("properties.fields.postalCode")} htmlFor="company-cp">
@@ -284,9 +289,9 @@ function SettingsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {MEXICAN_STATES.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
+                      {US_STATES.map(([code, name]) => (
+                        <SelectItem key={code} value={code}>
+                          {code} — {name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -294,13 +299,15 @@ function SettingsPage() {
                 </Field>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t("tenants.fields.phone")} htmlFor="company-phone">
+                <Field label={t("tenants.fields.phone")} htmlFor="company-phone" hint={PHONE_HINT}>
                   <Input
                     id="company-phone"
                     inputMode="tel"
                     className="numeric"
                     value={company.phone}
-                    onChange={(event) => setCompany({ ...company, phone: event.target.value })}
+                    onChange={(event) =>
+                      setCompany({ ...company, phone: formatUsPhone(event.target.value) })
+                    }
                   />
                 </Field>
                 <Field label={t("tenants.fields.email")} htmlFor="company-email">

@@ -1,8 +1,10 @@
+import { useCallback, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { describeError, supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { LANGUAGE_STORAGE_KEY, resolveLanguage, type AppLanguage } from "@/lib/i18n";
 import type { Tables, Views } from "@/lib/database.types";
 
 export const qk = {
@@ -323,4 +325,52 @@ export function useMyTenant() {
       return data;
     },
   });
+}
+
+/**
+ * One place that changes the language: i18next, the <html lang>, this
+ * browser's preference, and — so the choice follows the user to any device —
+ * `profiles.locale`. A NULL locale means the user never chose, and the portal
+ * default applies instead.
+ */
+export function useLanguagePreference(fallback: AppLanguage) {
+  const { i18n } = useTranslation();
+  const { profile, refreshProfile } = useAuth();
+
+  const apply = useCallback(
+    (language: AppLanguage) => {
+      void i18n.changeLanguage(language);
+      if (typeof document !== "undefined") document.documentElement.lang = language;
+    },
+    [i18n],
+  );
+
+  // Resolve on mount and whenever the profile arrives. Deferred a tick because
+  // changing language during render warns in react-i18next.
+  useEffect(() => {
+    const stored =
+      typeof window === "undefined" ? null : window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    const language = resolveLanguage(stored, profile?.locale, fallback);
+    const timer = window.setTimeout(() => {
+      if (i18n.language !== language) apply(language);
+      else if (typeof document !== "undefined") document.documentElement.lang = language;
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [apply, fallback, i18n, profile?.locale]);
+
+  const setLanguage = useCallback(
+    (language: AppLanguage) => {
+      apply(language);
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+      if (!profile?.id) return;
+      void supabase
+        .from("profiles")
+        .update({ locale: language })
+        .eq("id", profile.id)
+        .then(() => refreshProfile());
+    },
+    [apply, profile?.id, refreshProfile],
+  );
+
+  return { language: i18n.language as AppLanguage, setLanguage };
 }
