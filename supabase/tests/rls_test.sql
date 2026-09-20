@@ -120,9 +120,25 @@ begin
   select count(*) into n from public.activity_log;
   perform pg_temp.check('tenant cannot read activity log', n = 0);
 
-  -- ...but CAN read the narrow bank-details view the portal needs
-  select count(*) into n from public.public_settings where clabe is not null;
+  -- ...but CAN read the narrow payment-instructions view the portal needs
+  select count(*) into n from public.public_settings where company_name is not null;
   perform pg_temp.check('tenant CAN read public_settings view', n = 1);
+
+  -- ...and that view must NOT carry bank numbers. Publishing a routing and
+  -- account number to every tenant is what prompt 16 removed; this is the
+  -- assertion that stops it coming back.
+  select count(*) into n
+  from information_schema.columns
+  where table_schema = 'public' and table_name = 'public_settings'
+    and column_name in ('clabe', 'bank_name', 'account_holder',
+                        'routing_number', 'account_number');
+  perform pg_temp.check('public_settings exposes no bank account numbers', n = 0);
+
+  select count(*) into n
+  from information_schema.columns
+  where table_schema = 'public' and table_name = 'settings'
+    and column_name in ('clabe', 'routing_number', 'account_number');
+  perform pg_temp.check('settings stores no bank account numbers', n = 0);
 
   -- ...and their OWN unit number and address, but nobody else's
   select count(*) into n from public.my_lease_details where lease_id = lease_a;
@@ -141,7 +157,7 @@ begin
   -- =========================================== tenant write restrictions
   begin
     insert into public.payments (lease_id, amount, method, status, reported_by_tenant)
-    values (lease_a, 100, 'spei', 'confirmado', true);
+    values (lease_a, 100, 'ach', 'confirmado', true);
     perform pg_temp.check('tenant cannot self-confirm a payment', false);
   exception when insufficient_privilege or check_violation then
     perform pg_temp.check('tenant cannot self-confirm a payment', true);
@@ -149,14 +165,14 @@ begin
 
   begin
     insert into public.payments (lease_id, amount, method, status, reported_by_tenant)
-    values (lease_b, 100, 'spei', 'pendiente', true);
+    values (lease_b, 100, 'ach', 'pendiente', true);
     perform pg_temp.check('tenant cannot report against another lease', false);
   exception when insufficient_privilege or check_violation then
     perform pg_temp.check('tenant cannot report against another lease', true);
   end;
 
   insert into public.payments (lease_id, amount, method, status, reported_by_tenant)
-  values (lease_a, 100, 'spei', 'pendiente', true) returning id into pay_id;
+  values (lease_a, 100, 'ach', 'pendiente', true) returning id into pay_id;
   perform pg_temp.check('tenant CAN report a payment on own lease', pay_id is not null);
 
   begin
@@ -174,7 +190,7 @@ begin
     perform pg_temp.check('tenant cannot rename themselves', true);
   end;
 
-  update public.tenants set phone = '+52 55 0000 0000' where id = (select tenant_id from public.profiles where id = tenant_a);
+  update public.tenants set phone = '(915) 555-0000' where id = (select tenant_id from public.profiles where id = tenant_a);
   get diagnostics n = row_count;
   perform pg_temp.check('tenant CAN update own phone', n = 1);
 
@@ -186,8 +202,35 @@ begin
     perform pg_temp.check('tenant cannot forge work order source', true);
   end;
 
+  -- ==================== prompt 19 tables stay entirely staff-only
+  -- Both hold internal records. A notice reaches the tenant as a delivered
+  -- document; the turnover checklist is none of their business.
+  select count(*) into n from public.lease_notices;
+  perform pg_temp.check('tenant cannot read lease notices', n = 0);
+  select count(*) into n from public.unit_turnover_checklist;
+  perform pg_temp.check('tenant cannot read the turnover checklist', n = 0);
+
+  begin
+    insert into public.lease_notices (lease_id, type, vacate_date, delivery)
+    values (lease_a, 'non_payment', current_date + 3, 'in_person');
+    perform pg_temp.check('tenant cannot write a notice to vacate', false);
+  exception when insufficient_privilege or check_violation then
+    perform pg_temp.check('tenant cannot write a notice to vacate', true);
+  end;
+
+  begin
+    update public.unit_turnover_checklist set completed = true where true;
+    get diagnostics n = row_count;
+    perform pg_temp.check('tenant cannot tick off turnover items', n = 0);
+  exception when insufficient_privilege then
+    perform pg_temp.check('tenant cannot tick off turnover items', true);
+  end;
+
   -- ============================================ manager vs admin privileges
   perform pg_temp.act_as(manager_id);
+
+  select count(*) into n from public.unit_turnover_checklist;
+  perform pg_temp.check('staff CAN read the turnover checklist', n > 0);
 
   select id into pay_id from public.payments where status = 'confirmado' limit 1;
   begin

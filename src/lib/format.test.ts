@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { addDays, daysBetween, formatDate, formatMoney, todayIso } from "@/lib/format";
+import { lateFeeEligibility } from "@/lib/late-fee";
 import { formatCityStateZip, formatUsPhone, toE164 } from "@/lib/us";
 
 test("money is USD with no currency suffix", () => {
@@ -52,4 +53,19 @@ test("city/state/zip drops whatever is missing", () => {
   expect(formatCityStateZip("El Paso", null, null)).toBe("El Paso");
   expect(formatCityStateZip(null, "TX", "79912")).toBe("TX 79912");
   expect(formatCityStateZip(null, null, null)).toBe("");
+});
+
+// Prompt 20's final verification, as a runnable check rather than a click-through.
+test("a lease due on the 1st does not tip over a day early in El Paso", () => {
+  // 11:30pm on Sept 1 in El Paso is already Sept 2 in UTC.
+  const lateEvening = new Date("2026-09-02T05:30:00Z");
+  expect(todayIso(lateEvening)).toBe("2026-09-01");
+  // The due date still reads as the 1st...
+  expect(formatDate("2026-09-01")).toBe("09/01/2026");
+  // ...it is not yet overdue...
+  expect(daysBetween("2026-09-01", todayIso(lateEvening))).toBe(0);
+  // ...and the late fee is still two days away.
+  const check = lateFeeEligibility("2026-09-01", 2, todayIso(lateEvening));
+  expect(check.eligible).toBe(false);
+  expect(check.eligibleFrom).toBe("2026-09-04");
 });

@@ -23,7 +23,7 @@ export const supabase = createClient<Database>(
   },
 );
 
-/** Supabase errors arrive in English. Surface something a Mexican operator can act on. */
+/** Raw Supabase errors are not actionable. Map them to something an operator can act on. */
 export function describeError(error: unknown): string {
   if (!isSupabaseConfigured) return "errors.notConfigured";
   const message = error instanceof Error ? error.message : String(error ?? "");

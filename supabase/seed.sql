@@ -1,9 +1,12 @@
--- Rentio — demo data (Mexican Spanish, CDMX).
+-- Rentio — demo data (El Paso, Texas).
 -- Safe to re-run: it clears the demo tables first.
 --
 -- Deliberately leaves 4 active leases WITHOUT an invoice for the current
--- month, and their utility charges `pendiente`, so "Generar recibos del mes"
--- has real work to do on a fresh demo.
+-- month, and their utility charges `pendiente`, so "Generate this month's
+-- receipts" has real work to do on a fresh demo. It also leaves one health
+-- and safety work order past its 7-day statutory window and one terminated
+-- lease with the deposit clock running, so both compliance warnings are
+-- visible without anyone having to set them up.
 
 begin;
 
@@ -11,7 +14,8 @@ truncate table
   public.activity_log, public.documents, public.work_order_photos,
   public.work_order_notes, public.work_orders, public.utility_charges,
   public.payment_allocations, public.payments, public.invoice_lines,
-  public.invoices, public.lease_tenants, public.parking_spaces,
+  public.invoices, public.lease_notices, public.unit_turnover_checklist,
+  public.lease_tenants, public.parking_spaces,
   public.leases, public.units, public.tenants, public.properties
   restart identity cascade;
 
@@ -19,30 +23,40 @@ alter sequence public.invoice_number_seq restart with 1;
 alter sequence public.work_order_folio_seq restart with 1;
 
 update public.settings set
-  company_name   = 'Inmobiliaria Arrendo CDMX',
-  bank_name      = 'BBVA México',
-  clabe          = '012180001234567895',
-  account_holder = 'Inmobiliaria Arrendo CDMX, S.A. de C.V.',
+  company_name   = 'Sun City Property Management',
   invoice_prefix = 'REC',
-  default_late_fee = 500.00,
-  default_grace_days = 5,
-  street = 'Av. Insurgentes Sur 1602',
-  colonia = 'Crédito Constructor',
-  city = 'Ciudad de México',
-  state = 'Ciudad de México',
-  postal_code = '03940',
-  phone = '+52 55 5555 1200',
-  email = 'administracion@arrendocdmx.mx';
+  default_late_fee_percent = 10.00,
+  default_grace_days = 2,
+  nsf_fee = 35.00,
+  street = '4141 Pinnacle St',
+  address_line_2 = 'Suite 210',
+  city = 'El Paso',
+  state = 'TX',
+  postal_code = '79902',
+  phone = '(915) 555-1200',
+  email = 'office@suncitypm.com',
+  -- Only the methods this landlord actually accepts. The portal renders
+  -- exactly these rows and no empty ones.
+  zelle_handle = 'payments@suncitypm.com',
+  check_payable_to = 'Sun City Property Management LLC',
+  check_mailing_address = E'Sun City Property Management LLC\n4141 Pinnacle St, Suite 210\nEl Paso, TX 79902',
+  dropoff_address = E'4141 Pinnacle St, Suite 210\nEl Paso, TX 79902',
+  office_hours = 'Mon–Fri 9:00 AM – 5:00 PM',
+  payment_notes = 'Include your unit number on the memo line so we can match your payment.';
 
 -- ------------------------------------------------------------ properties
+-- Westside, Northeast and the Lower Valley. `units_in_structure` is set by
+-- hand because it drives the §92.019 late fee cap: the fourplex takes the
+-- 12% presumption, the two apartment buildings 10%.
 
-insert into public.properties (name, street, colonia, city, state, postal_code, notes) values
-  ('Edificio Roma 214',     'Álvaro Obregón 214', 'Roma Norte',        'Ciudad de México', 'Ciudad de México', '06700', 'Edificio remodelado en 2021. Portero de 7:00 a 22:00.'),
-  ('Residencial Del Valle', 'Av. Coyoacán 1523',  'Del Valle Centro',  'Ciudad de México', 'Ciudad de México', '03100', 'Amenidades: roof garden y salón de usos múltiples.'),
-  ('Torre Narvarte',        'Dr. Vértiz 842',     'Narvarte Poniente', 'Ciudad de México', 'Ciudad de México', '03020', 'Elevador con mantenimiento mensual programado.');
+insert into public.properties (name, street, address_line_2, city, state, postal_code, units_in_structure, notes) values
+  ('Mesa Hills Apartments',  '5820 Mesa Hills Dr', 'Bldg A', 'El Paso', 'TX', '79912', 14, 'Westside. Renovated 2021. Gated parking, laundry on site.'),
+  ('Dyer Street Commons',    '9315 Dyer St',       NULL,     'El Paso', 'TX', '79924', 14, 'Northeast, near Fort Bliss. Covered parking, on-site manager Mon–Fri.'),
+  ('Ysleta Court',           '8402 Alameda Ave',   'Bldg C', 'El Paso', 'TX', '79907',  4, 'Lower Valley. Single fourplex — takes the 12% late fee cap.');
 
 -- ----------------------------------------------------------------- units
--- 40 units: 14 / 14 / 12. Rent lands between $8,000 and $28,000 MXN.
+-- 40 units: 14 / 14 / 12. Rent lands between $650 and $1,600, which is
+-- where El Paso actually is. Demo numbers that look wrong undermine a demo.
 
 insert into public.units (property_id, unit_number, floor, bedrooms, bathrooms, sqm, base_rent, status)
 select
@@ -51,13 +65,13 @@ select
   (i - 1) / 4 + 1,
   b.bedrooms,
   case when b.bedrooms = 1 then 1.0 when b.bedrooms = 2 then 1.5 else 2.0 end,
-  round((42 + b.bedrooms * 21 + (i % 4) * 3)::numeric, 2),
-  round((8000 + (b.bedrooms - 1) * 6500 + cfg.premium + (i % 5) * 500)::numeric, 2),
+  round((520 + b.bedrooms * 240 + (i % 4) * 35)::numeric, 2),
+  round((650 + (b.bedrooms - 1) * 300 + cfg.premium + (i % 5) * 40)::numeric, 2),
   'vacante'
 from (values
-  ('Edificio Roma 214', 14, 3500),
-  ('Residencial Del Valle', 14, 2000),
-  ('Torre Narvarte', 12, 0)
+  ('Mesa Hills Apartments', 14, 180),
+  ('Dyer Street Commons',   14,  60),
+  ('Ysleta Court',          12,   0)
 ) as cfg(pname, n, premium)
 join public.properties p on p.name = cfg.pname
 cross join lateral generate_series(1, cfg.n) as i
@@ -69,65 +83,70 @@ cross join lateral (select (i % 3) + 1 as bedrooms) b;
 insert into public.parking_spaces (property_id, label, type, monthly_fee, status)
 select
   p.id,
-  'E-' || lpad(i::text, 2, '0'),
+  'P-' || lpad(i::text, 2, '0'),
   case when i % 3 = 0 then 'descubierto' else 'techado' end,
-  case when i % 3 = 0 then 800.00 else 1200.00 end,
+  case when i % 3 = 0 then 25.00 else 45.00 end,
   'disponible'
-from (values ('Edificio Roma 214', 10), ('Residencial Del Valle', 9), ('Torre Narvarte', 6)) as cfg(pname, n)
+from (values ('Mesa Hills Apartments', 10), ('Dyer Street Commons', 9), ('Ysleta Court', 6)) as cfg(pname, n)
 join public.properties p on p.name = cfg.pname
 cross join lateral generate_series(1, cfg.n) as i;
 
 -- --------------------------------------------------------------- tenants
+-- A realistic El Paso mix: roughly four in five Hispanic surnames, the rest
+-- not, with (915) numbers throughout.
 
-insert into public.tenants (full_name, email, phone, rfc, emergency_contact_name, emergency_contact_phone)
+insert into public.tenants (full_name, email, phone, emergency_contact_name, emergency_contact_phone)
 select
   n.full_name,
   lower(
     translate(split_part(n.full_name, ' ', 1), 'áéíóúÁÉÍÓÚñÑ', 'aeiouAEIOUnN') || '.' ||
     translate(split_part(n.full_name, ' ', 2), 'áéíóúÁÉÍÓÚñÑ', 'aeiouAEIOUnN')
-  ) || '@example.mx',
-  '+52 55 ' || lpad((1000 + n.i * 37)::text, 4, '0') || ' ' || lpad((2000 + n.i * 53)::text, 4, '0'),
-  case when n.i % 3 = 0 then null else upper(left(translate(n.full_name, ' áéíóúÁÉÍÓÚñÑ', 'aeiouAEIOUnN'), 4)) || '8' || lpad((100000 + n.i * 911)::text, 6, '0') end,
+  ) || '@example.com',
+  '(915) ' || lpad((200 + n.i * 7)::text, 3, '0') || '-' || lpad((1000 + n.i * 53)::text, 4, '0'),
   n.emergency,
-  '+52 55 ' || lpad((3000 + n.i * 29)::text, 4, '0') || ' ' || lpad((4000 + n.i * 61)::text, 4, '0')
+  '(915) ' || lpad((300 + n.i * 11)::text, 3, '0') || '-' || lpad((2000 + n.i * 61)::text, 4, '0')
 from (
   select row_number() over () as i, full_name, emergency from (values
     ('María Fernanda Ríos',      'Jorge Ríos Medina'),
-    ('Juan Carlos Pérez',        'Laura Pérez Solís'),
+    ('Daniel Whitaker',          'Susan Whitaker'),
     ('Ana Sofía Hernández',      'Miguel Hernández Cruz'),
     ('Luis Enrique Ramírez',     'Patricia Ramírez Ortiz'),
     ('Gabriela Mendoza',         'Raúl Mendoza Lara'),
     ('Ricardo Alonso Vargas',    'Claudia Vargas Nieto'),
     ('Alejandra Castillo',       'Héctor Castillo Ruiz'),
-    ('Fernando Gutiérrez',       'Norma Gutiérrez Paz'),
+    ('Marcus Thompson',          'Denise Thompson'),
     ('Paola Jiménez Soto',       'Andrés Jiménez Rocha'),
     ('Roberto Núñez Salas',      'Elena Núñez Vega'),
     ('Diana Laura Ortega',       'Sergio Ortega Campos'),
     ('Miguel Ángel Domínguez',   'Rosa Domínguez Islas'),
-    ('Carmen Elizabeth Flores',  'Pedro Flores Aguilar'),
+    ('Katherine O''Brien',       'Patrick O''Brien'),
     ('José Antonio Reyes',       'Silvia Reyes Cabrera'),
     ('Verónica Salazar',         'Arturo Salazar Peña'),
     ('Héctor Iván Morales',      'Beatriz Morales Luna'),
     ('Claudia Patricia Cruz',    'Ramón Cruz Estrada'),
     ('Eduardo Barrera Lima',     'Mónica Barrera Téllez'),
-    ('Mariana Quintero',         'Felipe Quintero Arce'),
+    ('Brandon Nguyen',           'Linda Nguyen'),
     ('Sergio Alberto Navarro',   'Adriana Navarro Fuentes'),
     ('Lucía Beltrán Arriaga',    'Emilio Beltrán Cano'),
     ('Óscar Daniel Cervantes',   'Teresa Cervantes Lozano'),
     ('Rocío Guadalupe Andrade',  'Javier Andrade Pineda'),
     ('Armando Téllez Rosas',     'Guadalupe Téllez Mora'),
-    ('Isabel Cristina Guzmán',   'Rodrigo Guzmán Franco'),
+    ('Rachel Goldstein',         'David Goldstein'),
     ('Pablo Emilio Zamora',      'Cecilia Zamora Rangel'),
     ('Nadia Escobar Ponce',      'Ignacio Escobar Ávila'),
     ('Rubén Darío Maldonado',    'Alicia Maldonado Bravo'),
-    ('Silvia Nájera Campos',     'Mauricio Nájera Duarte'),
+    ('Tyler Brooks',             'Megan Brooks'),
     ('Emiliano Rivas Cuéllar',   'Daniela Rivas Montes')
   ) as t(full_name, emergency)
 ) n;
 
 -- ---------------------------------------------------------------- leases
--- 30 active leases on the first 30 units. Four of them end within 60 days
--- so the "Por vencer" badge has something to show.
+-- 30 active leases on the first 30 units, plus one terminated lease whose
+-- deposit clock is running. Four end within 60 days so the "Por vencer"
+-- badge has something to show.
+--
+-- Every lease is on the Texas default: a percentage late fee at 10% and the
+-- statutory minimum 2-day grace period. Deposits are one month's rent.
 
 with ordered_units as (
   select u.id, u.base_rent, row_number() over (order by p.name, u.unit_number) as rn
@@ -135,7 +154,7 @@ with ordered_units as (
 )
 insert into public.leases (
   unit_id, start_date, end_date, rent_amount, rent_due_day, grace_days,
-  late_fee_amount, deposit_amount, status
+  late_fee_type, late_fee_percent, late_fee_amount, deposit_amount, status
 )
 select
   ou.id,
@@ -143,8 +162,10 @@ select
   (d.start_date + interval '12 months' - interval '1 day')::date,
   ou.base_rent,
   case when ou.rn % 4 = 0 then 5 else 1 end,
-  5,
-  500.00,
+  2,
+  'percent',
+  10.00,
+  0,
   ou.base_rent,
   'activo'
 from ordered_units ou
@@ -190,6 +211,40 @@ join lateral (values ('co_tenant'::lease_tenant_role, 5, 1), ('guarantor'::lease
 join t on t.rn = ((l.rn + r.offs - 1) % 30) + 1
 on conflict (lease_id, tenant_id) do nothing;
 
+-- ---------------------------------------------- move-in / turnover lists
+-- §92.156 — rekey within 7 days of possession. Created for every lease,
+-- and mostly complete, except on the newest leases where the rekey is
+-- deliberately still open so the dashboard counter has something in it.
+
+with numbered as (
+  select l.*, row_number() over (order by l.created_at, l.id) as rn from public.leases l
+)
+insert into public.unit_turnover_checklist (unit_id, lease_id, item, item_key, position, completed, completed_at)
+select
+  l.unit_id, l.id, c.item, c.item_key, c.position,
+  done.completed,
+  case when done.completed then l.start_date + interval '2 days' end
+from numbered l
+cross join (values
+  ('Rekey locks (required within 7 days)',          'rekey_locks',               0),
+  ('Test smoke alarms',                             'test_smoke_alarms',         1),
+  ('Verify deadbolt and keyless bolting device',    'verify_deadbolt_keyless',   2),
+  ('Verify window latches',                         'verify_window_latches',     3),
+  ('Document unit condition with photos',           'document_condition_photos', 4),
+  ('Collect renters insurance certificate',         'collect_renters_insurance', 5)
+) as c(item, item_key, position)
+-- Most turnovers are finished. Two leases are deliberately left unfinished,
+-- one of them with the rekey still open past its 7-day deadline, so the
+-- "Turnover tasks overdue" counter is not a permanently empty card.
+cross join lateral (
+  select case
+    when l.rn = 7  then false                                   -- nothing done
+    when l.rn = 13 then c.item_key <> 'rekey_locks'             -- rekey still open
+    else true
+  end as completed
+) done
+on conflict (lease_id, item_key) do nothing;
+
 -- ------------------------------------------------------ parking assignment
 -- 15 of 25 spaces assigned, always to a lease in the same property.
 
@@ -207,7 +262,7 @@ join ranked_leases rl on rl.property_id = rs.property_id and rl.rn = rs.rn
 where ps.id = rs.id and rs.rn <= 5;
 
 update public.parking_spaces set status = 'fuera_de_servicio'
-where lease_id is null and label in ('E-09', 'E-10');
+where lease_id is null and label in ('P-09', 'P-10');
 
 -- ------------------------------------------------------- utility charges
 -- Two billed months behind us, the current month still pendiente.
@@ -227,8 +282,8 @@ join lateral (
 ) r on true
 cross join lateral (values (0), (1), (2)) as m(offset_months)
 cross join lateral (values
-  ('agua'::utility_type, round((180 + (r.rn % 7) * 35)::numeric, 2)),
-  ('cuota_mantenimiento'::utility_type, 950.00)
+  ('agua'::utility_type, round((28 + (r.rn % 7) * 4)::numeric, 2)),
+  ('cuota_mantenimiento'::utility_type, 35.00)
 ) as ut(type, amount)
 where l.status = 'activo'
 on conflict (unit_id, type, period_month) do nothing;
@@ -262,16 +317,16 @@ ins as (
 )
 insert into public.invoice_lines (invoice_id, description, category, quantity, amount)
 -- rent
-select i.id, 'Renta mensual', 'renta'::line_category, 1::numeric, l.rent_amount
+select i.id, 'Monthly rent', 'renta'::line_category, 1::numeric, l.rent_amount
 from ins i join public.leases l on l.id = i.lease_id
 union all
 -- parking
-select i.id, 'Estacionamiento ' || ps.label, 'estacionamiento'::line_category, 1::numeric, ps.monthly_fee
+select i.id, 'Parking ' || ps.label, 'estacionamiento'::line_category, 1::numeric, ps.monthly_fee
 from ins i join public.parking_spaces ps on ps.lease_id = i.lease_id
 union all
 -- utilities already billed
 select i.id,
-       case uc.type when 'agua' then 'Agua' when 'cuota_mantenimiento' then 'Cuota de mantenimiento' else 'Servicio' end,
+       case uc.type when 'agua' then 'Water' when 'cuota_mantenimiento' then 'Common area fee' else 'Utility' end,
        case uc.type when 'cuota_mantenimiento' then 'cuota_mantenimiento'::line_category else 'servicios'::line_category end,
        1::numeric, uc.amount
 from ins i
@@ -289,6 +344,8 @@ set total = coalesce((select sum(il.amount * il.quantity) from public.invoice_li
 
 -- --------------------------------------------------------------- payments
 -- M-2: everyone paid. M-1: most paid, a few short. M: about half paid.
+-- Spread across ACH, Zelle, check and money order, with a reference that
+-- reads the way that method's reference actually reads.
 
 with inv as (
   select i.*, row_number() over (order by i.period_month, i.invoice_number) as rn,
@@ -305,7 +362,17 @@ payable as (
       when months_ago = 1 then inv.total
       when months_ago = 0 and inv.rn % 2 = 0 then inv.total                -- current month, half paid
       else 0
-    end as pay_amount
+    end as pay_amount,
+    (array['ach','ach','zelle','check','money_order'])[(inv.rn % 5) + 1]::payment_method as pay_method,
+    -- Derived from the invoice's row number, so it stays the key that ties
+    -- each payment back to exactly one invoice.
+    case (inv.rn % 5) + 1
+      when 1 then 'ACH-' || lpad((7000000 + inv.rn * 137)::text, 9, '0')
+      when 2 then 'ACH-' || lpad((7000000 + inv.rn * 137)::text, 9, '0')
+      when 3 then 'Zelle ' || lpad((7000000 + inv.rn * 137)::text, 9, '0')
+      when 4 then 'Check #' || lpad((7000000 + inv.rn * 137)::text, 9, '0')
+      else 'MO ' || lpad((7000000 + inv.rn * 137)::text, 9, '0')
+    end as pay_reference
   from inv
 ),
 pay as (
@@ -314,26 +381,25 @@ pay as (
     p.lease_id,
     p.pay_amount,
     least(p.due_date + ((p.rn % 4))::int, current_date),
-    (array['spei','spei','spei','efectivo','deposito','oxxo'])[(p.rn % 6) + 1]::payment_method,
-    'SPEI' || lpad((7000000 + p.rn * 137)::text, 9, '0'),
+    p.pay_method,
+    p.pay_reference,
     'confirmado',
     false,
     now()
   from payable p
   where p.pay_amount > 0
-  -- `reference` is derived from the invoice's row number, so it is the
-  -- key that ties each payment back to exactly one invoice.
   returning id, amount, reference
 )
 insert into public.payment_allocations (payment_id, invoice_id, amount)
 select pay.id, payable.id, pay.amount
 from pay
-join payable on 'SPEI' || lpad((7000000 + payable.rn * 137)::text, 9, '0') = pay.reference;
+join payable on payable.pay_reference = pay.reference;
 
 -- Three self-reported payments waiting in the confirmation queue.
 insert into public.payments (lease_id, amount, paid_at, method, reference, status, reported_by_tenant, notes)
-select l.id, l.rent_amount, current_date - 1, 'spei', 'SPEI' || lpad((9100000 + row_number() over ())::text, 9, '0'),
-       'pendiente', true, 'Transferencia realizada desde BBVA.'
+select l.id, l.rent_amount, current_date - 1, 'zelle',
+       'Zelle ' || lpad((9100000 + row_number() over ())::text, 9, '0'),
+       'pendiente', true, 'Sent from my Chase account this morning.'
 from public.leases l
 where l.status = 'activo'
 order by l.created_at
@@ -352,34 +418,40 @@ from public.invoice_balances b
 where b.invoice_id = i.id;
 
 -- ------------------------------------------------------------ work orders
--- 15 orders spread across every status, category and source.
+-- 15 orders across every status, category and source. Three are flagged as
+-- health and safety; the first of those is deliberately past its 7-day
+-- statutory window so the dashboard warning is visible in the demo.
 
-insert into public.work_orders (unit_id, lease_id, reported_by_tenant, source, category, priority, title, description, status, vendor_name, vendor_phone, cost, resolved_at, created_at)
+insert into public.work_orders (unit_id, lease_id, reported_by_tenant, source, category, priority, title, description, status, affects_health_safety, written_notice_at, vendor_name, vendor_phone, cost, resolved_at, created_at)
 select
   l.unit_id, l.id, lt.tenant_id,
   w.source, w.category, w.priority, w.title, w.description, w.status,
+  w.health_safety,
+  -- A portal submission IS the tenant's written notice under §92.052.
+  case when w.source = 'portal' then now() - ((w.notice_days_ago) || ' days')::interval end,
   case when w.status in ('asignada','en_progreso','esperando_refacciones','resuelta','cerrada') then w.vendor end,
-  case when w.status in ('asignada','en_progreso','esperando_refacciones','resuelta','cerrada') then '+52 55 4120 ' || lpad((3000 + w.rn * 17)::text, 4, '0') end,
+  case when w.status in ('asignada','en_progreso','esperando_refacciones','resuelta','cerrada') then '(915) 555-' || lpad((3000 + w.rn * 17)::text, 4, '0') end,
   case when w.status in ('resuelta','cerrada') then w.cost end,
   case when w.status in ('resuelta','cerrada') then now() - (w.rn || ' days')::interval end,
-  now() - ((w.rn * 3) || ' days')::interval
+  now() - ((w.notice_days_ago) || ' days')::interval
 from (values
-  (1,  'portal'::wo_source,   'plomeria'::wo_category,          'urgente'::wo_priority, 'Fuga de agua en el baño principal', 'El agua escurre por la pared debajo del lavabo desde ayer.',            'nueva'::wo_status,                 'Plomería Express',   1450.00),
-  (2,  'whatsapp',            'electricidad',                   'alta',                 'Apagón en la recámara',             'No hay luz en los contactos de la recámara principal.',                 'asignada',                         'Electro Servicios',  890.00),
-  (3,  'telefono',            'cerrajeria',                     'media',                'Cerradura atascada',                'La llave entra pero no gira en la puerta de entrada.',                   'en_progreso',                      'Cerrajería 24/7',    650.00),
-  (4,  'personal',            'electrodomesticos',              'media',                'Boiler no calienta',                'El agua sale tibia aun al máximo.',                                     'esperando_refacciones',            'Clima y Calor',     2300.00),
-  (5,  'portal',              'limpieza',                       'baja',                 'Limpieza de tinaco',                'Solicito limpieza programada del tinaco.',                              'resuelta',                         'Limpieza Integral',  900.00),
-  (6,  'portal',              'plomeria',                       'alta',                 'Drenaje tapado en cocina',          'El fregadero no desagua.',                                              'cerrada',                          'Plomería Express',  1100.00),
-  (7,  'whatsapp',            'electricidad',                   'urgente',              'Corto circuito en pasillo',         'Saltó el interruptor general dos veces hoy.',                            'en_progreso',                      'Electro Servicios', 1750.00),
-  (8,  'telefono',            'otro',                           'baja',                 'Ruido en el elevador',              'Se escucha un rechinido al subir del piso 2 al 3.',                      'nueva',                            'Elevadores Mex',    3200.00),
-  (9,  'personal',            'plomeria',                       'media',                'Goteo en regadera',                 'Gotea constantemente aunque esté cerrada.',                              'asignada',                         'Plomería Express',   520.00),
-  (10, 'portal',              'electrodomesticos',              'alta',                 'Estufa sin gas',                    'Dos quemadores no encienden.',                                          'resuelta',                         'Gas del Valle',      780.00),
-  (11, 'portal',              'cerrajeria',                     'urgente',              'Puerta principal no cierra',        'La chapa quedó floja y la puerta no asegura.',                           'cerrada',                          'Cerrajería 24/7',    980.00),
-  (12, 'whatsapp',            'limpieza',                       'baja',                 'Basura acumulada en azotea',        'Hay bolsas acumuladas junto a la salida de azotea.',                     'resuelta',                         'Limpieza Integral',  400.00),
-  (13, 'telefono',            'electricidad',                   'media',                'Foco fundido en pasillo común',     'El pasillo del segundo piso quedó a oscuras.',                           'cerrada',                          'Electro Servicios',  180.00),
-  (14, 'personal',            'otro',                           'media',                'Revisión de humedad en muro',       'Mancha de humedad creciendo en el muro de la sala.',                     'esperando_refacciones',            'Impermeabiliza MX', 4500.00),
-  (15, 'portal',              'plomeria',                       'alta',                 'Presión de agua muy baja',          'Casi no sale agua en la regadera por las mañanas.',                      'nueva',                            'Plomería Express',   700.00)
-) as w(rn, source, category, priority, title, description, status, vendor, cost)
+  -- rn, source, category, priority, title, description, status, health_safety, notice_days_ago, vendor, cost
+  (1,  'portal'::wo_source, 'plomeria'::wo_category,   'urgente'::wo_priority, 'No hot water in the unit',            'The water heater stopped working four days ago. Only cold water.', 'en_progreso'::wo_status,          true,  11, 'Franklin Plumbing',   485.00),
+  (2,  'portal',            'electricidad',            'urgente',              'Sparking outlet in the kitchen',      'The outlet by the sink sparked when I plugged in the kettle.',      'asignada',                        true,   4, 'Rio Grande Electric', 310.00),
+  (3,  'portal',            'otro',                    'alta',                 'Air conditioning out — 104F outside', 'The AC has not cooled since Saturday. It is unbearable inside.',     'nueva',                           true,   2, 'Desert Air HVAC',     640.00),
+  (4,  'whatsapp',          'electricidad',            'alta',                 'Bedroom outlets dead',                'No power to any outlet in the main bedroom.',                       'asignada',                        false,  6, 'Rio Grande Electric', 190.00),
+  (5,  'telefono',          'cerrajeria',              'media',                'Front door lock sticking',            'The key goes in but will not turn.',                                'en_progreso',                     false,  9, 'Sun City Lock',       145.00),
+  (6,  'personal',          'electrodomesticos',       'media',                'Dishwasher not draining',             'Standing water in the bottom after every cycle.',                    'esperando_refacciones',           false, 12, 'Appliance Pros',      220.00),
+  (7,  'portal',            'limpieza',                'baja',                 'Common laundry room needs cleaning',  'Lint and detergent spills have built up.',                          'resuelta',                        false, 15, 'Clean Sweep EP',       95.00),
+  (8,  'portal',            'plomeria',                'alta',                 'Kitchen sink backing up',             'Water comes back up when the disposal runs.',                        'cerrada',                         false, 18, 'Franklin Plumbing',   265.00),
+  (9,  'whatsapp',          'electricidad',            'urgente',              'Breaker tripping repeatedly',         'The main breaker has tripped twice today.',                         'en_progreso',                     false,  3, 'Rio Grande Electric', 380.00),
+  (10, 'telefono',          'otro',                    'baja',                 'Gate remote not working',             'The parking gate remote stopped responding.',                        'nueva',                           false,  5, 'Access Controls TX',  120.00),
+  (11, 'personal',          'plomeria',                'media',                'Dripping shower head',                'Drips constantly even when fully closed.',                          'asignada',                        false, 21, 'Franklin Plumbing',    85.00),
+  (12, 'portal',            'electrodomesticos',       'alta',                 'Stove burners will not light',        'Two of the four burners do not ignite.',                            'resuelta',                        false, 24, 'Appliance Pros',      175.00),
+  (13, 'portal',            'cerrajeria',              'urgente',              'Front door will not latch',           'The deadbolt is loose and the door does not secure.',                'cerrada',                         false, 27, 'Sun City Lock',       210.00),
+  (14, 'telefono',          'limpieza',                'baja',                 'Trash piling up by the dumpster',     'Bags left outside the enclosure again.',                            'resuelta',                        false, 30, 'Clean Sweep EP',       60.00),
+  (15, 'personal',          'otro',                    'media',                'Damp patch spreading on wall',        'A damp stain on the living room wall is getting bigger.',            'esperando_refacciones',           false, 33, 'El Paso Restoration', 950.00)
+) as w(rn, source, category, priority, title, description, status, health_safety, notice_days_ago, vendor, cost)
 join lateral (
   select l.* from public.leases l
   where l.status = 'activo'
@@ -394,9 +466,56 @@ insert into public.work_order_notes (work_order_id, body, is_internal)
 select w.id, n.body, n.is_internal
 from public.work_orders w
 join lateral (values
-  ('Proveedor contactado, agenda visita para mañana por la mañana.', true),
-  ('Ya contactamos al proveedor. La visita queda agendada para mañana entre 9:00 y 12:00.', false)
+  ('Vendor contacted, visit scheduled for tomorrow morning.', true),
+  ('We have reached the vendor. The visit is scheduled for tomorrow between 9:00 and 12:00.', false)
 ) as n(body, is_internal) on true
 where w.status <> 'nueva';
+
+-- --------------------------------------------- a deposit clock, running
+-- One terminated lease that has surrendered AND given a forwarding address,
+-- so the "Deposits due" card and the compliance report both have a row.
+-- Unit 31 by the same ordering the active leases used, so it does not
+-- collide with them.
+
+with target_unit as (
+  select u.id, u.base_rent
+  from public.units u join public.properties p on p.id = u.property_id
+  where u.status = 'vacante'
+  order by p.name, u.unit_number
+  limit 1
+),
+ended as (
+  insert into public.leases (
+    unit_id, start_date, end_date, rent_amount, rent_due_day, grace_days,
+    late_fee_type, late_fee_percent, late_fee_amount, deposit_amount, status,
+    surrender_date, move_out_date, move_out_notes,
+    forwarding_address, forwarding_address_received_at
+  )
+  select
+    tu.id,
+    (current_date - interval '14 months')::date,
+    (current_date - interval '2 months')::date,
+    tu.base_rent,
+    1,
+    2,
+    'percent',
+    10.00,
+    0,
+    tu.base_rent,
+    'terminado',
+    (current_date - interval '24 days')::date,
+    (current_date - interval '24 days')::date,
+    'Unit left clean. Carpet in the second bedroom is stained; keys and both remotes returned.',
+    E'Emiliano Rivas Cuéllar\n1200 Montana Ave, Apt 4\nEl Paso, TX 79902',
+    (current_date - interval '18 days')::date
+  from target_unit tu
+  returning id
+)
+insert into public.lease_tenants (lease_id, tenant_id, role)
+select ended.id, t.id, 'primary'
+from ended
+join lateral (
+  select id from public.tenants order by created_at desc limit 1
+) t on true;
 
 commit;

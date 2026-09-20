@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "db:types": "set -a; [ -f .env.local ] && . ./.env.local; set +a; python3 supabase/gen-types.py > .types.tmp && mv .types.tmp src/lib/database.types.ts && bunx prettier --write src/lib/database.types.ts",
+    "db:setup": "python3 supabase/build-setup.py",
     "db:test": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/rls_test.sql",
     "test": "bun test",
     "db:demo-logins": "bun --env-file=.env.local run scripts/seed-demo-logins.ts"

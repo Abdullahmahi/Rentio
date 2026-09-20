@@ -19,7 +19,7 @@ const labels = { rent: "Renta mensual", parking: (label: string) => `Estacionami
 
 function fixture(): Portfolio {
   return {
-    properties: [{ id: "p1", name: "Edificio Roma 214" } as never],
+    properties: [{ id: "p1", name: "Mesa Hills Apartments" } as never],
     units: [
       { id: "u1", property_id: "p1", unit_number: "101" } as never,
       { id: "u2", property_id: "p1", unit_number: "102" } as never,

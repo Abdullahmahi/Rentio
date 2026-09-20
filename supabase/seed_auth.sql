@@ -19,18 +19,19 @@
 -- which goes through the Admin API and lets GoTrue write its own rows.
 -- ============================================================================
 
+-- Covers the current demo accounts and the Mexico-era ones they replaced.
 delete from auth.users
-where email in (
-  'admin@rentio.mx',
-  'gerente@rentio.mx',
-  'maria.fernanda@example.mx',
-  'ana.sofia@example.mx',
-  'emiliano.rivas@example.mx'
-);
+where email like '%@suncitypm.com'
+   or email like '%@rentio.mx'
+   or email like '%@example.mx'
+   or email like '%@example.com';
 
 -- profiles.id references auth.users on delete cascade, so the profile rows
 -- go with them and `bun run db:demo-logins` recreates both.
 
 select count(*) as remaining_demo_users
 from auth.users
-where email like '%@rentio.mx' or email like '%@example.mx';
+where email like '%@suncitypm.com'
+   or email like '%@rentio.mx'
+   or email like '%@example.mx'
+   or email like '%@example.com';

@@ -16,9 +16,9 @@ import {
 import { parseCsv, toCsv } from "@/lib/csv";
 
 const context = (over: Partial<ValidationContext> = {}): ValidationContext => ({
-  propertyNames: new Set(["edificio roma 214"]),
-  unitKeys: new Set(["edificio roma 214|101"]),
-  tenantEmails: new Set(["maria.rios@example.mx"]),
+  propertyNames: new Set(["mesa hills apartments"]),
+  unitKeys: new Set(["mesa hills apartments|101"]),
+  tenantEmails: new Set(["maria.rios@example.com"]),
   tenantPhones: new Set(["+52 55 1234 5678"]),
   leaseKeys: new Set(),
   ...over,
@@ -34,12 +34,11 @@ test("parseDate reads mm/dd/yyyy first, then ISO", () => {
   expect(parseDate("")).toBeNull();
 });
 
-test("parseMoney handles $ , and the comma decimal separator", () => {
-  expect(parseMoney("15000")).toBe(15000);
-  expect(parseMoney("$15,000.00")).toBe(15000);
-  expect(parseMoney("$ 15 000")).toBe(15000);
-  expect(parseMoney("15000,50")).toBe(15000.5);
-  expect(parseMoney("1.234.567,89")).toBe(1234567.89);
+test("parseMoney handles $ and thousands separators", () => {
+  expect(parseMoney("1250")).toBe(1250);
+  expect(parseMoney("$1,250.00")).toBe(1250);
+  expect(parseMoney("$ 1 250")).toBe(1250);
+  expect(parseMoney("1,500")).toBe(1500); // a US thousands separator, not a decimal
   expect(parseMoney("abc")).toBeNull();
 });
 
@@ -57,16 +56,29 @@ test("autoMapColumns matches Spanish headers, accents and casing", () => {
   expect(mapping["base_rent"]).toBe(6);
 });
 
+test("autoMapColumns matches English headers too", () => {
+  // The internal portal is English now, so a landlord's own spreadsheet is
+  // as likely to say "Sq Ft" as "m2". Both map to the same column.
+  const mapping = autoMapColumns(
+    ["Property", "Unit", "Floor", "Bedrooms", "Bathrooms", "Sq Ft", "Base rent"],
+    IMPORT_SCHEMAS.units,
+  );
+  expect(mapping["property"]).toBe(0);
+  expect(mapping["unit_number"]).toBe(1);
+  expect(mapping["sqm"]).toBe(5);
+  expect(mapping["base_rent"]).toBe(6);
+});
+
 test("units: flags a missing required field, an unknown property and a bad number", () => {
   const schema = IMPORT_SCHEMAS.units;
   const mapping = autoMapColumns(["property", "unit_number", "base_rent"], schema);
   const rows = validateRows(
     [
-      ["Edificio Roma 214", "302", "15000"], // new -> valid
-      ["Edificio Roma 214", "101", "16000"], // exists -> update warning
+      ["Mesa Hills Apartments", "302", "1250"], // new -> valid
+      ["Mesa Hills Apartments", "101", "16000"], // exists -> update warning
       ["Torre Fantasma", "201", "12000"], // unknown property
-      ["Edificio Roma 214", "", "12000"], // missing unit number
-      ["Edificio Roma 214", "303", "mucho"], // unparseable rent
+      ["Mesa Hills Apartments", "", "12000"], // missing unit number
+      ["Mesa Hills Apartments", "303", "mucho"], // unparseable rent
     ],
     mapping,
     schema,
@@ -87,8 +99,8 @@ test("tenants: an existing email or phone is an update, and one of them is requi
   const mapping = autoMapColumns(["full_name", "email", "phone"], schema);
   const rows = validateRows(
     [
-      ["Nuevo Inquilino", "nuevo@example.mx", "+52 55 0000 0000"],
-      ["María Fernanda Ríos", "maria.rios@example.mx", ""], // email exists
+      ["New Tenant", "new.tenant@example.com", "(915) 555-0000"],
+      ["María Fernanda Ríos", "maria.rios@example.com", ""], // email exists
       ["Otro Nombre", "", "+52 55 1234 5678"], // phone exists
       ["Sin Contacto", "", ""], // no way to reach them
     ],
@@ -109,10 +121,31 @@ test("leases: the unit and tenant must already exist, and dates must run forward
   );
   const rows = validateRows(
     [
-      ["Edificio Roma 214", "101", "maria.rios@example.mx", "01/01/2026", "12/31/2026", "15000"],
-      ["Edificio Roma 214", "999", "maria.rios@example.mx", "01/01/2026", "12/31/2026", "15000"],
-      ["Edificio Roma 214", "101", "nadie@example.mx", "01/01/2026", "12/31/2026", "15000"],
-      ["Edificio Roma 214", "101", "maria.rios@example.mx", "12/31/2026", "01/01/2026", "15000"],
+      [
+        "Mesa Hills Apartments",
+        "101",
+        "maria.rios@example.com",
+        "01/01/2026",
+        "12/31/2026",
+        "1250",
+      ],
+      [
+        "Mesa Hills Apartments",
+        "999",
+        "maria.rios@example.com",
+        "01/01/2026",
+        "12/31/2026",
+        "1250",
+      ],
+      ["Mesa Hills Apartments", "101", "nobody@example.com", "01/01/2026", "12/31/2026", "1250"],
+      [
+        "Mesa Hills Apartments",
+        "101",
+        "maria.rios@example.com",
+        "12/31/2026",
+        "01/01/2026",
+        "1250",
+      ],
     ],
     mapping,
     schema,
@@ -129,14 +162,16 @@ test("leases: the unit and tenant must already exist, and dates must run forward
 test("re-running the same file produces updates, never duplicates", () => {
   const schema = IMPORT_SCHEMAS.units;
   const mapping = autoMapColumns(["property", "unit_number", "base_rent"], schema);
-  const file = [["Edificio Roma 214", "302", "15000"]];
+  const file = [["Mesa Hills Apartments", "302", "1250"]];
 
   const first = validateRows(file, mapping, schema, context());
   expect(first[0]?.status).toBe("valid");
   expect(first[0]?.isUpdate).toBe(false);
 
   // Second run, with 302 now present.
-  const after = context({ unitKeys: new Set(["edificio roma 214|101", "edificio roma 214|302"]) });
+  const after = context({
+    unitKeys: new Set(["mesa hills apartments|101", "mesa hills apartments|302"]),
+  });
   const second = validateRows(file, mapping, schema, after);
   expect(second[0]?.status).toBe("warning");
   expect(second[0]?.isUpdate).toBe(true);

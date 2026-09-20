@@ -19,7 +19,7 @@ const TODAY = "2026-09-19";
 
 function fixture(): Portfolio {
   return {
-    properties: [{ id: "p1", name: "Edificio Roma 214" } as never],
+    properties: [{ id: "p1", name: "Mesa Hills Apartments" } as never],
     units: [
       { id: "u1", property_id: "p1", unit_number: "101", status: "ocupada" } as never,
       { id: "u2", property_id: "p1", unit_number: "102", status: "vacante" } as never,
@@ -47,7 +47,7 @@ function fixture(): Portfolio {
 test("leaseContexts joins unit, property, roles, parking and balance", () => {
   const lease = leaseContexts(fixture())[0]!;
   expect(lease.unit?.unit_number).toBe("101");
-  expect(lease.property?.name).toBe("Edificio Roma 214");
+  expect(lease.property?.name).toBe("Mesa Hills Apartments");
   expect(lease.primaryTenant?.full_name).toBe("Juan Pérez");
   expect(lease.coTenants.map((t) => t.full_name)).toEqual(["Ana Ruiz"]);
   expect(lease.guarantors.map((t) => t.full_name)).toEqual(["Luis Mora"]);

@@ -63,15 +63,20 @@ async function main() {
   if (tenantError) throw tenantError;
 
   const demo: DemoUser[] = [
-    { email: "admin@rentio.mx", fullName: "Mariana Torres Aguilar", role: "admin", tenantId: null },
     {
-      email: "gerente@rentio.mx",
+      email: "admin@suncitypm.com",
+      fullName: "Mariana Torres Aguilar",
+      role: "admin",
+      tenantId: null,
+    },
+    {
+      email: "manager@suncitypm.com",
       fullName: "Diego Lozano Ibarra",
       role: "manager",
       tenantId: null,
     },
     ...(tenants ?? []).map((tenant) => ({
-      email: tenant.email ?? `${tenant.id}@example.mx`,
+      email: tenant.email ?? `${tenant.id}@example.com`,
       fullName: tenant.full_name,
       role: "tenant" as const,
       tenantId: tenant.id,

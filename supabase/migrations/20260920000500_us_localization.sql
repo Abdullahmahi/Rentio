@@ -29,6 +29,9 @@ comment on column public.profiles.locale is
   'User-chosen language. NULL means unset — the portal default applies.';
 comment on column public.properties.address_line_2 is
   'Second address line: building, suite, or unit designator.';
+comment on column public.units.sqm is
+  'Unit area in SQUARE FEET. The column keeps its original name so the '
+  'migration does not churn every query; the UI labels it correctly.';
 
 -- A view keeps its own output column names, so both of these still published
 -- `colonia` after the rename above.

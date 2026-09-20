@@ -311,7 +311,7 @@
       "cards": "Card view"
     },
     "card": {
-      "specs": "{{bedrooms}} bd · {{bathrooms}} ba · {{sqm}} m²"
+      "specs": "{{bedrooms}} bd · {{bathrooms}} ba · {{sqm}} sq ft"
     },
     "tabs": {
       "summary": "Summary",
@@ -326,7 +326,7 @@
       "floor": "Floor",
       "bedrooms": "Bedrooms",
       "bathrooms": "Bathrooms",
-      "sqm": "m²",
+      "sqm": "Sq ft",
       "baseRent": "Base rent",
       "status": "Status",
       "tenant": "Current tenant"
@@ -348,7 +348,7 @@
       "floor": "Floor",
       "bedrooms": "Bedrooms",
       "bathrooms": "Bathrooms",
-      "sqm": "Square metres",
+      "sqm": "Square feet",
       "baseRent": "Base rent"
     },
     "errors": {

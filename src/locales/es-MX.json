@@ -311,7 +311,7 @@
       "cards": "Ver como tarjetas"
     },
     "card": {
-      "specs": "{{bedrooms}} rec · {{bathrooms}} baños · {{sqm}} m²"
+      "specs": "{{bedrooms}} rec · {{bathrooms}} baños · {{sqm}} pies²"
     },
     "tabs": {
       "summary": "Resumen",
@@ -326,7 +326,7 @@
       "floor": "Piso",
       "bedrooms": "Recámaras",
       "bathrooms": "Baños",
-      "sqm": "m²",
+      "sqm": "Pies²",
       "baseRent": "Renta base",
       "status": "Estado",
       "tenant": "Inquilino actual"
@@ -348,7 +348,7 @@
       "floor": "Piso",
       "bedrooms": "Recámaras",
       "bathrooms": "Baños",
-      "sqm": "Metros cuadrados",
+      "sqm": "Pies cuadrados",
       "baseRent": "Renta base"
     },
     "errors": {
