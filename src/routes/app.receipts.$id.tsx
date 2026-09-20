@@ -48,6 +48,7 @@ const LINE_CATEGORIES: Enums<"line_category">[] = [
   "servicios",
   "cuota_mantenimiento",
   "recargo",
+  "nsf_fee",
   "otro",
 ];
 

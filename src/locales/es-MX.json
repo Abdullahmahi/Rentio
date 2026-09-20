@@ -589,12 +589,13 @@
     }
   },
   "paymentMethod": {
-    "spei": "SPEI",
-    "efectivo": "Efectivo",
-    "deposito": "Depósito bancario",
-    "oxxo": "OXXO",
-    "cheque": "Cheque",
-    "tarjeta": "Tarjeta"
+    "ach": "Transferencia ACH",
+    "zelle": "Zelle",
+    "check": "Cheque",
+    "money_order": "Money order",
+    "cash": "Efectivo",
+    "card": "Tarjeta",
+    "other": "Otro"
   },
   "tenants": {
     "new": "Nuevo inquilino",
@@ -778,6 +779,7 @@
     "servicios": "Servicios",
     "cuota_mantenimiento": "Cuota de mantenimiento",
     "recargo": "Recargo",
+    "nsf_fee": "Cargo por pago devuelto",
     "otro": "Otro"
   },
   "utilityType": {
@@ -841,12 +843,7 @@
     "reportPaymentHint": "Cuéntanos del pago que ya hiciste para que lo confirmemos.",
     "payOnline": "Pagar en línea",
     "payOnlineSoon": "Pagos en línea próximamente",
-    "transferTitle": "Datos para transferencia",
-    "transferHint": "Usa el número de tu unidad como referencia.",
-    "bank": "Banco",
-    "clabe": "CLABE",
-    "accountHolder": "Beneficiario",
-    "reference": "Referencia",
+    "reference": "Tu número de unidad (úsalo como referencia)",
     "copy": "Copiar",
     "copied": "Copiado",
     "nextPayment": "Próximo pago",
@@ -894,7 +891,14 @@
       "dateRequired": "Selecciona la fecha en que pagaste.",
       "categoryRequired": "Elige una categoría.",
       "descriptionRequired": "Describe el problema."
-    }
+    },
+    "howToPayTitle": "Cómo pagar",
+    "howToPayHint": "Incluye tu número de unidad en cada pago para que podamos identificarlo.",
+    "zelle": "Zelle",
+    "checkPayableTo": "Gira el cheque a nombre de",
+    "checkMailingAddress": "Envía el cheque por correo a",
+    "dropoffAddress": "Entrega efectivo o money orders en",
+    "officeHours": "Horario de oficina"
   },
   "dashboard": {
     "pendingPayments": "{{count}} pago espera confirmación",
@@ -1011,25 +1015,36 @@
     "roleChanged": "Rol actualizado.",
     "inviteSent": "Invitación enviada.",
     "adminOnly": "Solo un administrador puede ver esta sección.",
-    "bankNotice": "Estos datos se muestran a los inquilinos en su portal.",
     "inviteUser": "Invitar usuario",
     "inviteDescription": "Se enviará un correo para que establezca su contraseña.",
     "sendInvite": "Enviar invitación",
     "tabs": {
       "company": "Empresa",
-      "bank": "Datos bancarios",
       "invoicing": "Recibos",
       "users": "Usuarios",
-      "preferences": "Preferencias"
+      "preferences": "Preferencias",
+      "paymentInstructions": "Instrucciones de pago"
     },
     "fields": {
       "companyName": "Nombre de la empresa",
       "logo": "Logo",
       "logoHint": "Se usa en los recibos en PDF.",
-      "clabeHint": "18 dígitos.",
       "invoicePrefix": "Prefijo de folio",
       "invoicePrefixHint": "Por ejemplo REC genera REC-00001.",
-      "role": "Rol"
-    }
+      "role": "Rol",
+      "zelleHandle": "Usuario de Zelle",
+      "zelleHandleHint": "El correo o teléfono con el que está registrada tu cuenta de Zelle.",
+      "checkPayableTo": "Gira los cheques a nombre de",
+      "checkMailingAddress": "Dirección para envío de cheques",
+      "dropoffAddress": "Dirección de entrega",
+      "dropoffAddressHint": "Dónde puede entregar un inquilino efectivo o un money order.",
+      "officeHours": "Horario de oficina",
+      "paymentNotes": "Notas de pago",
+      "paymentNotesHint": "Texto libre, p. ej. \"Incluye tu número de unidad en el concepto\".",
+      "nsfFee": "Cargo por pago devuelto",
+      "nsfFeeHint": "Se cobra cuando un cheque rebota o se devuelve un pago ACH."
+    },
+    "paymentInstructionsNotice": "Todo lo que pongas aquí se muestra a los inquilinos en su portal. Llena solo los métodos que aceptas — una fila vacía nunca se muestra.",
+    "noBankNumbersNotice": "A propósito no hay campo para número de ruta ni de cuenta. Publicarlos a todos los inquilinos invita cargos no autorizados y fraude con cheques; eso va detrás de un procesador de pagos."
   }
 }

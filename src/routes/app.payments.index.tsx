@@ -48,12 +48,13 @@ export const Route = createFileRoute("/app/payments/")({
 
 const ALL = "__all__";
 const METHODS: Enums<"payment_method">[] = [
-  "spei",
-  "efectivo",
-  "deposito",
-  "oxxo",
-  "cheque",
-  "tarjeta",
+  "ach",
+  "zelle",
+  "check",
+  "money_order",
+  "cash",
+  "card",
+  "other",
 ];
 
 interface PaymentRow extends Tables<"payments"> {
@@ -84,7 +85,7 @@ function PaymentsPage() {
     lease_id: null as string | null,
     amount: "" as number | "",
     paid_at: todayIso(),
-    method: "spei" as Enums<"payment_method">,
+    method: "ach" as Enums<"payment_method">,
     reference: "",
     notes: "",
     receipt: null as File | null,
@@ -390,7 +391,7 @@ function PaymentsPage() {
         lease_id: null,
         amount: "",
         paid_at: todayIso(),
-        method: "spei",
+        method: "ach",
         reference: "",
         notes: "",
         receipt: null,

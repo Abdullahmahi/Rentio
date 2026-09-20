@@ -21,7 +21,7 @@ export const Route = createFileRoute("/portal/report-payment")({
   component: ReportPaymentPage,
 });
 
-const METHODS: Enums<"payment_method">[] = ["spei", "efectivo", "deposito", "oxxo", "cheque"];
+const METHODS: Enums<"payment_method">[] = ["ach", "zelle", "check", "money_order", "cash"];
 
 function ReportPaymentPage() {
   const { t } = useTranslation();
@@ -34,7 +34,7 @@ function ReportPaymentPage() {
   const [form, setForm] = useState({
     amount: "" as number | "",
     paid_at: todayIso(),
-    method: "spei" as Enums<"payment_method">,
+    method: "ach" as Enums<"payment_method">,
     reference: "",
     notes: "",
     receipt: null as File | null,

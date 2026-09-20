@@ -63,8 +63,7 @@ Deno.serve(async (request) => {
         <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Total</td><td style="font-weight:600">${formatMoney(total)}</td></tr>
         <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Saldo</td><td style="font-weight:600">${formatMoney(due)}</td></tr>
       </table>
-      ${settings?.clabe ? `<p style="color:#6B655C">Puedes pagar por transferencia a la CLABE <strong>${settings.clabe}</strong>
-        (${settings.bank_name ?? ""}, ${settings.account_holder ?? ""}) usando <strong>${details?.unit_number ?? ""}</strong> como referencia.</p>` : ""}
+      <p style="color:#6B655C">Consulta "Cómo pagar" en tu portal. Incluye <strong>unidad ${details?.unit_number ?? ""}</strong> como referencia en cualquier pago.</p>
       <p>Cuando realices tu pago, repórtalo desde tu portal para que lo confirmemos.</p>`;
 
     await sendEmail({

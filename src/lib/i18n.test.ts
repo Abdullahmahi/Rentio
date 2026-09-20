@@ -59,3 +59,30 @@ test("interpolation placeholders match across locales", () => {
   });
   expect(mismatched).toEqual([]);
 });
+
+/**
+ * The parity tests above catch a key missing from ONE locale. This catches the
+ * other direction: a `t("...")` in the source pointing at a key that no longer
+ * exists in either. Renaming a section used to leave those behind, and i18next
+ * renders the raw key path on screen rather than failing.
+ */
+test("every literal t() key in the source exists in both locales", async () => {
+  const { Glob } = await import("bun");
+  const known = new Set(english);
+  const dynamic = /\$\{|\bt\(`/; // template keys are resolved at runtime
+  const missing: string[] = [];
+
+  for await (const file of new Glob("src/**/*.{ts,tsx}").scan(".")) {
+    if (file.endsWith(".test.ts")) continue;
+    const source = await Bun.file(file).text();
+    for (const match of source.matchAll(/\bt\(\s*"([A-Za-z0-9_.]+)"/g)) {
+      const key = match[1]!;
+      // Plural keys live in the locale as `key_other`; i18next resolves both.
+      if (known.has(key) || known.has(`${key}_other`)) continue;
+      if (dynamic.test(key)) continue;
+      missing.push(`${file}: ${key}`);
+    }
+  }
+
+  expect(missing).toEqual([]);
+});

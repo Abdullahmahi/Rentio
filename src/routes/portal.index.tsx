@@ -15,13 +15,24 @@ import {
 import { formatMoney, formatDate } from "@/lib/format";
 import { useMyPortal, usePublicSettings } from "@/lib/queries";
 import i18n from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/portal/")({
   head: () => ({ meta: [{ title: `${i18n.t("pages.home.title")} — Rentio` }] }),
   component: PortalHome,
 });
 
-function CopyRow({ label, value }: { label: string; value: string | null | undefined }) {
+function CopyRow({
+  label,
+  value,
+  emphasis = false,
+  copy: copyable = true,
+}: {
+  label: string;
+  value: string | null | undefined;
+  emphasis?: boolean;
+  copy?: boolean;
+}) {
   const { t } = useTranslation();
   if (!value) return null;
 
@@ -38,18 +49,27 @@ function CopyRow({ label, value }: { label: string; value: string | null | undef
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-2.5 last:border-b-0">
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="numeric truncate text-sm font-medium">{value}</p>
+        <p
+          className={cn(
+            "numeric whitespace-pre-line text-sm font-medium",
+            emphasis && "text-base font-semibold",
+          )}
+        >
+          {value}
+        </p>
       </div>
       {/* 44px tap target — this gets used one-handed. */}
-      <Button
-        size="icon"
-        variant="ghost"
-        className="size-11"
-        onClick={() => void copy()}
-        aria-label={`${t("portal.copy")} ${label}`}
-      >
-        <ClipboardCopy className="size-4" />
-      </Button>
+      {copyable ? (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="size-11"
+          onClick={() => void copy()}
+          aria-label={`${t("portal.copy")} ${label}`}
+        >
+          <ClipboardCopy className="size-4" />
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -148,16 +168,36 @@ function PortalHome() {
           </p>
         </section>
 
-        {/* -------------------------------------------- transfer details */}
+        {/* ------------------------------------------------- how to pay */}
+        {/* Only the methods the landlord actually filled in. An empty Zelle
+            row is worse than no row — it reads as "Zelle is broken". */}
         <section className="rounded-lg border border-border bg-surface p-5">
-          <h2 className="text-base font-semibold">{t("portal.transferTitle")}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t("portal.transferHint")}</p>
+          <h2 className="text-base font-semibold">{t("portal.howToPayTitle")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("portal.howToPayHint")}</p>
           <dl className="mt-3">
-            <CopyRow label={t("portal.bank")} value={settings.data?.bank_name} />
-            <CopyRow label={t("portal.clabe")} value={settings.data?.clabe} />
-            <CopyRow label={t("portal.accountHolder")} value={settings.data?.account_holder} />
-            <CopyRow label={t("portal.reference")} value={portal.data?.details?.unit_number} />
+            <CopyRow
+              label={t("portal.reference")}
+              value={portal.data?.details?.unit_number}
+              emphasis
+            />
+            <CopyRow label={t("portal.zelle")} value={settings.data?.zelle_handle} />
+            <CopyRow label={t("portal.checkPayableTo")} value={settings.data?.check_payable_to} />
+            <CopyRow
+              label={t("portal.checkMailingAddress")}
+              value={settings.data?.check_mailing_address}
+            />
+            <CopyRow label={t("portal.dropoffAddress")} value={settings.data?.dropoff_address} />
+            <CopyRow
+              label={t("portal.officeHours")}
+              value={settings.data?.office_hours}
+              copy={false}
+            />
           </dl>
+          {settings.data?.payment_notes ? (
+            <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">
+              {settings.data.payment_notes}
+            </p>
+          ) : null}
         </section>
 
         <div className="grid gap-4 sm:grid-cols-2">

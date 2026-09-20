@@ -5,6 +5,7 @@ import { Moon, Shield, Sun, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -63,11 +64,21 @@ function SettingsPage() {
     phone: "",
     email: "",
   });
-  const [bank, setBank] = useState({ bank_name: "", clabe: "", account_holder: "" });
+  // Every one of these is optional: a landlord will use two or three of them,
+  // not all six. The portal renders only what is filled in.
+  const [payTo, setPayTo] = useState({
+    zelle_handle: "",
+    check_payable_to: "",
+    check_mailing_address: "",
+    dropoff_address: "",
+    office_hours: "",
+    payment_notes: "",
+  });
   const [invoicing, setInvoicing] = useState({
     invoice_prefix: "REC",
     default_grace_days: "5",
     default_late_fee: 0 as number | "",
+    nsf_fee: 0 as number | "",
   });
   const [dark, setDark] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -104,15 +115,19 @@ function SettingsPage() {
       phone: settings.data.phone ?? "",
       email: settings.data.email ?? "",
     });
-    setBank({
-      bank_name: settings.data.bank_name ?? "",
-      clabe: settings.data.clabe ?? "",
-      account_holder: settings.data.account_holder ?? "",
+    setPayTo({
+      zelle_handle: settings.data.zelle_handle ?? "",
+      check_payable_to: settings.data.check_payable_to ?? "",
+      check_mailing_address: settings.data.check_mailing_address ?? "",
+      dropoff_address: settings.data.dropoff_address ?? "",
+      office_hours: settings.data.office_hours ?? "",
+      payment_notes: settings.data.payment_notes ?? "",
     });
     setInvoicing({
       invoice_prefix: settings.data.invoice_prefix ?? "REC",
       default_grace_days: String(settings.data.default_grace_days ?? 5),
       default_late_fee: Number(settings.data.default_late_fee ?? 0),
+      nsf_fee: Number(settings.data.nsf_fee ?? 0),
     });
   }, [settings.data]);
 
@@ -206,7 +221,7 @@ function SettingsPage() {
         <Tabs defaultValue="company">
           <TabsList className="flex-wrap">
             <TabsTrigger value="company">{t("settings.tabs.company")}</TabsTrigger>
-            <TabsTrigger value="bank">{t("settings.tabs.bank")}</TabsTrigger>
+            <TabsTrigger value="payto">{t("settings.tabs.paymentInstructions")}</TabsTrigger>
             <TabsTrigger value="invoicing">{t("settings.tabs.invoicing")}</TabsTrigger>
             {isAdmin ? <TabsTrigger value="users">{t("settings.tabs.users")}</TabsTrigger> : null}
             <TabsTrigger value="preferences">{t("settings.tabs.preferences")}</TabsTrigger>
@@ -325,46 +340,81 @@ function SettingsPage() {
             </form>
           </TabsContent>
 
-          {/* ------------------------------------------ datos bancarios */}
-          <TabsContent value="bank" className="mt-4">
+          {/* --------------------------------- payment instructions */}
+          <TabsContent value="payto" className="mt-4">
             <form
               className="max-w-2xl space-y-4 rounded-lg border border-border bg-surface p-5 shadow-subtle"
               onSubmit={(event) => {
                 event.preventDefault();
-                save.mutate(bank);
+                save.mutate(payTo);
               }}
             >
               <p className="rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-sm text-info">
-                {t("settings.bankNotice")}
+                {t("settings.paymentInstructionsNotice")}
               </p>
-              <Field label={t("portal.bank")} htmlFor="bank-name">
-                <Input
-                  id="bank-name"
-                  value={bank.bank_name}
-                  onChange={(event) => setBank({ ...bank, bank_name: event.target.value })}
-                />
-              </Field>
+              {/* No routing or account number field, deliberately. Publishing
+                  one to 120 tenants invites unauthorized ACH debits; that
+                  belongs behind a processor in Phase 2. */}
+              <p className="rounded-lg border border-warning/25 bg-warning/10 px-3 py-2 text-sm text-warning-foreground">
+                {t("settings.noBankNumbersNotice")}
+              </p>
               <Field
-                label={t("portal.clabe")}
-                htmlFor="bank-clabe"
-                hint={t("settings.fields.clabeHint")}
+                label={t("settings.fields.zelleHandle")}
+                htmlFor="pay-zelle"
+                hint={t("settings.fields.zelleHandleHint")}
               >
                 <Input
-                  id="bank-clabe"
-                  inputMode="numeric"
-                  maxLength={18}
-                  className="numeric"
-                  value={bank.clabe}
+                  id="pay-zelle"
+                  value={payTo.zelle_handle}
+                  onChange={(event) => setPayTo({ ...payTo, zelle_handle: event.target.value })}
+                />
+              </Field>
+              <Field label={t("settings.fields.checkPayableTo")} htmlFor="pay-payable">
+                <Input
+                  id="pay-payable"
+                  value={payTo.check_payable_to}
+                  onChange={(event) => setPayTo({ ...payTo, check_payable_to: event.target.value })}
+                />
+              </Field>
+              <Field label={t("settings.fields.checkMailingAddress")} htmlFor="pay-mailing">
+                <Textarea
+                  id="pay-mailing"
+                  rows={3}
+                  value={payTo.check_mailing_address}
                   onChange={(event) =>
-                    setBank({ ...bank, clabe: event.target.value.replace(/\D/g, "") })
+                    setPayTo({ ...payTo, check_mailing_address: event.target.value })
                   }
                 />
               </Field>
-              <Field label={t("portal.accountHolder")} htmlFor="bank-holder">
+              <Field
+                label={t("settings.fields.dropoffAddress")}
+                htmlFor="pay-dropoff"
+                hint={t("settings.fields.dropoffAddressHint")}
+              >
+                <Textarea
+                  id="pay-dropoff"
+                  rows={2}
+                  value={payTo.dropoff_address}
+                  onChange={(event) => setPayTo({ ...payTo, dropoff_address: event.target.value })}
+                />
+              </Field>
+              <Field label={t("settings.fields.officeHours")} htmlFor="pay-hours">
                 <Input
-                  id="bank-holder"
-                  value={bank.account_holder}
-                  onChange={(event) => setBank({ ...bank, account_holder: event.target.value })}
+                  id="pay-hours"
+                  value={payTo.office_hours}
+                  onChange={(event) => setPayTo({ ...payTo, office_hours: event.target.value })}
+                />
+              </Field>
+              <Field
+                label={t("settings.fields.paymentNotes")}
+                htmlFor="pay-notes"
+                hint={t("settings.fields.paymentNotesHint")}
+              >
+                <Textarea
+                  id="pay-notes"
+                  rows={3}
+                  value={payTo.payment_notes}
+                  onChange={(event) => setPayTo({ ...payTo, payment_notes: event.target.value })}
                 />
               </Field>
               <Button type="submit" disabled={save.isPending}>
@@ -384,6 +434,7 @@ function SettingsPage() {
                   default_grace_days: Number(invoicing.default_grace_days) || 0,
                   default_late_fee:
                     invoicing.default_late_fee === "" ? 0 : invoicing.default_late_fee,
+                  nsf_fee: invoicing.nsf_fee === "" ? 0 : invoicing.nsf_fee,
                 });
               }}
             >
@@ -420,6 +471,12 @@ function SettingsPage() {
                 <MoneyInput
                   value={invoicing.default_late_fee}
                   onChange={(value) => setInvoicing({ ...invoicing, default_late_fee: value })}
+                />
+              </Field>
+              <Field label={t("settings.fields.nsfFee")} hint={t("settings.fields.nsfFeeHint")}>
+                <MoneyInput
+                  value={invoicing.nsf_fee}
+                  onChange={(value) => setInvoicing({ ...invoicing, nsf_fee: value })}
                 />
               </Field>
               <Button type="submit" disabled={save.isPending}>

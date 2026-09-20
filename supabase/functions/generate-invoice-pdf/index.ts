@@ -97,8 +97,8 @@ Deno.serve(async (request) => {
     y -= 14;
     text(company, left, 10, bold);
     for (const row of [
-      [settings?.["street"], settings?.["colonia"]].filter(Boolean).join(", "),
-      [settings?.["city"], settings?.["state"], settings?.["postal_code"]].filter(Boolean).join(", "),
+      [settings?.["street"], settings?.["address_line_2"]].filter(Boolean).join(", "),
+      [settings?.["city"], [settings?.["state"], settings?.["postal_code"]].filter(Boolean).join(" ")].filter(Boolean).join(", "),
     ].filter(Boolean) as string[]) {
       y -= 13;
       text(row, left, 9, regular, MUTED);
@@ -158,23 +158,35 @@ Deno.serve(async (request) => {
       y -= 16;
     }
 
-    // ------------------------------------------------------ bank details
-    if (settings?.clabe) {
+    // ------------------------------------------------------- how to pay
+    // Only the methods the landlord actually filled in. No routing or account
+    // number is stored, so none can be printed here.
+    const payRows = [
+      ["Zelle", settings?.["zelle_handle"]],
+      ["Cheque a nombre de", settings?.["check_payable_to"]],
+      ["Enviar cheque a", settings?.["check_mailing_address"]],
+      ["Entregar en", settings?.["dropoff_address"]],
+      ["Horario", settings?.["office_hours"]],
+    ].filter(([, value]) => Boolean(value)) as [string, string][];
+
+    if (payRows.length > 0) {
       y -= 18;
       page.drawLine({ start: { x: left, y: y + 12 }, end: { x: right, y: y + 12 }, thickness: 1, color: LINE });
-      text("Datos para transferencia", left, 9, bold, MUTED);
+      text("Cómo pagar", left, 9, bold, MUTED);
       y -= 14;
-      text(`Banco: ${settings.bank_name ?? "—"}`, left, 9);
-      y -= 13;
-      text(`CLABE: ${settings.clabe}`, left, 9);
-      y -= 13;
-      text(`Beneficiario: ${settings.account_holder ?? "—"}`, left, 9);
-      y -= 13;
-      text(`Referencia: ${details?.unit_number ?? "—"}`, left, 9);
+      text(`Referencia: unidad ${details?.unit_number ?? "—"}`, left, 9, bold);
+      for (const [label, value] of payRows) {
+        y -= 13;
+        text(`${label}: ${String(value).replace(/\s*\n\s*/g, " · ")}`.slice(0, 96), left, 9);
+      }
+      if (settings?.["payment_notes"]) {
+        y -= 13;
+        text(String(settings["payment_notes"]).replace(/\s*\n\s*/g, " ").slice(0, 96), left, 9, regular, MUTED);
+      }
     }
 
     y = 48;
-    text("Este recibo no es un comprobante fiscal digital (CFDI).", left, 8, regular, MUTED);
+    text("Documento generado para control interno. No constituye asesoría legal.", left, 8, regular, MUTED);
 
     const bytes = await pdf.save();
 

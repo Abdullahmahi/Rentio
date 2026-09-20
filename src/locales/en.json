@@ -589,12 +589,13 @@
     }
   },
   "paymentMethod": {
-    "spei": "SPEI",
-    "efectivo": "Cash",
-    "deposito": "Bank deposit",
-    "oxxo": "OXXO",
-    "cheque": "Cheque",
-    "tarjeta": "Card"
+    "ach": "ACH / Bank transfer",
+    "zelle": "Zelle",
+    "check": "Check",
+    "money_order": "Money order",
+    "cash": "Cash",
+    "card": "Card",
+    "other": "Other"
   },
   "tenants": {
     "new": "New tenant",
@@ -778,6 +779,7 @@
     "servicios": "Utilities",
     "cuota_mantenimiento": "Maintenance fee",
     "recargo": "Late fee",
+    "nsf_fee": "Returned payment fee",
     "otro": "Other"
   },
   "utilityType": {
@@ -841,12 +843,7 @@
     "reportPaymentHint": "Tell us about the payment you already made so we can confirm it.",
     "payOnline": "Pay online",
     "payOnlineSoon": "Online payments coming soon",
-    "transferTitle": "Bank transfer details",
-    "transferHint": "Use your unit number as the reference.",
-    "bank": "Bank",
-    "clabe": "CLABE",
-    "accountHolder": "Account holder",
-    "reference": "Reference",
+    "reference": "Your unit number (use as reference)",
     "copy": "Copy",
     "copied": "Copied",
     "nextPayment": "Next payment",
@@ -894,7 +891,14 @@
       "dateRequired": "Choose the date you paid.",
       "categoryRequired": "Pick a category.",
       "descriptionRequired": "Describe the problem."
-    }
+    },
+    "howToPayTitle": "How to pay",
+    "howToPayHint": "Include your unit number with every payment so we can match it.",
+    "zelle": "Zelle",
+    "checkPayableTo": "Make checks payable to",
+    "checkMailingAddress": "Mail checks to",
+    "dropoffAddress": "Drop off cash or money orders at",
+    "officeHours": "Office hours"
   },
   "dashboard": {
     "pendingPayments": "{{count}} payment awaits confirmation",
@@ -1011,25 +1015,36 @@
     "roleChanged": "Role updated.",
     "inviteSent": "Invitation sent.",
     "adminOnly": "Only an administrator can view this section.",
-    "bankNotice": "These details are shown to tenants in their portal.",
     "inviteUser": "Invite user",
     "inviteDescription": "They'll get an email to set their password.",
     "sendInvite": "Send invitation",
     "tabs": {
       "company": "Company",
-      "bank": "Bank details",
       "invoicing": "Receipts",
       "users": "Users",
-      "preferences": "Preferences"
+      "preferences": "Preferences",
+      "paymentInstructions": "Payment instructions"
     },
     "fields": {
       "companyName": "Company name",
       "logo": "Logo",
       "logoHint": "Used on PDF receipts.",
-      "clabeHint": "18 digits.",
       "invoicePrefix": "Receipt number prefix",
       "invoicePrefixHint": "For example REC produces REC-00001.",
-      "role": "Role"
-    }
+      "role": "Role",
+      "zelleHandle": "Zelle handle",
+      "zelleHandleHint": "The email address or phone number your Zelle account is registered to.",
+      "checkPayableTo": "Make checks payable to",
+      "checkMailingAddress": "Check mailing address",
+      "dropoffAddress": "Drop-off address",
+      "dropoffAddressHint": "Where a tenant can hand over cash or a money order.",
+      "officeHours": "Office hours",
+      "paymentNotes": "Payment notes",
+      "paymentNotesHint": "Free text, e.g. \"Include your unit number on the memo line\".",
+      "nsfFee": "Returned payment fee",
+      "nsfFeeHint": "Charged back when a check bounces or an ACH payment is returned."
+    },
+    "paymentInstructionsNotice": "Everything here is shown to tenants in their portal. Fill in only the methods you accept — an empty row is never displayed.",
+    "noBankNumbersNotice": "There is deliberately no field for a routing or account number. Publishing one to every tenant invites unauthorized debits and check fraud; that belongs behind a payment processor."
   }
 }

@@ -438,9 +438,6 @@ export type Database = {
           singleton: boolean;
           company_name: string;
           logo_url: string | null;
-          bank_name: string | null;
-          clabe: string | null;
-          account_holder: string | null;
           invoice_prefix: string;
           default_late_fee: number;
           default_grace_days: number;
@@ -453,15 +450,19 @@ export type Database = {
           email: string | null;
           created_at: string;
           updated_at: string | null;
+          zelle_handle: string | null;
+          check_payable_to: string | null;
+          check_mailing_address: string | null;
+          dropoff_address: string | null;
+          office_hours: string | null;
+          payment_notes: string | null;
+          nsf_fee: number;
         };
         Insert: {
           id?: string;
           singleton?: boolean;
           company_name?: string;
           logo_url?: string | null;
-          bank_name?: string | null;
-          clabe?: string | null;
-          account_holder?: string | null;
           invoice_prefix?: string;
           default_late_fee?: number;
           default_grace_days?: number;
@@ -474,15 +475,19 @@ export type Database = {
           email?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          zelle_handle?: string | null;
+          check_payable_to?: string | null;
+          check_mailing_address?: string | null;
+          dropoff_address?: string | null;
+          office_hours?: string | null;
+          payment_notes?: string | null;
+          nsf_fee?: number;
         };
         Update: {
           id?: string;
           singleton?: boolean;
           company_name?: string;
           logo_url?: string | null;
-          bank_name?: string | null;
-          clabe?: string | null;
-          account_holder?: string | null;
           invoice_prefix?: string;
           default_late_fee?: number;
           default_grace_days?: number;
@@ -495,6 +500,13 @@ export type Database = {
           email?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          zelle_handle?: string | null;
+          check_payable_to?: string | null;
+          check_mailing_address?: string | null;
+          dropoff_address?: string | null;
+          office_hours?: string | null;
+          payment_notes?: string | null;
+          nsf_fee?: number;
         };
         Relationships: [];
       };
@@ -779,9 +791,6 @@ export type Database = {
         Row: {
           company_name: string | null;
           logo_url: string | null;
-          bank_name: string | null;
-          clabe: string | null;
-          account_holder: string | null;
           invoice_prefix: string | null;
           street: string | null;
           address_line_2: string | null;
@@ -790,6 +799,12 @@ export type Database = {
           postal_code: string | null;
           phone: string | null;
           email: string | null;
+          zelle_handle: string | null;
+          check_payable_to: string | null;
+          check_mailing_address: string | null;
+          dropoff_address: string | null;
+          office_hours: string | null;
+          payment_notes: string | null;
         };
         Relationships: [];
       };
@@ -807,8 +822,14 @@ export type Database = {
       lease_status: "borrador" | "activo" | "por_vencer" | "terminado" | "rescindido";
       lease_tenant_role: "primary" | "co_tenant" | "guarantor";
       line_category:
-        "renta" | "estacionamiento" | "servicios" | "cuota_mantenimiento" | "recargo" | "otro";
-      payment_method: "spei" | "efectivo" | "deposito" | "oxxo" | "cheque" | "tarjeta";
+        | "renta"
+        | "estacionamiento"
+        | "servicios"
+        | "cuota_mantenimiento"
+        | "recargo"
+        | "otro"
+        | "nsf_fee";
+      payment_method: "ach" | "zelle" | "check" | "money_order" | "cash" | "card" | "other";
       payment_status: "pendiente" | "confirmado" | "cancelado";
       unit_status: "vacante" | "ocupada" | "mantenimiento" | "reservada";
       user_role: "admin" | "manager" | "tenant";
