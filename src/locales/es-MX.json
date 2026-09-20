@@ -281,7 +281,10 @@
       "city": "Ciudad",
       "state": "Estado",
       "postalCode": "Código postal",
-      "notes": "Notas"
+      "notes": "Notas",
+      "unitsInStructure": "Unidades en esta estructura",
+      "unitsInStructureHint": "Número de viviendas en esta estructura física — determina el tope del recargo por mora según la ley de Texas. Déjalo vacío para usar el conteo de unidades de la propiedad.",
+      "unitsInStructurePlaceholder": "Automático"
     },
     "errors": {
       "nameRequired": "Escribe el nombre de la propiedad."
@@ -444,7 +447,10 @@
       "refunded": "Monto devuelto",
       "retained": "Monto retenido",
       "contractFile": "Contrato firmado (PDF)",
-      "contractFileHint": "Opcional — puedes subirlo después."
+      "contractFileHint": "Opcional — puedes subirlo después.",
+      "graceDaysHint": "La ley de Texas exige al menos 2 días. La renta debe seguir sin pagarse al final del segundo día antes de poder cobrar un recargo.",
+      "lateFeeType": "Tipo de recargo",
+      "lateFeePercent": "Recargo (% de la renta)"
     },
     "created": "Contrato creado correctamente.",
     "rentUpdated": "Renta actualizada.",
@@ -512,7 +518,22 @@
       "rentRequired": "Captura la renta mensual.",
       "datesInvalid": "La fecha de fin debe ser posterior a la de inicio.",
       "dueDayRange": "El día de pago debe estar entre 1 y 31.",
-      "depositOverflow": "La suma devuelta y retenida no puede superar el depósito."
+      "depositOverflow": "La suma devuelta y retenida no puede superar el depósito.",
+      "graceBelowTexasMinimum": "La ley de Texas exige un periodo de gracia de al menos 2 días.",
+      "lateFeeOverCapUnacknowledged": "Marca la confirmación para guardar un recargo por encima del tope presumido como razonable."
+    },
+    "lateFeeType": {
+      "percent": "Porcentaje de la renta",
+      "fixed": "Monto fijo"
+    },
+    "lateFeeComputed": "{{percent}}% de {{rent}} = {{amount}}",
+    "lateFeeAsPercent": "{{amount}} — equivale al {{percent}}% de un mes de renta",
+    "lateFeeOverCap": "Esto supera el tope del {{cap}}% que se presume razonable bajo el Código de Propiedad de Texas §92.019 para una estructura de este tamaño.",
+    "lateFeeOverCapAck": "Entiendo que este recargo supera el tope presumido como razonable y aun así lo guardo.",
+    "texasRules": {
+      "title": "Reglas de Texas (Código de Propiedad §92.019)",
+      "grace": "No se puede cobrar un recargo hasta que la renta siga sin pagarse al final del segundo día completo después de su vencimiento.",
+      "cap": "Un recargo de hasta el {{cap}}% de un mes de renta se presume razonable para una estructura de este tamaño."
     }
   },
   "maintenance": {
@@ -683,7 +704,6 @@
     "lineRemoved": "Concepto eliminado.",
     "applyLateFee": "Aplicar recargo",
     "lateFeeApplied": "Recargo aplicado.",
-    "lateFeeDisabled": "Solo disponible cuando el recibo está vencido.",
     "cancel": "Cancelar recibo",
     "cancelled": "Recibo cancelado.",
     "cancelTitle": "Cancelar recibo {{folio}}",
@@ -715,7 +735,9 @@
       "amountRequired": "Captura el importe.",
       "reasonRequired": "Escribe el motivo de la cancelación."
     },
-    "sentWithoutEmail": "Recibo marcado como enviado, pero no se pudo enviar el correo. Revisa la configuración de correo."
+    "sentWithoutEmail": "Recibo marcado como enviado, pero no se pudo enviar el correo. Revisa la configuración de correo.",
+    "lateFeeTooEarly": "La ley de Texas todavía no permite un recargo. Disponible a partir del {{date}}, cuando la renta lleve dos días completos sin pagarse.",
+    "lateFeeAlreadyApplied": "Este recibo ya tiene un recargo."
   },
   "payments": {
     "emptyTitle": "Sin pagos registrados",
@@ -1042,7 +1064,8 @@
       "paymentNotes": "Notas de pago",
       "paymentNotesHint": "Texto libre, p. ej. \"Incluye tu número de unidad en el concepto\".",
       "nsfFee": "Cargo por pago devuelto",
-      "nsfFeeHint": "Se cobra cuando un cheque rebota o se devuelve un pago ACH."
+      "nsfFeeHint": "Se cobra cuando un cheque rebota o se devuelve un pago ACH.",
+      "lateFeePercentHint": "Predeterminado para contratos nuevos. Texas presume razonable hasta 12% en una estructura de 4 unidades o menos, y 10% por encima de eso."
     },
     "paymentInstructionsNotice": "Todo lo que pongas aquí se muestra a los inquilinos en su portal. Llena solo los métodos que aceptas — una fila vacía nunca se muestra.",
     "noBankNumbersNotice": "A propósito no hay campo para número de ruta ni de cuenta. Publicarlos a todos los inquilinos invita cargos no autorizados y fraude con cheques; eso va detrás de un procesador de pagos."

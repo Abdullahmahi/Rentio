@@ -39,6 +39,7 @@ const EMPTY_FORM = {
   city: DEFAULT_CITY,
   state: DEFAULT_STATE,
   postal_code: "",
+  units_in_structure: "",
   notes: "",
 };
 
@@ -63,7 +64,10 @@ function PropertiesPage() {
     mutationFn: async (values: typeof EMPTY_FORM) => {
       const { data, error: caught } = await supabase
         .from("properties")
-        .insert(values)
+        .insert({
+          ...values,
+          units_in_structure: values.units_in_structure ? Number(values.units_in_structure) : null,
+        })
         .select("id")
         .single();
       if (caught) throw caught;
@@ -238,6 +242,22 @@ function PropertiesPage() {
             </Select>
           </Field>
         </div>
+        <Field
+          label={t("properties.fields.unitsInStructure")}
+          htmlFor="property-units-in-structure"
+          hint={t("properties.fields.unitsInStructureHint")}
+        >
+          <Input
+            id="property-units-in-structure"
+            inputMode="numeric"
+            className="numeric max-w-40"
+            placeholder={t("properties.fields.unitsInStructurePlaceholder")}
+            value={form.units_in_structure}
+            onChange={(event) =>
+              setForm({ ...form, units_in_structure: event.target.value.replace(/\D/g, "") })
+            }
+          />
+        </Field>
         <Field label={t("properties.fields.notes")} htmlFor="property-notes">
           <Textarea
             id="property-notes"

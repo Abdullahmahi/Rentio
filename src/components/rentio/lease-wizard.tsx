@@ -2,12 +2,29 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, Plus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Combobox, type ComboboxOption } from "@/components/rentio/combobox";
 import { Field, FormDialog } from "@/components/rentio/form-dialog";
 import { MoneyInput } from "@/components/rentio/money-input";
 import { MoneyText } from "@/components/rentio/money-text";
-import { formatDate, parseIsoDate, todayIso } from "@/lib/format";
+import { formatDate, formatMoney, parseIsoDate, todayIso } from "@/lib/format";
+import {
+  LARGE_STRUCTURE_CAP_PERCENT,
+  MINIMUM_GRACE_DAYS,
+  capPercentFor,
+  exceedsCap,
+  lateFeeAmount,
+  lateFeePercentOfRent,
+  unitsInStructure,
+} from "@/lib/late-fee";
 import { PHONE_HINT, formatUsPhone } from "@/lib/us";
 import { isActive, unitContexts } from "@/lib/portfolio";
 import {
@@ -31,6 +48,8 @@ export interface LeaseWizardSeed {
   rentAmount: number;
   rentDueDay: number;
   graceDays: number;
+  lateFeeType: Tables<"leases">["late_fee_type"];
+  lateFeePercent: number;
   lateFee: number;
   deposit: number;
 }
@@ -49,7 +68,10 @@ type Terms = {
   rent_amount: number | "";
   rent_due_day: string;
   grace_days: string;
+  late_fee_type: Tables<"leases">["late_fee_type"];
+  late_fee_percent: string;
   late_fee_amount: number | "";
+  late_fee_over_cap_ack: boolean;
   deposit_amount: number | "";
 };
 
@@ -86,8 +108,11 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
     end_date: addMonths(todayIso(), 12),
     rent_amount: "",
     rent_due_day: "1",
-    grace_days: "5",
+    grace_days: String(MINIMUM_GRACE_DAYS),
+    late_fee_type: "percent",
+    late_fee_percent: String(LARGE_STRUCTURE_CAP_PERCENT),
     late_fee_amount: "",
+    late_fee_over_cap_ack: false,
     deposit_amount: "",
   });
 
@@ -107,8 +132,15 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
       end_date: addMonths(start, 12),
       rent_amount: seed?.rentAmount ?? "",
       rent_due_day: String(seed?.rentDueDay ?? 1),
-      grace_days: String(seed?.graceDays ?? settings.data?.default_grace_days ?? 5),
-      late_fee_amount: seed?.lateFee ?? Number(settings.data?.default_late_fee ?? 0),
+      grace_days: String(
+        Math.max(seed?.graceDays ?? settings.data?.default_grace_days ?? 2, MINIMUM_GRACE_DAYS),
+      ),
+      late_fee_type: seed?.lateFeeType ?? "percent",
+      late_fee_percent: String(
+        seed?.lateFeePercent ?? Number(settings.data?.default_late_fee_percent ?? 10),
+      ),
+      late_fee_amount: seed?.lateFee ?? "",
+      late_fee_over_cap_ack: false,
       deposit_amount: seed?.deposit ?? "",
     });
   }, [open, seed, settings.data]);
@@ -201,8 +233,11 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
           end_date: terms.end_date,
           rent_amount: terms.rent_amount === "" ? 0 : terms.rent_amount,
           rent_due_day: Number(terms.rent_due_day) || 1,
-          grace_days: Number(terms.grace_days) || 0,
+          grace_days: Math.max(Number(terms.grace_days) || 0, MINIMUM_GRACE_DAYS),
+          late_fee_type: terms.late_fee_type,
+          late_fee_percent: Number(terms.late_fee_percent) || 0,
           late_fee_amount: terms.late_fee_amount === "" ? 0 : terms.late_fee_amount,
+          late_fee_over_cap_ack: terms.late_fee_over_cap_ack,
           deposit_amount: terms.deposit_amount === "" ? 0 : terms.deposit_amount,
           status: "activo",
         })
@@ -255,6 +290,26 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
     },
   });
 
+  // §92.019 cap for the structure this unit sits in. `units_in_structure`
+  // wins when the landlord has set it, because a "property" here may be
+  // several separate buildings.
+  const capPercent = useMemo(() => {
+    if (!selectedUnit?.property) return LARGE_STRUCTURE_CAP_PERCENT;
+    const onProperty = (portfolio.data?.units ?? []).filter(
+      (unit) => unit.property_id === selectedUnit.property!.id,
+    ).length;
+    return capPercentFor(unitsInStructure(selectedUnit.property, onProperty));
+  }, [portfolio.data, selectedUnit]);
+
+  const feeTerms = {
+    late_fee_type: terms.late_fee_type,
+    late_fee_percent: Number(terms.late_fee_percent) || 0,
+    late_fee_amount: terms.late_fee_amount === "" ? 0 : Number(terms.late_fee_amount),
+    rent_amount: terms.rent_amount === "" ? 0 : Number(terms.rent_amount),
+  };
+  const feeDollars = lateFeeAmount(feeTerms);
+  const overCap = exceedsCap(feeTerms, capPercent);
+
   const monthsBetween = (() => {
     const start = new Date(`${terms.start_date}T00:00:00`);
     const end = new Date(`${terms.end_date}T00:00:00`);
@@ -276,6 +331,12 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
       const day = Number(terms.rent_due_day);
       if (!Number.isFinite(day) || day < 1 || day > 31)
         return setError(t("contracts.errors.dueDayRange"));
+      if (Number(terms.grace_days) < MINIMUM_GRACE_DAYS)
+        return setError(t("contracts.errors.graceBelowTexasMinimum"));
+      // A presumption is not an absolute ceiling, so this warns rather than
+      // blocks — but the manager has to say out loud that they mean it.
+      if (overCap && !terms.late_fee_over_cap_ack)
+        return setError(t("contracts.errors.lateFeeOverCapUnacknowledged"));
       return setStep(3);
     }
     submit.mutate(undefined);
@@ -532,11 +593,17 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
                   }
                 />
               </Field>
-              <Field label={t("contracts.fields.graceDays")} htmlFor="lease-grace">
+              <Field
+                label={t("contracts.fields.graceDays")}
+                htmlFor="lease-grace"
+                hint={t("contracts.fields.graceDaysHint")}
+              >
                 <Input
                   id="lease-grace"
                   inputMode="numeric"
                   className="numeric"
+                  min={MINIMUM_GRACE_DAYS}
+                  aria-invalid={Number(terms.grace_days) < MINIMUM_GRACE_DAYS}
                   value={terms.grace_days}
                   onChange={(event) =>
                     setTerms({
@@ -544,15 +611,110 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
                       grace_days: event.target.value.replace(/\D/g, "").slice(0, 2),
                     })
                   }
+                  onBlur={() =>
+                    setTerms((current) => ({
+                      ...current,
+                      grace_days: String(
+                        Math.max(Number(current.grace_days) || 0, MINIMUM_GRACE_DAYS),
+                      ),
+                    }))
+                  }
                 />
               </Field>
-              <Field label={t("contracts.fields.lateFee")}>
-                <MoneyInput
-                  value={terms.late_fee_amount}
-                  onChange={(value) => setTerms({ ...terms, late_fee_amount: value })}
-                />
+              <Field label={t("contracts.fields.lateFeeType")}>
+                <Select
+                  value={terms.late_fee_type}
+                  onValueChange={(value) =>
+                    setTerms({
+                      ...terms,
+                      late_fee_type: value as Terms["late_fee_type"],
+                      late_fee_over_cap_ack: false,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percent">{t("contracts.lateFeeType.percent")}</SelectItem>
+                    <SelectItem value="fixed">{t("contracts.lateFeeType.fixed")}</SelectItem>
+                  </SelectContent>
+                </Select>
               </Field>
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {terms.late_fee_type === "percent" ? (
+                <Field label={t("contracts.fields.lateFeePercent")} htmlFor="lease-fee-pct">
+                  <div className="relative">
+                    <Input
+                      id="lease-fee-pct"
+                      inputMode="decimal"
+                      className="numeric pr-8 text-right"
+                      value={terms.late_fee_percent}
+                      onChange={(event) =>
+                        setTerms({
+                          ...terms,
+                          late_fee_percent: event.target.value.replace(/[^\d.]/g, "").slice(0, 5),
+                          late_fee_over_cap_ack: false,
+                        })
+                      }
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                      %
+                    </span>
+                  </div>
+                </Field>
+              ) : (
+                <Field label={t("contracts.fields.lateFee")}>
+                  <MoneyInput
+                    value={terms.late_fee_amount}
+                    onChange={(value) =>
+                      setTerms({ ...terms, late_fee_amount: value, late_fee_over_cap_ack: false })
+                    }
+                  />
+                </Field>
+              )}
+              <div className="flex items-end pb-2">
+                <p className="text-sm text-muted-foreground">
+                  {terms.late_fee_type === "percent"
+                    ? t("contracts.lateFeeComputed", {
+                        percent: terms.late_fee_percent || "0",
+                        rent: formatMoney(feeTerms.rent_amount),
+                        amount: formatMoney(feeDollars),
+                      })
+                    : t("contracts.lateFeeAsPercent", {
+                        amount: formatMoney(feeDollars),
+                        percent: lateFeePercentOfRent(feeTerms).toFixed(2),
+                      })}
+                </p>
+              </div>
+            </div>
+
+            {/* Texas rules panel — the constraints, stated where they bite. */}
+            <div className="rounded-lg border border-info/25 bg-info/10 px-3 py-2.5 text-sm text-info">
+              <p className="font-medium">{t("contracts.texasRules.title")}</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[13px]">
+                <li>{t("contracts.texasRules.grace")}</li>
+                <li>{t("contracts.texasRules.cap", { cap: capPercent })}</li>
+              </ul>
+            </div>
+
+            {overCap ? (
+              <div className="space-y-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2.5">
+                <p className="text-sm text-warning-foreground">
+                  {t("contracts.lateFeeOverCap", { cap: capPercent })}
+                </p>
+                <label className="flex items-start gap-2 text-sm text-warning-foreground">
+                  <Checkbox
+                    checked={terms.late_fee_over_cap_ack}
+                    onCheckedChange={(checked) =>
+                      setTerms({ ...terms, late_fee_over_cap_ack: checked === true })
+                    }
+                  />
+                  <span>{t("contracts.lateFeeOverCapAck")}</span>
+                </label>
+              </div>
+            ) : null}
             <Field label={t("contracts.fields.deposit")} hint={t("contracts.fields.depositHint")}>
               <MoneyInput
                 value={terms.deposit_amount}
@@ -595,6 +757,12 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
                   ],
                   ["contracts.fields.dueDay", terms.rent_due_day],
                   ["contracts.fields.graceDays", terms.grace_days],
+                  [
+                    "contracts.fields.lateFee",
+                    terms.late_fee_type === "percent"
+                      ? `${terms.late_fee_percent || 0}% · ${formatMoney(feeDollars)}`
+                      : formatMoney(feeDollars),
+                  ],
                 ] as const
               ).map(([key, value]) => (
                 <div
@@ -695,6 +863,8 @@ export function seedFromLease(
     rentAmount: Number(lease.rent_amount),
     rentDueDay: lease.rent_due_day,
     graceDays: lease.grace_days,
+    lateFeeType: lease.late_fee_type,
+    lateFeePercent: Number(lease.late_fee_percent),
     lateFee: Number(lease.late_fee_amount),
     deposit: Number(lease.deposit_amount),
   };

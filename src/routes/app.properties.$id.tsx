@@ -44,6 +44,7 @@ function PropertyDetailPage() {
     city: "",
     state: "",
     postal_code: "",
+    units_in_structure: "",
     notes: "",
   });
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +68,13 @@ function PropertyDetailPage() {
 
   const save = useToastMutation({
     mutationFn: async (values: typeof form) => {
-      const { error: caught } = await supabase.from("properties").update(values).eq("id", id);
+      const { error: caught } = await supabase
+        .from("properties")
+        .update({
+          ...values,
+          units_in_structure: values.units_in_structure ? Number(values.units_in_structure) : null,
+        })
+        .eq("id", id);
       if (caught) throw caught;
       await logActivity(actorId, "property", id, "update", { name: values.name });
     },
@@ -175,6 +182,10 @@ function PropertyDetailPage() {
                         city: property.city ?? "",
                         state: property.state ?? DEFAULT_STATE,
                         postal_code: property.postal_code ?? "",
+                        units_in_structure:
+                          property.units_in_structure === null
+                            ? ""
+                            : String(property.units_in_structure),
                         notes: property.notes ?? "",
                       });
                       setEditing(true);
@@ -354,6 +365,22 @@ function PropertyDetailPage() {
                   </Select>
                 </Field>
               </div>
+              <Field
+                label={t("properties.fields.unitsInStructure")}
+                htmlFor="edit-units-in-structure"
+                hint={t("properties.fields.unitsInStructureHint")}
+              >
+                <Input
+                  id="edit-units-in-structure"
+                  inputMode="numeric"
+                  className="numeric max-w-40"
+                  placeholder={t("properties.fields.unitsInStructurePlaceholder")}
+                  value={form.units_in_structure}
+                  onChange={(event) =>
+                    setForm({ ...form, units_in_structure: event.target.value.replace(/\D/g, "") })
+                  }
+                />
+              </Field>
               <Field label={t("properties.fields.notes")} htmlFor="edit-notes">
                 <Textarea
                   id="edit-notes"

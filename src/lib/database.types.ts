@@ -194,6 +194,9 @@ export type Database = {
           move_out_date: string | null;
           created_at: string;
           updated_at: string | null;
+          late_fee_type: Database["public"]["Enums"]["late_fee_type"];
+          late_fee_percent: number;
+          late_fee_over_cap_ack: boolean;
         };
         Insert: {
           id?: string;
@@ -214,6 +217,9 @@ export type Database = {
           move_out_date?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          late_fee_type?: Database["public"]["Enums"]["late_fee_type"];
+          late_fee_percent?: number;
+          late_fee_over_cap_ack?: boolean;
         };
         Update: {
           id?: string;
@@ -234,6 +240,9 @@ export type Database = {
           move_out_date?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          late_fee_type?: Database["public"]["Enums"]["late_fee_type"];
+          late_fee_percent?: number;
+          late_fee_over_cap_ack?: boolean;
         };
         Relationships: [];
       };
@@ -405,6 +414,7 @@ export type Database = {
           notes: string | null;
           created_at: string;
           updated_at: string | null;
+          units_in_structure: number | null;
         };
         Insert: {
           id?: string;
@@ -417,6 +427,7 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          units_in_structure?: number | null;
         };
         Update: {
           id?: string;
@@ -429,6 +440,7 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          units_in_structure?: number | null;
         };
         Relationships: [];
       };
@@ -439,7 +451,6 @@ export type Database = {
           company_name: string;
           logo_url: string | null;
           invoice_prefix: string;
-          default_late_fee: number;
           default_grace_days: number;
           street: string | null;
           address_line_2: string | null;
@@ -457,6 +468,7 @@ export type Database = {
           office_hours: string | null;
           payment_notes: string | null;
           nsf_fee: number;
+          default_late_fee_percent: number;
         };
         Insert: {
           id?: string;
@@ -464,7 +476,6 @@ export type Database = {
           company_name?: string;
           logo_url?: string | null;
           invoice_prefix?: string;
-          default_late_fee?: number;
           default_grace_days?: number;
           street?: string | null;
           address_line_2?: string | null;
@@ -482,6 +493,7 @@ export type Database = {
           office_hours?: string | null;
           payment_notes?: string | null;
           nsf_fee?: number;
+          default_late_fee_percent?: number;
         };
         Update: {
           id?: string;
@@ -489,7 +501,6 @@ export type Database = {
           company_name?: string;
           logo_url?: string | null;
           invoice_prefix?: string;
-          default_late_fee?: number;
           default_grace_days?: number;
           street?: string | null;
           address_line_2?: string | null;
@@ -507,6 +518,7 @@ export type Database = {
           office_hours?: string | null;
           payment_notes?: string | null;
           nsf_fee?: number;
+          default_late_fee_percent?: number;
         };
         Relationships: [];
       };
@@ -819,6 +831,7 @@ export type Database = {
     Enums: {
       invoice_status:
         "borrador" | "enviado" | "pagado_parcial" | "pagado" | "vencido" | "cancelado";
+      late_fee_type: "fixed" | "percent";
       lease_status: "borrador" | "activo" | "por_vencer" | "terminado" | "rescindido";
       lease_tenant_role: "primary" | "co_tenant" | "guarantor";
       line_category:

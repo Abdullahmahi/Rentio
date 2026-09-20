@@ -281,7 +281,10 @@
       "city": "City",
       "state": "State",
       "postalCode": "Postal code",
-      "notes": "Notes"
+      "notes": "Notes",
+      "unitsInStructure": "Units in this structure",
+      "unitsInStructureHint": "Number of dwelling units in this physical structure — determines the late fee cap under Texas law. Leave blank to use the count of units on this property.",
+      "unitsInStructurePlaceholder": "Auto"
     },
     "errors": {
       "nameRequired": "Enter the property name."
@@ -444,7 +447,10 @@
       "refunded": "Amount refunded",
       "retained": "Amount retained",
       "contractFile": "Signed lease (PDF)",
-      "contractFileHint": "Optional — you can upload it later."
+      "contractFileHint": "Optional — you can upload it later.",
+      "graceDaysHint": "Texas law requires at least 2 days. Rent must be unpaid at the end of the second day before a late fee can be charged.",
+      "lateFeeType": "Late fee type",
+      "lateFeePercent": "Late fee (% of rent)"
     },
     "created": "Lease created.",
     "rentUpdated": "Rent updated.",
@@ -512,7 +518,22 @@
       "rentRequired": "Enter the monthly rent.",
       "datesInvalid": "The end date must be after the start date.",
       "dueDayRange": "The payment day must be between 1 and 31.",
-      "depositOverflow": "Refunded plus retained can't exceed the deposit."
+      "depositOverflow": "Refunded plus retained can't exceed the deposit.",
+      "graceBelowTexasMinimum": "Texas law requires a grace period of at least 2 days.",
+      "lateFeeOverCapUnacknowledged": "Tick the acknowledgement to save a late fee above the presumed-reasonable cap."
+    },
+    "lateFeeType": {
+      "percent": "Percentage of rent",
+      "fixed": "Fixed amount"
+    },
+    "lateFeeComputed": "{{percent}}% of {{rent}} = {{amount}}",
+    "lateFeeAsPercent": "{{amount}} — that is {{percent}}% of one month's rent",
+    "lateFeeOverCap": "This exceeds the {{cap}}% presumed-reasonable cap under Texas Property Code §92.019 for a structure of this size.",
+    "lateFeeOverCapAck": "I understand this fee is above the presumed-reasonable cap and am saving it anyway.",
+    "texasRules": {
+      "title": "Texas rules (Property Code §92.019)",
+      "grace": "A late fee cannot be charged until the rent is still unpaid at the end of the second full day after it was due.",
+      "cap": "A fee up to {{cap}}% of one month's rent is presumed reasonable for a structure of this size."
     }
   },
   "maintenance": {
@@ -683,7 +704,6 @@
     "lineRemoved": "Line item removed.",
     "applyLateFee": "Apply late fee",
     "lateFeeApplied": "Late fee applied.",
-    "lateFeeDisabled": "Only available once the receipt is overdue.",
     "cancel": "Cancel receipt",
     "cancelled": "Receipt cancelled.",
     "cancelTitle": "Cancel receipt {{folio}}",
@@ -715,7 +735,9 @@
       "amountRequired": "Enter the amount.",
       "reasonRequired": "Enter the reason for cancelling."
     },
-    "sentWithoutEmail": "Receipt marked as sent, but the email could not be delivered. Check your email configuration."
+    "sentWithoutEmail": "Receipt marked as sent, but the email could not be delivered. Check your email configuration.",
+    "lateFeeTooEarly": "Texas law does not allow a late fee yet. Available from {{date}}, once the rent has been unpaid for two full days.",
+    "lateFeeAlreadyApplied": "This receipt already has a late fee."
   },
   "payments": {
     "emptyTitle": "No payments recorded",
@@ -1042,7 +1064,8 @@
       "paymentNotes": "Payment notes",
       "paymentNotesHint": "Free text, e.g. \"Include your unit number on the memo line\".",
       "nsfFee": "Returned payment fee",
-      "nsfFeeHint": "Charged back when a check bounces or an ACH payment is returned."
+      "nsfFeeHint": "Charged back when a check bounces or an ACH payment is returned.",
+      "lateFeePercentHint": "Default for new leases. Texas presumes up to 12% reasonable in a structure of 4 or fewer units, 10% above that."
     },
     "paymentInstructionsNotice": "Everything here is shown to tenants in their portal. Fill in only the methods you accept — an empty row is never displayed.",
     "noBankNumbersNotice": "There is deliberately no field for a routing or account number. Publishing one to every tenant invites unauthorized debits and check fraud; that belongs behind a payment processor."

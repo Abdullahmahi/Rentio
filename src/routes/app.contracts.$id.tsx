@@ -23,7 +23,8 @@ import {
   effectiveInvoiceStatus,
 } from "@/components/rentio/status";
 import { AdminOnly } from "@/lib/auth";
-import { formatDate, todayIso } from "@/lib/format";
+import { formatDate, formatMoney, todayIso } from "@/lib/format";
+import { lateFeeAmount } from "@/lib/late-fee";
 import { isActive, leaseContexts } from "@/lib/portfolio";
 import {
   logActivity,
@@ -364,7 +365,18 @@ function ContractDetailPage() {
                       <Row label={t("contracts.fields.dueDay")}>{lease.rent_due_day}</Row>
                       <Row label={t("contracts.fields.graceDays")}>{lease.grace_days}</Row>
                       <Row label={t("contracts.fields.lateFee")}>
-                        <MoneyText value={Number(lease.late_fee_amount)} />
+                        <span className="numeric">
+                          {lease.late_fee_type === "percent"
+                            ? `${Number(lease.late_fee_percent)}% · ${formatMoney(
+                                lateFeeAmount({
+                                  late_fee_type: lease.late_fee_type,
+                                  late_fee_percent: Number(lease.late_fee_percent),
+                                  late_fee_amount: Number(lease.late_fee_amount),
+                                  rent_amount: Number(lease.rent_amount),
+                                }),
+                              )}`
+                            : formatMoney(Number(lease.late_fee_amount))}
+                        </span>
                       </Row>
                     </dl>
                   </section>

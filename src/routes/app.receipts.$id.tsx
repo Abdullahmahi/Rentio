@@ -27,6 +27,7 @@ import {
 } from "@/components/rentio/status";
 import { AdminOnly } from "@/lib/auth";
 import { formatMoney, formatDate } from "@/lib/format";
+import { MINIMUM_GRACE_DAYS, lateFeeAmount, lateFeeEligibility } from "@/lib/late-fee";
 import { formatPeriod } from "@/components/rentio/month-selector";
 import { leaseContexts } from "@/lib/portfolio";
 import {
@@ -126,6 +127,23 @@ function ReceiptDetailPage() {
   const overdue = derived === "vencido";
   const hasLateFee = lines.some((row) => row.category === "recargo");
 
+  // §92.019: no late fee until the rent is still unpaid at the end of the
+  // second full day after it was due. The button is dead until then, and the
+  // tooltip says when it wakes up.
+  const eligibility = head
+    ? lateFeeEligibility(head.due_date, context?.lease.grace_days ?? MINIMUM_GRACE_DAYS)
+    : null;
+  const lateFeeDue = context
+    ? lateFeeAmount({
+        late_fee_type: context.lease.late_fee_type,
+        late_fee_percent: Number(context.lease.late_fee_percent),
+        late_fee_amount: Number(context.lease.late_fee_amount),
+        rent_amount: Number(context.lease.rent_amount),
+      })
+    : 0;
+  const canApplyLateFee =
+    Boolean(eligibility?.eligible) && overdue && !hasLateFee && !isCancelled && lateFeeDue > 0;
+
   /** Totals always come from the lines — never edited independently. */
   const syncTotal = async () => {
     const { data } = await supabase
@@ -172,7 +190,23 @@ function ReceiptDetailPage() {
 
   const applyLateFee = useToastMutation({
     mutationFn: async () => {
-      const amount = Number(context?.lease.late_fee_amount ?? 0);
+      if (!head || !context) throw new Error("no-invoice");
+      // Re-checked here, not just in the disabled prop: this is a legal
+      // constraint and the button is not the only way to reach the mutation.
+      const check = lateFeeEligibility(head.due_date, context.lease.grace_days);
+      if (!check.eligible) throw new Error("late-fee-too-early");
+
+      // One late fee per invoice. Read the lines again rather than trusting
+      // the render — two tabs open is enough to double-charge otherwise.
+      const { data: existing, error: readError } = await supabase
+        .from("invoice_lines")
+        .select("id")
+        .eq("invoice_id", id)
+        .eq("category", "recargo");
+      if (readError) throw readError;
+      if ((existing ?? []).length > 0) throw new Error("late-fee-already-applied");
+
+      const amount = lateFeeDue;
       const { error: caught } = await supabase.from("invoice_lines").insert({
         invoice_id: id,
         description: t("receipts.lines.lateFee"),
@@ -182,7 +216,14 @@ function ReceiptDetailPage() {
       });
       if (caught) throw caught;
       await syncTotal();
-      await logActivity(actorId, "invoice", id, "late_fee", { amount });
+      await logActivity(actorId, "invoice", id, "late_fee", {
+        amount,
+        due_date: head.due_date,
+        grace_days: context.lease.grace_days,
+        late_fee_type: context.lease.late_fee_type,
+        late_fee_percent: Number(context.lease.late_fee_percent),
+        eligible_from: check.eligibleFrom,
+      });
     },
     successKey: "receipts.lateFeeApplied",
     invalidate: [qk.invoice(id), ["invoices"], qk.portfolio],
@@ -374,15 +415,24 @@ function ReceiptDetailPage() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-base font-semibold">{t("receipts.conceptsTitle")}</h2>
                 <div className="flex flex-wrap gap-2">
-                  {/* Only enabled once the invoice is actually overdue. */}
+                  {/* Dead until the statutory clock has run. */}
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={!overdue || hasLateFee || isCancelled || applyLateFee.isPending}
-                    title={overdue ? undefined : t("receipts.lateFeeDisabled")}
+                    disabled={!canApplyLateFee || applyLateFee.isPending}
+                    title={
+                      hasLateFee
+                        ? t("receipts.lateFeeAlreadyApplied")
+                        : eligibility && !eligibility.eligible
+                          ? t("receipts.lateFeeTooEarly", {
+                              date: formatDate(eligibility.eligibleFrom),
+                            })
+                          : undefined
+                    }
                     onClick={() => applyLateFee.mutate(undefined)}
                   >
                     {t("receipts.applyLateFee")}
+                    {canApplyLateFee ? ` · ${formatMoney(lateFeeDue)}` : ""}
                   </Button>
                   {isDraft ? (
                     <Button variant="outline" size="sm" onClick={() => setLineOpen(true)}>

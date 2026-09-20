@@ -21,6 +21,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { AdminOnly, useAuth } from "@/lib/auth";
 import { INTERNAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
 import { DEFAULT_STATE, PHONE_HINT, US_STATES, formatUsPhone } from "@/lib/us";
+import { LARGE_STRUCTURE_CAP_PERCENT, MINIMUM_GRACE_DAYS } from "@/lib/late-fee";
 import {
   logActivity,
   qk,
@@ -76,8 +77,8 @@ function SettingsPage() {
   });
   const [invoicing, setInvoicing] = useState({
     invoice_prefix: "REC",
-    default_grace_days: "5",
-    default_late_fee: 0 as number | "",
+    default_grace_days: String(MINIMUM_GRACE_DAYS),
+    default_late_fee_percent: String(LARGE_STRUCTURE_CAP_PERCENT),
     nsf_fee: 0 as number | "",
   });
   const [dark, setDark] = useState(false);
@@ -125,8 +126,10 @@ function SettingsPage() {
     });
     setInvoicing({
       invoice_prefix: settings.data.invoice_prefix ?? "REC",
-      default_grace_days: String(settings.data.default_grace_days ?? 5),
-      default_late_fee: Number(settings.data.default_late_fee ?? 0),
+      default_grace_days: String(
+        Math.max(settings.data.default_grace_days ?? MINIMUM_GRACE_DAYS, MINIMUM_GRACE_DAYS),
+      ),
+      default_late_fee_percent: String(settings.data.default_late_fee_percent ?? 10),
       nsf_fee: Number(settings.data.nsf_fee ?? 0),
     });
   }, [settings.data]);
@@ -431,9 +434,11 @@ function SettingsPage() {
                 event.preventDefault();
                 save.mutate({
                   invoice_prefix: invoicing.invoice_prefix.trim() || "REC",
-                  default_grace_days: Number(invoicing.default_grace_days) || 0,
-                  default_late_fee:
-                    invoicing.default_late_fee === "" ? 0 : invoicing.default_late_fee,
+                  default_grace_days: Math.max(
+                    Number(invoicing.default_grace_days) || 0,
+                    MINIMUM_GRACE_DAYS,
+                  ),
+                  default_late_fee_percent: Number(invoicing.default_late_fee_percent) || 0,
                   nsf_fee: invoicing.nsf_fee === "" ? 0 : invoicing.nsf_fee,
                 });
               }}
@@ -453,11 +458,16 @@ function SettingsPage() {
                   }
                 />
               </Field>
-              <Field label={t("contracts.fields.graceDays")} htmlFor="grace-days">
+              <Field
+                label={t("contracts.fields.graceDays")}
+                htmlFor="grace-days"
+                hint={t("contracts.fields.graceDaysHint")}
+              >
                 <Input
                   id="grace-days"
                   inputMode="numeric"
                   className="numeric"
+                  min={MINIMUM_GRACE_DAYS}
                   value={invoicing.default_grace_days}
                   onChange={(event) =>
                     setInvoicing({
@@ -465,13 +475,40 @@ function SettingsPage() {
                       default_grace_days: event.target.value.replace(/\D/g, ""),
                     })
                   }
+                  onBlur={() =>
+                    setInvoicing((current) => ({
+                      ...current,
+                      default_grace_days: String(
+                        Math.max(Number(current.default_grace_days) || 0, MINIMUM_GRACE_DAYS),
+                      ),
+                    }))
+                  }
                 />
               </Field>
-              <Field label={t("contracts.fields.lateFee")}>
-                <MoneyInput
-                  value={invoicing.default_late_fee}
-                  onChange={(value) => setInvoicing({ ...invoicing, default_late_fee: value })}
-                />
+              <Field
+                label={t("contracts.fields.lateFeePercent")}
+                htmlFor="default-late-fee-pct"
+                hint={t("settings.fields.lateFeePercentHint")}
+              >
+                <div className="relative max-w-40">
+                  <Input
+                    id="default-late-fee-pct"
+                    inputMode="decimal"
+                    className="numeric pr-8 text-right"
+                    value={invoicing.default_late_fee_percent}
+                    onChange={(event) =>
+                      setInvoicing({
+                        ...invoicing,
+                        default_late_fee_percent: event.target.value
+                          .replace(/[^\d.]/g, "")
+                          .slice(0, 5),
+                      })
+                    }
+                  />
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    %
+                  </span>
+                </div>
               </Field>
               <Field label={t("settings.fields.nsfFee")} hint={t("settings.fields.nsfFeeHint")}>
                 <MoneyInput
