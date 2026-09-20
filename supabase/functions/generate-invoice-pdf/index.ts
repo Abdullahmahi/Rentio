@@ -41,7 +41,7 @@ Deno.serve(async (request) => {
     const { data: tenants } = await caller.from("tenants").select("full_name").in(
       "id", (links ?? []).map((row: { tenant_id: string }) => row.tenant_id),
     );
-    const tenantName = tenants?.[0]?.full_name ?? "—";
+    const tenantName = tenants?.[0]?.full_name ?? "-";
 
     const pdf = await PDFDocument.create();
     const page = pdf.addPage([595.28, 841.89]); // A4
@@ -110,7 +110,7 @@ Deno.serve(async (request) => {
     y -= 14;
     text(tenantName, column, 10, bold);
     y -= 13;
-    text(`Unidad ${details?.unit_number ?? "—"}`, column, 9, regular, MUTED);
+    text(`Unidad ${details?.unit_number ?? "-"}`, column, 9, regular, MUTED);
     if (details?.property_name) { y -= 13; text(details.property_name, column, 9, regular, MUTED); }
 
     y -= 30;
@@ -174,7 +174,7 @@ Deno.serve(async (request) => {
       page.drawLine({ start: { x: left, y: y + 12 }, end: { x: right, y: y + 12 }, thickness: 1, color: LINE });
       text("Cómo pagar", left, 9, bold, MUTED);
       y -= 14;
-      text(`Referencia: unidad ${details?.unit_number ?? "—"}`, left, 9, bold);
+      text(`Referencia: unidad ${details?.unit_number ?? "-"}`, left, 9, bold);
       for (const [label, value] of payRows) {
         y -= 13;
         text(`${label}: ${String(value).replace(/\s*\n\s*/g, " · ")}`.slice(0, 96), left, 9);

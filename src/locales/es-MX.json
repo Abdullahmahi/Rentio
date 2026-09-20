@@ -442,19 +442,24 @@
       "lateFee": "Monto de recargo",
       "depositHint": "Normalmente un mes de renta.",
       "depositStatus": "Estado del depósito",
-      "depositNotes": "Motivo de la retención",
-      "moveOut": "Fecha de salida",
       "refunded": "Monto devuelto",
       "retained": "Monto retenido",
       "contractFile": "Contrato firmado (PDF)",
       "contractFileHint": "Opcional — puedes subirlo después.",
       "graceDaysHint": "La ley de Texas exige al menos 2 días. La renta debe seguir sin pagarse al final del segundo día antes de poder cobrar un recargo.",
       "lateFeeType": "Tipo de recargo",
-      "lateFeePercent": "Recargo (% de la renta)"
+      "lateFeePercent": "Recargo (% de la renta)",
+      "surrenderDate": "Fecha de entrega",
+      "moveOutNotes": "Notas del estado de la unidad",
+      "moveOutNotesPlaceholder": "Estado al desocupar, llaves devueltas, y todo lo que justifique una deducción después.",
+      "forwardingAddress": "Domicilio de reenvío",
+      "forwardingReceived": "Domicilio de reenvío recibido",
+      "depositSettledAt": "Depósito liquidado",
+      "deductionDescription": "Deducción",
+      "deductionPlaceholder": "p. ej. Limpieza de alfombra"
     },
     "created": "Contrato creado correctamente.",
     "rentUpdated": "Renta actualizada.",
-    "terminated": "Contrato terminado y unidad liberada.",
     "backToList": "Volver a contratos",
     "detailTitle": "Unidad {{unit}} — {{tenant}}",
     "notFound": "Contrato no encontrado",
@@ -471,8 +476,6 @@
     "createSubmit": "Crear contrato",
     "renew": "Renovar",
     "renewTitle": "Renovar contrato",
-    "terminate": "Terminar contrato",
-    "terminateTitle": "Terminar contrato",
     "terminateDescription": "Unidad {{unit}} — {{tenant}}. Registra la fecha de salida y la liquidación del depósito.",
     "terminateWarning": "Al confirmar, la unidad pasa a vacante y se liberan los cajones de estacionamiento asignados.",
     "depositHeld": "Depósito retenido:",
@@ -518,9 +521,12 @@
       "rentRequired": "Captura la renta mensual.",
       "datesInvalid": "La fecha de fin debe ser posterior a la de inicio.",
       "dueDayRange": "El día de pago debe estar entre 1 y 31.",
-      "depositOverflow": "La suma devuelta y retenida no puede superar el depósito.",
       "graceBelowTexasMinimum": "La ley de Texas exige un periodo de gracia de al menos 2 días.",
-      "lateFeeOverCapUnacknowledged": "Marca la confirmación para guardar un recargo por encima del tope presumido como razonable."
+      "lateFeeOverCapUnacknowledged": "Marca la confirmación para guardar un recargo por encima del tope presumido como razonable.",
+      "forwardingRequired": "Se requiere un domicilio de reenvío para iniciar el plazo.",
+      "forwardingBeforeSurrender": "El domicilio de reenvío no puede llegar antes de la fecha de entrega.",
+      "deductionDescriptionRequired": "Cada deducción necesita un concepto — la ley exige una lista detallada.",
+      "deductionsOverDeposit": "Marca la confirmación para guardar deducciones mayores al depósito retenido."
     },
     "lateFeeType": {
       "percent": "Porcentaje de la renta",
@@ -534,7 +540,32 @@
       "title": "Reglas de Texas (Código de Propiedad §92.019)",
       "grace": "No se puede cobrar un recargo hasta que la renta siga sin pagarse al final del segundo día completo después de su vencimiento.",
       "cap": "Un recargo de hasta el {{cap}}% de un mes de renta se presume razonable para una estructura de este tamaño."
-    }
+    },
+    "recordMoveOut": "Registrar entrega",
+    "recordMoveOutTitle": "Registrar entrega de la unidad",
+    "moveOutRecorded": "Entrega registrada.",
+    "moveOutClockNotice": "Esto termina el arrendamiento y libera la unidad. NO inicia el plazo del depósito — bajo el Código de Propiedad de Texas §92.103 ese plazo empieza cuando llega el domicilio de reenvío del inquilino.",
+    "awaitingForwarding": "En espera del domicilio de reenvío — el plazo de 30 días del depósito no ha comenzado.",
+    "recordForwarding": "Registrar domicilio de reenvío",
+    "recordForwardingTitle": "Registrar domicilio de reenvío",
+    "recordForwardingDescription": "Al registrarlo inicia el plazo legal de 30 días para devolver el depósito.",
+    "forwardingRecorded": "Domicilio registrado. El plazo del depósito ha comenzado.",
+    "forwardingStartsClock": "El depósito debe devolverse a más tardar el {{date}}.",
+    "depositCountdown": "El depósito debe devolverse antes del {{date}} — queda {{count}} día.",
+    "depositCountdown_other": "El depósito debe devolverse antes del {{date}} — quedan {{count}} días.",
+    "depositOverdue": "El depósito venció el {{date}} — {{count}} día de retraso.",
+    "depositOverdue_other": "El depósito venció el {{date}} — {{count}} días de retraso.",
+    "settleDeposit": "Liquidar depósito",
+    "settleDepositTitle": "Liquidar depósito",
+    "settleDepositDescription": "Detalla cada deducción. El §92.104(c) exige una lista escrita y detallada siempre que se retenga cualquier parte del depósito.",
+    "depositSettled": "Depósito liquidado.",
+    "addDeduction": "Agregar deducción",
+    "deductionsTitle": "Deducciones",
+    "totalDeductions": "Total de deducciones",
+    "refundDue": "Monto a reembolsar",
+    "deductionsExceedDeposit": "Las deducciones suman más que el depósito retenido.",
+    "deductionsExceedDepositAck": "Revisé estas cifras y aun así quiero guardarlas.",
+    "downloadDisposition": "Descargar disposición (PDF)"
   },
   "maintenance": {
     "emptyTitle": "Sin órdenes de trabajo",
@@ -951,8 +982,13 @@
       "collected": "Cobrado este mes",
       "overdue": "Morosidad",
       "openOrders": "Órdenes abiertas",
-      "expiring": "Contratos por vencer"
-    }
+      "expiring": "Contratos por vencer",
+      "depositsDue": "Depósitos por devolver"
+    },
+    "depositsOverdue": "{{count}} depósito fuera del plazo legal",
+    "depositsOverdue_other": "{{count}} depósitos fuera del plazo legal",
+    "depositsSoonest": "El más próximo en {{count}} día",
+    "depositsSoonest_other": "El más próximo en {{count}} días"
   },
   "reports": {
     "daysOverdue": "Días vencido",
@@ -967,13 +1003,24 @@
       "rentRoll": "Rent roll",
       "aging": "Morosidad",
       "income": "Ingresos por mes",
-      "occupancy": "Ocupación"
+      "occupancy": "Ocupación",
+      "deposits": "Cumplimiento de depósitos"
     },
     "buckets": {
       "b30": "1–30 días",
       "b60": "31–60 días",
       "b90": "61–90 días",
       "b90plus": "90+ días"
+    },
+    "depositDueDate": "Vence el",
+    "daysTaken": "Días utilizados",
+    "depositCompliance": "Cumplimiento",
+    "depositComplianceHint": "Todos los contratos donde el inquilino ya desocupó. El Código de Propiedad de Texas §92.103 da 30 días desde el domicilio de reenvío, con sanciones legales y honorarios de abogado por incumplirlo.",
+    "depositFlag": {
+      "compliant": "A tiempo",
+      "late": "Tarde",
+      "pending": "Pendiente",
+      "not_started": "Sin iniciar"
     }
   },
   "import": {

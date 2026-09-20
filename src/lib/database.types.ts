@@ -197,6 +197,13 @@ export type Database = {
           late_fee_type: Database["public"]["Enums"]["late_fee_type"];
           late_fee_percent: number;
           late_fee_over_cap_ack: boolean;
+          surrender_date: string | null;
+          forwarding_address: string | null;
+          forwarding_address_received_at: string | null;
+          deposit_due_date: string | null;
+          deposit_settled_at: string | null;
+          deposit_itemization: Json;
+          move_out_notes: string | null;
         };
         Insert: {
           id?: string;
@@ -220,6 +227,13 @@ export type Database = {
           late_fee_type?: Database["public"]["Enums"]["late_fee_type"];
           late_fee_percent?: number;
           late_fee_over_cap_ack?: boolean;
+          surrender_date?: string | null;
+          forwarding_address?: string | null;
+          forwarding_address_received_at?: string | null;
+          deposit_due_date?: string | null;
+          deposit_settled_at?: string | null;
+          deposit_itemization?: Json;
+          move_out_notes?: string | null;
         };
         Update: {
           id?: string;
@@ -243,6 +257,13 @@ export type Database = {
           late_fee_type?: Database["public"]["Enums"]["late_fee_type"];
           late_fee_percent?: number;
           late_fee_over_cap_ack?: boolean;
+          surrender_date?: string | null;
+          forwarding_address?: string | null;
+          forwarding_address_received_at?: string | null;
+          deposit_due_date?: string | null;
+          deposit_settled_at?: string | null;
+          deposit_itemization?: Json;
+          move_out_notes?: string | null;
         };
         Relationships: [];
       };
@@ -761,6 +782,23 @@ export type Database = {
       };
     };
     Views: {
+      deposit_obligations: {
+        Row: {
+          lease_id: string | null;
+          unit_id: string | null;
+          deposit_amount: number | null;
+          surrender_date: string | null;
+          forwarding_address: string | null;
+          forwarding_address_received_at: string | null;
+          deposit_due_date: string | null;
+          deposit_settled_at: string | null;
+          deposit_itemization: Json | null;
+          days_remaining: number | null;
+          days_taken: number | null;
+          settled_on_time: boolean | null;
+        };
+        Relationships: [];
+      };
       invoice_balances: {
         Row: {
           invoice_id: string | null;

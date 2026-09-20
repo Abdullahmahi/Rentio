@@ -26,6 +26,7 @@ import { CHART, UNIT_STATUS_COLOR, compactMoney } from "@/lib/chart";
 import { daysBetween, formatDate, formatMoney, todayIso } from "@/lib/format";
 import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
 import { daysUntilEnd, isActive, isExpiringSoon, leaseContexts, occupancy } from "@/lib/portfolio";
+import { depositClock } from "@/lib/deposit";
 import { qk, usePortfolio } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Enums } from "@/lib/database.types";
@@ -236,6 +237,17 @@ function DashboardPage() {
 
   const expiring = contexts.filter((context) => isExpiringSoon(context.lease));
 
+  // §92.103 — 30 days from the forwarding address, with statutory penalties
+  // for missing it. This must be impossible to overlook.
+  const deposits = useMemo(
+    () =>
+      contexts
+        .map((context) => ({ context, clock: depositClock(context.lease) }))
+        .filter(({ clock }) => clock.stage !== "active" && clock.stage !== "settled"),
+    [contexts],
+  );
+  const depositsOverdue = deposits.filter(({ clock }) => clock.stage === "overdue");
+
   const byStatus = UNIT_STATUSES.map((status) => ({
     status,
     name: t(`unitStatus.${status}`),
@@ -277,7 +289,20 @@ function DashboardPage() {
         onRetry={() => void portfolio.refetch()}
         skeleton={<CardsSkeleton count={5} height="h-24" />}
       >
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {depositsOverdue.length > 0 ? (
+          <Link
+            to="/app/reports"
+            className="mb-4 flex items-center gap-3 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm font-medium text-danger hover:bg-danger/15"
+          >
+            <AlertTriangle className="size-4 shrink-0" />
+            <span className="min-w-0 flex-1">
+              {t("dashboard.depositsOverdue", { count: depositsOverdue.length })}
+            </span>
+            <ArrowRight className="size-4 shrink-0" />
+          </Link>
+        ) : null}
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
           <Kpi
             label={t("dashboard.kpi.occupancy")}
             value={t("dashboard.unitsOf", { occupied: stats.occupied, total: stats.total })}
@@ -305,6 +330,20 @@ function DashboardPage() {
                 : undefined
             }
             tone={(openOrderCounts.data?.urgent ?? 0) > 0 ? "text-accent" : undefined}
+          />
+          <Kpi
+            label={t("dashboard.kpi.depositsDue")}
+            value={String(deposits.length)}
+            note={
+              depositsOverdue.length > 0
+                ? t("dashboard.depositsOverdue", { count: depositsOverdue.length })
+                : deposits.length > 0
+                  ? t("dashboard.depositsSoonest", {
+                      count: Math.min(...deposits.map(({ clock }) => clock.daysRemaining ?? 999)),
+                    })
+                  : undefined
+            }
+            tone={depositsOverdue.length > 0 ? "text-danger" : undefined}
           />
           <Kpi
             label={t("dashboard.kpi.expiring")}

@@ -17,11 +17,13 @@ import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { LeaseStatusBadge, UnitStatusBadge } from "@/components/rentio/status";
+import { StatusBadge } from "@/components/rentio/status-badge";
 import { formatPeriod } from "@/components/rentio/month-selector";
 import { downloadCsv } from "@/lib/csv";
 import { daysBetween, formatDate, formatMoney, todayIso } from "@/lib/format";
 import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
 import { isActive, leaseContexts, occupancy, unitContexts } from "@/lib/portfolio";
+import { depositClock } from "@/lib/deposit";
 import { usePortfolio } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import i18n from "@/lib/i18n";
@@ -50,6 +52,21 @@ interface RentRollRow {
   status: string;
   unitStatus: "vacante" | "ocupada" | "mantenimiento" | "reservada";
   leaseStatus: "borrador" | "activo" | "por_vencer" | "terminado" | "rescindido" | null;
+}
+
+interface DepositRow {
+  leaseId: string;
+  tenant: string;
+  unitNumber: string;
+  propertyId: string | null;
+  depositHeld: number;
+  surrenderDate: string | null;
+  forwardingDate: string | null;
+  dueDate: string | null;
+  settledAt: string | null;
+  daysTaken: number | null;
+  /** "compliant" | "late" | "pending" | "not_started" */
+  flag: "compliant" | "late" | "pending" | "not_started";
 }
 
 interface AgingRow {
@@ -378,6 +395,131 @@ function ReportsPage() {
     },
   ];
 
+  /**
+   * Every terminated lease, whether its deposit clock has started, and
+   * whether it was settled inside the statutory 30 days.
+   */
+  const depositRows = useMemo<DepositRow[]>(
+    () =>
+      contexts
+        .filter(
+          (context) =>
+            context.lease.surrender_date !== null && matchesProperty(context.property?.id),
+        )
+        .map((context) => {
+          const clock = depositClock(context.lease);
+          const settledAt = context.lease.deposit_settled_at;
+          const dueDate = context.lease.deposit_due_date;
+          const received = context.lease.forwarding_address_received_at;
+          return {
+            leaseId: context.lease.id,
+            tenant: context.primaryTenant?.full_name ?? "—",
+            unitNumber: context.unit?.unit_number ?? "—",
+            propertyId: context.property?.id ?? null,
+            depositHeld: Number(context.lease.deposit_amount),
+            surrenderDate: context.lease.surrender_date,
+            forwardingDate: received,
+            dueDate,
+            settledAt,
+            daysTaken: settledAt && received ? daysBetween(received, settledAt) : null,
+            flag:
+              settledAt && dueDate
+                ? settledAt <= dueDate
+                  ? ("compliant" as const)
+                  : ("late" as const)
+                : clock.stage === "awaiting_forwarding"
+                  ? ("not_started" as const)
+                  : clock.stage === "overdue"
+                    ? ("late" as const)
+                    : ("pending" as const),
+          };
+        })
+        .sort((a, b) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999")),
+    [contexts, matchesProperty],
+  );
+
+  const depositColumns: DataTableColumn<DepositRow>[] = [
+    {
+      key: "tenant",
+      header: t("contracts.columns.tenant"),
+      sortValue: (row) => row.tenant,
+      cell: (row) => row.tenant,
+    },
+    {
+      key: "unit",
+      header: t("units.columns.unit"),
+      sortValue: (row) => row.unitNumber,
+      cell: (row) => <span className="numeric">{row.unitNumber}</span>,
+    },
+    {
+      key: "deposit",
+      header: t("contracts.fields.deposit"),
+      numeric: true,
+      sortValue: (row) => row.depositHeld,
+      cell: (row) => <MoneyText value={row.depositHeld} />,
+    },
+    {
+      key: "surrender",
+      header: t("contracts.fields.surrenderDate"),
+      numeric: true,
+      sortValue: (row) => row.surrenderDate ?? "",
+      cell: (row) => (
+        <span className="numeric">{row.surrenderDate ? formatDate(row.surrenderDate) : "—"}</span>
+      ),
+    },
+    {
+      key: "forwarding",
+      header: t("contracts.fields.forwardingReceived"),
+      numeric: true,
+      sortValue: (row) => row.forwardingDate ?? "",
+      cell: (row) => (
+        <span className="numeric">{row.forwardingDate ? formatDate(row.forwardingDate) : "—"}</span>
+      ),
+    },
+    {
+      key: "due",
+      header: t("reports.depositDueDate"),
+      numeric: true,
+      sortValue: (row) => row.dueDate ?? "",
+      cell: (row) => <span className="numeric">{row.dueDate ? formatDate(row.dueDate) : "—"}</span>,
+    },
+    {
+      key: "settled",
+      header: t("contracts.fields.depositSettledAt"),
+      numeric: true,
+      sortValue: (row) => row.settledAt ?? "",
+      cell: (row) => (
+        <span className="numeric">{row.settledAt ? formatDate(row.settledAt) : "—"}</span>
+      ),
+    },
+    {
+      key: "daysTaken",
+      header: t("reports.daysTaken"),
+      numeric: true,
+      sortValue: (row) => row.daysTaken ?? 0,
+      cell: (row) => <span className="numeric">{row.daysTaken ?? "—"}</span>,
+    },
+    {
+      key: "flag",
+      header: t("reports.depositCompliance"),
+      sortValue: (row) => row.flag,
+      cell: (row) => (
+        <StatusBadge
+          status={t(`reports.depositFlag.${row.flag}`)}
+          variant={
+            row.flag === "compliant"
+              ? "success"
+              : row.flag === "late"
+                ? "danger"
+                : row.flag === "not_started"
+                  ? "warning"
+                  : "info"
+          }
+        />
+      ),
+    },
+  ];
+
   const exporters = {
     rentRoll: () =>
       downloadCsv(
@@ -417,6 +559,32 @@ function ReportsPage() {
           row.days,
           t(`reports.buckets.${row.bucket}`),
           row.amount,
+        ]),
+      ),
+    deposits: () =>
+      downloadCsv(
+        `deposit-compliance-${todayIso()}`,
+        [
+          t("contracts.columns.tenant"),
+          t("units.columns.unit"),
+          t("contracts.fields.deposit"),
+          t("contracts.fields.surrenderDate"),
+          t("contracts.fields.forwardingReceived"),
+          t("reports.depositDueDate"),
+          t("contracts.fields.depositSettledAt"),
+          t("reports.daysTaken"),
+          t("reports.depositCompliance"),
+        ],
+        depositRows.map((row) => [
+          row.tenant,
+          row.unitNumber,
+          row.depositHeld,
+          row.surrenderDate ?? "",
+          row.forwardingDate ?? "",
+          row.dueDate ?? "",
+          row.settledAt ?? "",
+          row.daysTaken ?? "",
+          t(`reports.depositFlag.${row.flag}`),
         ]),
       ),
     income: () =>
@@ -487,6 +655,7 @@ function ReportsPage() {
           <TabsList className="flex-wrap">
             <TabsTrigger value="rent-roll">{t("reports.tabs.rentRoll")}</TabsTrigger>
             <TabsTrigger value="aging">{t("reports.tabs.aging")}</TabsTrigger>
+            <TabsTrigger value="deposits">{t("reports.tabs.deposits")}</TabsTrigger>
             <TabsTrigger value="income">{t("reports.tabs.income")}</TabsTrigger>
             <TabsTrigger value="occupancy">{t("reports.tabs.occupancy")}</TabsTrigger>
           </TabsList>
@@ -530,6 +699,22 @@ function ReportsPage() {
               columns={agingColumns}
               data={aging}
               getRowId={(row) => `${row.unitNumber}-${row.tenant}`}
+              searchValue={(row) => `${row.tenant} ${row.unitNumber}`}
+              pageSize={20}
+            />
+          </TabsContent>
+
+          <TabsContent value="deposits" className="mt-4 space-y-3">
+            <p className="rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-sm text-info">
+              {t("reports.depositComplianceHint")}
+            </p>
+            <div className="flex justify-end">
+              <ExportButton onClick={exporters.deposits} disabled={depositRows.length === 0} />
+            </div>
+            <DataTable
+              columns={depositColumns}
+              data={depositRows}
+              getRowId={(row) => row.leaseId}
               searchValue={(row) => `${row.tenant} ${row.unitNumber}`}
               pageSize={20}
             />

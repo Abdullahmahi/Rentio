@@ -442,19 +442,24 @@
       "lateFee": "Late fee amount",
       "depositHint": "Usually one month's rent.",
       "depositStatus": "Deposit status",
-      "depositNotes": "Reason for retention",
-      "moveOut": "Move-out date",
       "refunded": "Amount refunded",
       "retained": "Amount retained",
       "contractFile": "Signed lease (PDF)",
       "contractFileHint": "Optional — you can upload it later.",
       "graceDaysHint": "Texas law requires at least 2 days. Rent must be unpaid at the end of the second day before a late fee can be charged.",
       "lateFeeType": "Late fee type",
-      "lateFeePercent": "Late fee (% of rent)"
+      "lateFeePercent": "Late fee (% of rent)",
+      "surrenderDate": "Date of surrender",
+      "moveOutNotes": "Unit condition notes",
+      "moveOutNotesPlaceholder": "Condition at move-out, keys returned, anything that will justify a deduction later.",
+      "forwardingAddress": "Forwarding address",
+      "forwardingReceived": "Forwarding address received",
+      "depositSettledAt": "Deposit settled",
+      "deductionDescription": "Deduction",
+      "deductionPlaceholder": "e.g. Carpet cleaning"
     },
     "created": "Lease created.",
     "rentUpdated": "Rent updated.",
-    "terminated": "Lease ended and unit released.",
     "backToList": "Back to leases",
     "detailTitle": "Unit {{unit}} — {{tenant}}",
     "notFound": "Lease not found",
@@ -471,8 +476,6 @@
     "createSubmit": "Create lease",
     "renew": "Renew",
     "renewTitle": "Renew lease",
-    "terminate": "End lease",
-    "terminateTitle": "End lease",
     "terminateDescription": "Unit {{unit}} — {{tenant}}. Record the move-out date and settle the deposit.",
     "terminateWarning": "On confirm the unit becomes vacant and any assigned parking is released.",
     "depositHeld": "Deposit held:",
@@ -518,9 +521,12 @@
       "rentRequired": "Enter the monthly rent.",
       "datesInvalid": "The end date must be after the start date.",
       "dueDayRange": "The payment day must be between 1 and 31.",
-      "depositOverflow": "Refunded plus retained can't exceed the deposit.",
       "graceBelowTexasMinimum": "Texas law requires a grace period of at least 2 days.",
-      "lateFeeOverCapUnacknowledged": "Tick the acknowledgement to save a late fee above the presumed-reasonable cap."
+      "lateFeeOverCapUnacknowledged": "Tick the acknowledgement to save a late fee above the presumed-reasonable cap.",
+      "forwardingRequired": "A forwarding address is required to start the clock.",
+      "forwardingBeforeSurrender": "The forwarding address cannot arrive before the move-out date.",
+      "deductionDescriptionRequired": "Every deduction needs a description — the statute requires an itemized list.",
+      "deductionsOverDeposit": "Tick the acknowledgement to save deductions above the deposit held."
     },
     "lateFeeType": {
       "percent": "Percentage of rent",
@@ -534,7 +540,32 @@
       "title": "Texas rules (Property Code §92.019)",
       "grace": "A late fee cannot be charged until the rent is still unpaid at the end of the second full day after it was due.",
       "cap": "A fee up to {{cap}}% of one month's rent is presumed reasonable for a structure of this size."
-    }
+    },
+    "recordMoveOut": "Record move-out",
+    "recordMoveOutTitle": "Record move-out",
+    "moveOutRecorded": "Move-out recorded.",
+    "moveOutClockNotice": "This ends the tenancy and frees the unit. It does NOT start the deposit clock — under Texas Property Code §92.103 that starts when the tenant's forwarding address arrives.",
+    "awaitingForwarding": "Awaiting forwarding address — the 30-day deposit clock has not started.",
+    "recordForwarding": "Record forwarding address",
+    "recordForwardingTitle": "Record forwarding address",
+    "recordForwardingDescription": "Recording this starts the statutory 30-day clock for returning the deposit.",
+    "forwardingRecorded": "Forwarding address recorded. The deposit clock has started.",
+    "forwardingStartsClock": "The deposit must be returned by {{date}}.",
+    "depositCountdown": "Deposit must be returned by {{date}} — {{count}} day remaining.",
+    "depositCountdown_other": "Deposit must be returned by {{date}} — {{count}} days remaining.",
+    "depositOverdue": "Deposit was due {{date}} — {{count}} day overdue.",
+    "depositOverdue_other": "Deposit was due {{date}} — {{count}} days overdue.",
+    "settleDeposit": "Settle deposit",
+    "settleDepositTitle": "Settle deposit",
+    "settleDepositDescription": "Itemize every deduction. §92.104(c) requires a written, itemized list whenever any part of the deposit is withheld.",
+    "depositSettled": "Deposit settled.",
+    "addDeduction": "Add deduction",
+    "deductionsTitle": "Deductions",
+    "totalDeductions": "Total deductions",
+    "refundDue": "Amount to refund",
+    "deductionsExceedDeposit": "The deductions come to more than the deposit held.",
+    "deductionsExceedDepositAck": "I have checked these figures and want to save them anyway.",
+    "downloadDisposition": "Download disposition (PDF)"
   },
   "maintenance": {
     "emptyTitle": "No work orders",
@@ -951,8 +982,13 @@
       "collected": "Collected this month",
       "overdue": "Delinquency",
       "openOrders": "Open work orders",
-      "expiring": "Leases expiring"
-    }
+      "expiring": "Leases expiring",
+      "depositsDue": "Deposits due"
+    },
+    "depositsOverdue": "{{count}} deposit past its statutory deadline",
+    "depositsOverdue_other": "{{count}} deposits past their statutory deadline",
+    "depositsSoonest": "Soonest in {{count}} day",
+    "depositsSoonest_other": "Soonest in {{count}} days"
   },
   "reports": {
     "daysOverdue": "Days overdue",
@@ -967,13 +1003,24 @@
       "rentRoll": "Rent roll",
       "aging": "Delinquency",
       "income": "Income by month",
-      "occupancy": "Occupancy"
+      "occupancy": "Occupancy",
+      "deposits": "Deposit compliance"
     },
     "buckets": {
       "b30": "1–30 days",
       "b60": "31–60 days",
       "b90": "61–90 days",
       "b90plus": "90+ days"
+    },
+    "depositDueDate": "Due by",
+    "daysTaken": "Days taken",
+    "depositCompliance": "Compliance",
+    "depositComplianceHint": "Every lease where the tenant has moved out. Texas Property Code §92.103 gives 30 days from the forwarding address, with statutory penalties plus attorney's fees for missing it.",
+    "depositFlag": {
+      "compliant": "On time",
+      "late": "Late",
+      "pending": "Pending",
+      "not_started": "Not started"
     }
   },
   "import": {

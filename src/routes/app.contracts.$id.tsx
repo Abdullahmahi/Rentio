@@ -1,9 +1,20 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, CarFront, FileText, Pencil, RefreshCw } from "lucide-react";
+import {
+  ArrowLeft,
+  CarFront,
+  Download,
+  FileText,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,6 +36,16 @@ import {
 import { AdminOnly } from "@/lib/auth";
 import { formatDate, formatMoney, todayIso } from "@/lib/format";
 import { lateFeeAmount } from "@/lib/late-fee";
+import {
+  type DepositItem,
+  deductionsExceedDeposit,
+  depositClock,
+  depositDueDate,
+  itemizationTotal,
+  parseItemization,
+  refundDue,
+} from "@/lib/deposit";
+import { cn } from "@/lib/utils";
 import { isActive, leaseContexts } from "@/lib/portfolio";
 import {
   logActivity,
@@ -35,7 +56,7 @@ import {
   useToastMutation,
   type InvoiceWithPaid,
 } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { describeError, supabase } from "@/lib/supabase";
 import type { Tables } from "@/lib/database.types";
 
 export const Route = createFileRoute("/app/contracts/$id")({ component: ContractDetailPage });
@@ -57,16 +78,25 @@ function ContractDetailPage() {
   const actorId = useActorId();
 
   const [renewSeed, setRenewSeed] = useState<LeaseWizardSeed | null>(null);
-  const [endOpen, setEndOpen] = useState(false);
+  const [moveOutOpen, setMoveOutOpen] = useState(false);
+  const [forwardingOpen, setForwardingOpen] = useState(false);
+  const [settleOpen, setSettleOpen] = useState(false);
   const [rentOpen, setRentOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rentAmount, setRentAmount] = useState<number | "">("");
-  const [endForm, setEndForm] = useState({
-    move_out_date: todayIso(),
-    refunded: "" as number | "",
-    retained: "" as number | "",
-    notes: "",
+
+  // Stage 1. Ends the tenancy. Does NOT start the deposit clock.
+  const [moveOutForm, setMoveOutForm] = useState({
+    surrender_date: todayIso(),
+    move_out_notes: "",
   });
+  // Stage 2. This is what starts the 30-day clock.
+  const [forwardingForm, setForwardingForm] = useState({
+    forwarding_address: "",
+    forwarding_address_received_at: todayIso(),
+  });
+  const [itemization, setItemization] = useState<DepositItem[]>([]);
+  const [settleAck, setSettleAck] = useState(false);
 
   const context = useMemo(
     () =>
@@ -74,6 +104,17 @@ function ContractDetailPage() {
     [portfolio.data, id],
   );
   const lease = context?.lease;
+
+  const clock = depositClock(
+    lease ?? {
+      surrender_date: null,
+      forwarding_address_received_at: null,
+      deposit_due_date: null,
+      deposit_settled_at: null,
+    },
+  );
+  const itemizationRows = parseItemization(lease?.deposit_itemization);
+  const overDeposit = deductionsExceedDeposit(Number(lease?.deposit_amount ?? 0), itemization);
 
   const invoices = useInvoices({ leaseId: id });
 
@@ -107,19 +148,22 @@ function ContractDetailPage() {
     onSuccess: () => setRentOpen(false),
   });
 
-  const terminate = useToastMutation({
-    mutationFn: async (values: typeof endForm) => {
+  /**
+   * Stage 1 — record move-out. Ends the tenancy and frees the unit, and
+   * deliberately does NOT touch the deposit: under §92.103 the 30-day clock
+   * starts when the forwarding address arrives, which may be weeks later.
+   */
+  const recordMoveOut = useToastMutation({
+    mutationFn: async (values: typeof moveOutForm) => {
       if (!lease) throw new Error("missing-lease");
 
       const { error: leaseError } = await supabase
         .from("leases")
         .update({
           status: "terminado",
-          move_out_date: values.move_out_date,
-          deposit_refunded: values.refunded === "" ? 0 : values.refunded,
-          deposit_retained: values.retained === "" ? 0 : values.retained,
-          deposit_status: "liquidado",
-          deposit_notes: values.notes || null,
+          surrender_date: values.surrender_date,
+          move_out_date: values.surrender_date,
+          move_out_notes: values.move_out_notes || null,
         })
         .eq("id", id);
       if (leaseError) throw leaseError;
@@ -137,16 +181,85 @@ function ContractDetailPage() {
         .eq("lease_id", id);
       if (parkingError) throw parkingError;
 
-      await logActivity(actorId, "lease", id, "terminate", {
-        move_out_date: values.move_out_date,
-        refunded: values.refunded,
-        retained: values.retained,
+      await logActivity(actorId, "lease", id, "record_move_out", {
+        surrender_date: values.surrender_date,
       });
     },
-    successKey: "contracts.terminated",
+    successKey: "contracts.moveOutRecorded",
     invalidate: [qk.portfolio],
-    onSuccess: () => setEndOpen(false),
+    onSuccess: () => setMoveOutOpen(false),
   });
+
+  /** Stage 2 — the forwarding address. This starts the statutory clock. */
+  const recordForwarding = useToastMutation({
+    mutationFn: async (values: typeof forwardingForm) => {
+      const { error: caught } = await supabase
+        .from("leases")
+        .update({
+          forwarding_address: values.forwarding_address.trim(),
+          forwarding_address_received_at: values.forwarding_address_received_at,
+        })
+        .eq("id", id);
+      if (caught) throw caught;
+      await logActivity(actorId, "lease", id, "record_forwarding_address", {
+        received_at: values.forwarding_address_received_at,
+        due_date: depositDueDate(values.forwarding_address_received_at),
+      });
+    },
+    successKey: "contracts.forwardingRecorded",
+    invalidate: [qk.portfolio],
+    onSuccess: () => setForwardingOpen(false),
+  });
+
+  const settleDeposit = useToastMutation({
+    mutationFn: async () => {
+      if (!lease) throw new Error("missing-lease");
+      const held = Number(lease.deposit_amount);
+      const withheld = itemizationTotal(itemization);
+      const refunded = refundDue(held, itemization);
+      const settledAt = todayIso();
+
+      const { error: caught } = await supabase
+        .from("leases")
+        .update({
+          deposit_itemization: itemization as unknown as never,
+          deposit_retained: withheld,
+          deposit_refunded: refunded,
+          deposit_settled_at: settledAt,
+          deposit_status: refunded > 0 ? "devuelto" : "liquidado",
+        })
+        .eq("id", id);
+      if (caught) throw caught;
+
+      await logActivity(actorId, "lease", id, "settle_deposit", {
+        held,
+        withheld,
+        refunded,
+        settled_at: settledAt,
+        due_date: lease.deposit_due_date,
+        on_time: lease.deposit_due_date ? settledAt <= lease.deposit_due_date : null,
+        items: itemization.length,
+      });
+    },
+    successKey: "contracts.depositSettled",
+    invalidate: [qk.portfolio],
+    onSuccess: () => setSettleOpen(false),
+  });
+
+  const downloadDisposition = async () => {
+    try {
+      const { data, error: caught } = await supabase.functions.invoke(
+        "generate-deposit-disposition",
+        { body: { lease_id: id } },
+      );
+      if (caught) throw caught;
+      const url = (data as { url?: string } | null)?.url;
+      if (!url) throw new Error("no-url");
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (caught) {
+      toast.error(t(describeError(caught)));
+    }
+  };
 
   const invoiceColumns: DataTableColumn<InvoiceWithPaid>[] = [
     {
@@ -278,16 +391,11 @@ function ContractDetailPage() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        setEndForm({
-                          move_out_date: todayIso(),
-                          refunded: Number(lease.deposit_amount),
-                          retained: 0,
-                          notes: "",
-                        });
-                        setEndOpen(true);
+                        setMoveOutForm({ surrender_date: todayIso(), move_out_notes: "" });
+                        setMoveOutOpen(true);
                       }}
                     >
-                      {t("contracts.terminate")}
+                      {t("contracts.recordMoveOut")}
                     </Button>
                   ) : null}
                 </div>
@@ -409,10 +517,25 @@ function ContractDetailPage() {
                           defaultValue: lease.deposit_status,
                         })}
                       </Row>
-                      {lease.move_out_date ? (
+                      {lease.surrender_date ? (
+                        <Row label={t("contracts.fields.surrenderDate")}>
+                          {formatDate(lease.surrender_date)}
+                        </Row>
+                      ) : null}
+                      {lease.forwarding_address_received_at ? (
                         <>
-                          <Row label={t("contracts.fields.moveOut")}>
-                            {formatDate(lease.move_out_date)}
+                          <Row label={t("contracts.fields.forwardingReceived")}>
+                            {formatDate(lease.forwarding_address_received_at)}
+                          </Row>
+                          <Row label={t("contracts.fields.forwardingAddress")}>
+                            <span className="whitespace-pre-line">{lease.forwarding_address}</span>
+                          </Row>
+                        </>
+                      ) : null}
+                      {lease.deposit_settled_at ? (
+                        <>
+                          <Row label={t("contracts.fields.depositSettledAt")}>
+                            {formatDate(lease.deposit_settled_at)}
                           </Row>
                           <Row label={t("contracts.fields.refunded")}>
                             <MoneyText value={Number(lease.deposit_refunded ?? 0)} />
@@ -423,6 +546,71 @@ function ContractDetailPage() {
                         </>
                       ) : null}
                     </dl>
+
+                    {/* The clock. Missing this deadline costs real money, so
+                        it is the loudest thing on the page once it starts. */}
+                    {clock.stage === "awaiting_forwarding" ? (
+                      <div className="mt-4 space-y-3 rounded-lg border border-warning/40 bg-warning/10 p-4">
+                        <p className="text-sm font-medium text-warning-foreground">
+                          {t("contracts.awaitingForwarding")}
+                        </p>
+                        <Button size="sm" onClick={() => setForwardingOpen(true)}>
+                          {t("contracts.recordForwarding")}
+                        </Button>
+                      </div>
+                    ) : null}
+
+                    {clock.stage === "running" || clock.stage === "overdue" ? (
+                      <div
+                        className={cn(
+                          "mt-4 space-y-3 rounded-lg border p-4",
+                          clock.tone === "danger"
+                            ? "border-danger/40 bg-danger/10"
+                            : clock.tone === "warning"
+                              ? "border-warning/40 bg-warning/10"
+                              : "border-border bg-muted/40",
+                        )}
+                      >
+                        <p className="text-sm font-medium">
+                          {clock.stage === "overdue"
+                            ? t("contracts.depositOverdue", {
+                                date: formatDate(clock.dueDate ?? ""),
+                                count: Math.abs(clock.daysRemaining ?? 0),
+                              })
+                            : t("contracts.depositCountdown", {
+                                date: formatDate(clock.dueDate ?? ""),
+                                count: clock.daysRemaining ?? 0,
+                              })}
+                        </p>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setItemization(parseItemization(lease.deposit_itemization));
+                            setSettleAck(false);
+                            setSettleOpen(true);
+                          }}
+                        >
+                          {t("contracts.settleDeposit")}
+                        </Button>
+                      </div>
+                    ) : null}
+
+                    {clock.stage === "settled" && itemizationRows.length > 0 ? (
+                      <div className="mt-4 rounded-lg border border-border">
+                        <p className="border-b border-border px-4 py-2 text-sm font-medium">
+                          {t("contracts.deductionsTitle")}
+                        </p>
+                        {itemizationRows.map((item, index) => (
+                          <div
+                            key={`${item.description}-${index}`}
+                            className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-b border-border px-4 py-2 text-sm last:border-b-0"
+                          >
+                            <span className="truncate">{item.description}</span>
+                            <MoneyText value={item.amount} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </section>
                 </div>
               </TabsContent>
@@ -529,68 +717,239 @@ function ContractDetailPage() {
               </Field>
             </FormDialog>
 
-            {/* ------------------------------------------- terminate the lease */}
+            {/* ---------------------------- stage 1: record move-out */}
             <FormDialog
-              open={endOpen}
+              open={moveOutOpen}
               onOpenChange={(next) => {
-                setEndOpen(next);
+                setMoveOutOpen(next);
                 if (!next) setError(null);
               }}
-              title={t("contracts.terminateTitle")}
+              title={t("contracts.recordMoveOutTitle")}
               description={t("contracts.terminateDescription", {
                 unit: context.unit?.unit_number ?? "—",
                 tenant: context.primaryTenant?.full_name ?? "—",
               })}
               error={error}
-              pending={terminate.isPending}
-              submitLabel={t("contracts.terminate")}
+              pending={recordMoveOut.isPending}
+              submitLabel={t("contracts.recordMoveOut")}
               onSubmit={() => {
                 setError(null);
-                const total = Number(endForm.refunded || 0) + Number(endForm.retained || 0);
-                if (total > Number(lease.deposit_amount) + 0.005)
-                  return setError(t("contracts.errors.depositOverflow"));
-                terminate.mutate(endForm);
+                recordMoveOut.mutate(moveOutForm);
               }}
             >
-              <Field label={t("contracts.fields.moveOut")} htmlFor="end-date">
+              <Field label={t("contracts.fields.surrenderDate")} htmlFor="surrender-date">
                 <Input
-                  id="end-date"
+                  id="surrender-date"
                   type="date"
                   className="numeric"
-                  value={endForm.move_out_date}
+                  value={moveOutForm.surrender_date}
                   onChange={(event) =>
-                    setEndForm({ ...endForm, move_out_date: event.target.value })
+                    setMoveOutForm({ ...moveOutForm, surrender_date: event.target.value })
                   }
                 />
               </Field>
-              <p className="text-sm text-muted-foreground">
-                {t("contracts.depositHeld")} <MoneyText value={Number(lease.deposit_amount)} />
-              </p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t("contracts.fields.refunded")}>
-                  <MoneyInput
-                    value={endForm.refunded}
-                    onChange={(value) => setEndForm({ ...endForm, refunded: value })}
-                  />
-                </Field>
-                <Field label={t("contracts.fields.retained")}>
-                  <MoneyInput
-                    value={endForm.retained}
-                    onChange={(value) => setEndForm({ ...endForm, retained: value })}
-                  />
-                </Field>
-              </div>
-              <Field label={t("contracts.fields.depositNotes")} htmlFor="end-notes">
+              <Field label={t("contracts.fields.moveOutNotes")} htmlFor="move-out-notes">
                 <Textarea
-                  id="end-notes"
-                  rows={3}
-                  value={endForm.notes}
-                  onChange={(event) => setEndForm({ ...endForm, notes: event.target.value })}
+                  id="move-out-notes"
+                  rows={4}
+                  placeholder={t("contracts.fields.moveOutNotesPlaceholder")}
+                  value={moveOutForm.move_out_notes}
+                  onChange={(event) =>
+                    setMoveOutForm({ ...moveOutForm, move_out_notes: event.target.value })
+                  }
                 />
               </Field>
+              <DocumentsPanel ownerType="lease" ownerId={id} bucket="contracts" />
+              <p className="rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-sm text-info">
+                {t("contracts.moveOutClockNotice")}
+              </p>
               <p className="rounded-lg border border-warning/25 bg-warning/10 px-3 py-2 text-sm text-warning">
                 {t("contracts.terminateWarning")}
               </p>
+            </FormDialog>
+
+            {/* ------------------- stage 2: the forwarding address starts it */}
+            <FormDialog
+              open={forwardingOpen}
+              onOpenChange={(next) => {
+                setForwardingOpen(next);
+                if (!next) setError(null);
+              }}
+              title={t("contracts.recordForwardingTitle")}
+              description={t("contracts.recordForwardingDescription")}
+              error={error}
+              pending={recordForwarding.isPending}
+              submitLabel={t("contracts.recordForwarding")}
+              onSubmit={() => {
+                setError(null);
+                if (!forwardingForm.forwarding_address.trim())
+                  return setError(t("contracts.errors.forwardingRequired"));
+                if (
+                  lease.surrender_date &&
+                  forwardingForm.forwarding_address_received_at < lease.surrender_date
+                )
+                  return setError(t("contracts.errors.forwardingBeforeSurrender"));
+                recordForwarding.mutate(forwardingForm);
+              }}
+            >
+              <Field label={t("contracts.fields.forwardingAddress")} htmlFor="forwarding-address">
+                <Textarea
+                  id="forwarding-address"
+                  rows={4}
+                  value={forwardingForm.forwarding_address}
+                  onChange={(event) =>
+                    setForwardingForm({
+                      ...forwardingForm,
+                      forwarding_address: event.target.value,
+                    })
+                  }
+                />
+              </Field>
+              <Field label={t("contracts.fields.forwardingReceived")} htmlFor="forwarding-date">
+                <Input
+                  id="forwarding-date"
+                  type="date"
+                  className="numeric"
+                  value={forwardingForm.forwarding_address_received_at}
+                  onChange={(event) =>
+                    setForwardingForm({
+                      ...forwardingForm,
+                      forwarding_address_received_at: event.target.value,
+                    })
+                  }
+                />
+              </Field>
+              <p className="rounded-lg border border-warning/25 bg-warning/10 px-3 py-2 text-sm text-warning">
+                {t("contracts.forwardingStartsClock", {
+                  date: formatDate(
+                    depositDueDate(forwardingForm.forwarding_address_received_at || todayIso()),
+                  ),
+                })}
+              </p>
+            </FormDialog>
+
+            {/* ------------------------------- settle: the itemized list */}
+            <FormDialog
+              open={settleOpen}
+              onOpenChange={(next) => {
+                setSettleOpen(next);
+                if (!next) setError(null);
+              }}
+              title={t("contracts.settleDepositTitle")}
+              description={t("contracts.settleDepositDescription")}
+              error={error}
+              pending={settleDeposit.isPending}
+              submitLabel={t("contracts.settleDeposit")}
+              onSubmit={() => {
+                setError(null);
+                if (itemization.some((item) => !item.description.trim()))
+                  return setError(t("contracts.errors.deductionDescriptionRequired"));
+                if (overDeposit && !settleAck)
+                  return setError(t("contracts.errors.deductionsOverDeposit"));
+                settleDeposit.mutate(undefined);
+              }}
+            >
+              <div className="space-y-2">
+                {itemization.map((item, index) => (
+                  <div key={index} className="grid grid-cols-[minmax(0,1fr)_9rem_auto] gap-2">
+                    <Input
+                      aria-label={t("contracts.fields.deductionDescription")}
+                      placeholder={t("contracts.fields.deductionPlaceholder")}
+                      value={item.description}
+                      onChange={(event) =>
+                        setItemization(
+                          itemization.map((row, rowIndex) =>
+                            rowIndex === index ? { ...row, description: event.target.value } : row,
+                          ),
+                        )
+                      }
+                    />
+                    <MoneyInput
+                      value={item.amount === 0 ? "" : item.amount}
+                      onChange={(value) =>
+                        setItemization(
+                          itemization.map((row, rowIndex) =>
+                            rowIndex === index ? { ...row, amount: value === "" ? 0 : value } : row,
+                          ),
+                        )
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t("actions.delete")}
+                      onClick={() =>
+                        setItemization(itemization.filter((_, rowIndex) => rowIndex !== index))
+                      }
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setItemization([...itemization, { description: "", amount: 0 }])}
+                >
+                  <Plus className="size-4" />
+                  {t("contracts.addDeduction")}
+                </Button>
+              </div>
+
+              <dl className="rounded-lg border border-border">
+                {(
+                  [
+                    ["contracts.depositHeld", Number(lease.deposit_amount)],
+                    ["contracts.totalDeductions", itemizationTotal(itemization)],
+                  ] as const
+                ).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-b border-border px-4 py-2 text-sm"
+                  >
+                    <dt className="text-muted-foreground">{t(key)}</dt>
+                    <dd>
+                      <MoneyText value={value} />
+                    </dd>
+                  </div>
+                ))}
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 bg-muted/50 px-4 py-2.5">
+                  <dt className="text-sm font-medium">{t("contracts.refundDue")}</dt>
+                  <dd>
+                    <MoneyText
+                      value={refundDue(Number(lease.deposit_amount), itemization)}
+                      className="font-semibold"
+                    />
+                  </dd>
+                </div>
+              </dl>
+
+              {overDeposit ? (
+                <div className="space-y-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2.5">
+                  <p className="text-sm text-warning-foreground">
+                    {t("contracts.deductionsExceedDeposit")}
+                  </p>
+                  <label className="flex items-start gap-2 text-sm text-warning-foreground">
+                    <Checkbox
+                      checked={settleAck}
+                      onCheckedChange={(checked) => setSettleAck(checked === true)}
+                    />
+                    <span>{t("contracts.deductionsExceedDepositAck")}</span>
+                  </label>
+                </div>
+              ) : null}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => downloadDisposition()}
+                disabled={!lease.forwarding_address_received_at}
+              >
+                <Download className="size-4" />
+                {t("contracts.downloadDisposition")}
+              </Button>
             </FormDialog>
 
             <LeaseWizard
