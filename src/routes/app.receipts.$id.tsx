@@ -583,6 +583,18 @@ function ReceiptDetailPage() {
                 if (!line.description.trim())
                   return setError(t("receipts.errors.descriptionRequired"));
                 if (line.amount === "") return setError(t("receipts.errors.amountRequired"));
+                // The manual line is the other way onto an invoice, so the
+                // §92.019 rules have to hold here too. The database refuses
+                // it regardless; this is so the manager sees why.
+                if (line.category === "recargo") {
+                  if (hasLateFee) return setError(t("receipts.lateFeeAlreadyApplied"));
+                  if (eligibility && !eligibility.eligible)
+                    return setError(
+                      t("receipts.lateFeeTooEarly", {
+                        date: formatDate(eligibility.eligibleFrom),
+                      }),
+                    );
+                }
                 addLine.mutate(line);
               }}
             >

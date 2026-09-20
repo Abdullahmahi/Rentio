@@ -21,7 +21,7 @@
 
 
 -- ============================================================================
--- 1/11  20260919000100_schema
+-- 1/12  20260919000100_schema
 -- ============================================================================
 -- Rentio — core schema
 -- All money is numeric(12,2). Never float.
@@ -436,7 +436,7 @@ insert into public.settings (company_name, invoice_prefix) values ('Rentio', 'RE
 
 
 -- ============================================================================
--- 2/11  20260919000200_rls
+-- 2/12  20260919000200_rls
 -- ============================================================================
 -- Rentio — row level security. Deny by default, everywhere.
 --
@@ -834,7 +834,7 @@ create policy storage_tenant_write on storage.objects
 
 
 -- ============================================================================
--- 3/11  20260919000300_portal_views
+-- 3/12  20260919000300_portal_views
 -- ============================================================================
 -- The tenant portal needs the tenant's OWN unit number and building address:
 -- it is the payment reference on the Inicio screen and the whole of the
@@ -869,7 +869,7 @@ grant select on public.my_lease_details to authenticated;
 
 
 -- ============================================================================
--- 4/11  20260919000400_public_settings_address
+-- 4/12  20260919000400_public_settings_address
 -- ============================================================================
 -- The recibo PDF prints the landlord's letterhead — company name, address and
 -- bank details — and a tenant must be able to render their own receipt. The
@@ -905,7 +905,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 5/11  20260920000500_us_localization
+-- 5/12  20260920000500_us_localization
 -- ============================================================================
 -- Prompt 15 — the properties are in El Paso, Texas, not Mexico.
 -- Addresses become US addresses. No business logic changes here.
@@ -995,7 +995,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 6/11  20260920000501_drop_rfc
+-- 6/12  20260920000501_drop_rfc
 -- ============================================================================
 -- Prompt 20's cleanup, pulled forward: `rfc` was captured for Mexican tax
 -- invoicing (CFDI) that will never happen for a Texas landlord. Removing it
@@ -1025,7 +1025,7 @@ $$;
 
 
 -- ============================================================================
--- 7/11  20260920000600_us_payment_methods
+-- 7/12  20260920000600_us_payment_methods
 -- ============================================================================
 -- Prompt 16 — US payment rails.
 --
@@ -1110,7 +1110,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 8/11  20260920000700_texas_late_fees
+-- 8/12  20260920000700_texas_late_fees
 -- ============================================================================
 -- Prompt 17 — Texas Property Code §92.019 constrains residential late fees.
 --
@@ -1185,7 +1185,7 @@ alter table public.settings
 
 
 -- ============================================================================
--- 9/11  20260920000800_deposit_clock
+-- 9/12  20260920000800_deposit_clock
 -- ============================================================================
 -- Prompt 18 — Texas Property Code §92.103–92.109, security deposit returns.
 --
@@ -1253,7 +1253,7 @@ grant select on public.deposit_obligations to authenticated;
 
 
 -- ============================================================================
--- 10/11  20260920000900_texas_repairs_notices_turnover
+-- 10/12  20260920000900_texas_repairs_notices_turnover
 -- ============================================================================
 -- Prompt 19 — three smaller Texas Property Code obligations.
 
@@ -1403,7 +1403,80 @@ create policy turnover_admin_delete on public.unit_turnover_checklist
 
 
 -- ============================================================================
--- 11/11  DEMO DATA
+-- 11/12  20260920001000_late_fee_guard
+-- ============================================================================
+-- Prompt 17 said "do not let a manager bypass the 2-day rule anywhere in the
+-- UI". The gated "Apply late fee" button honoured it; "Add line" did not.
+-- A manager could pick the "Late fee" category by hand and write a fee of any
+-- size to an invoice due today. Verified against the live database before
+-- this migration: a $999 late fee inserted with no check at all.
+--
+-- The button is not the guard. This is.
+
+create or replace function public.enforce_late_fee_rules()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  inv        record;
+  grace      int;
+  eligible   date;
+  existing   int;
+begin
+  if new.category <> 'recargo' then
+    return new;
+  end if;
+
+  select i.due_date, i.lease_id into inv
+  from public.invoices i where i.id = new.invoice_id;
+
+  if not found then
+    return new;
+  end if;
+
+  select greatest(l.grace_days, 2) into grace
+  from public.leases l where l.id = inv.lease_id;
+
+  -- §92.019(a): the rent must still be unpaid at the END of the second full
+  -- day after it was due, so the fee is chargeable from the day after that.
+  -- A longer grace period in the lease wins.
+  eligible := inv.due_date + coalesce(grace, 2) + 1;
+
+  if current_date < eligible then
+    raise exception using
+      errcode = 'check_violation',
+      message = format(
+        'Texas Property Code 92.019: a late fee on this invoice cannot be charged before %s.',
+        to_char(eligible, 'MM/DD/YYYY')
+      );
+  end if;
+
+  -- One late fee per invoice, whichever path wrote it.
+  select count(*) into existing
+  from public.invoice_lines il
+  where il.invoice_id = new.invoice_id
+    and il.category = 'recargo'
+    and il.id <> coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid);
+
+  if existing > 0 then
+    raise exception using
+      errcode = 'check_violation',
+      message = 'This invoice already has a late fee.';
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger invoice_lines_enforce_late_fee_rules
+  before insert or update on public.invoice_lines
+  for each row execute function public.enforce_late_fee_rules();
+
+
+-- ============================================================================
+-- 12/12  DEMO DATA
 -- ============================================================================
 -- Rentio — demo data (El Paso, Texas).
 -- Safe to re-run: it clears the demo tables first.
