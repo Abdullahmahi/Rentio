@@ -1619,19 +1619,16 @@ join t on t.rn = ((l.rn + r.offs - 1) % 30) + 1
 on conflict (lease_id, tenant_id) do nothing;
 
 -- ---------------------------------------------- move-in / turnover lists
--- §92.156 — rekey within 7 days of possession. Created for every lease,
--- and mostly complete, except on the newest leases where the rekey is
--- deliberately still open so the dashboard counter has something in it.
+-- §92.156 — rekey within 7 days of possession. Every lease that has been
+-- running for months is fully turned over; the two brand-new move-ins added
+-- at the bottom of this file are the ones still in progress.
 
-with numbered as (
-  select l.*, row_number() over (order by l.created_at, l.id) as rn from public.leases l
-)
 insert into public.unit_turnover_checklist (unit_id, lease_id, item, item_key, position, completed, completed_at)
 select
   l.unit_id, l.id, c.item, c.item_key, c.position,
-  done.completed,
-  case when done.completed then l.start_date + interval '2 days' end
-from numbered l
+  true,
+  l.start_date + interval '2 days'
+from public.leases l
 cross join (values
   ('Rekey locks (required within 7 days)',          'rekey_locks',               0),
   ('Test smoke alarms',                             'test_smoke_alarms',         1),
@@ -1640,16 +1637,6 @@ cross join (values
   ('Document unit condition with photos',           'document_condition_photos', 4),
   ('Collect renters insurance certificate',         'collect_renters_insurance', 5)
 ) as c(item, item_key, position)
--- Most turnovers are finished. Two leases are deliberately left unfinished,
--- one of them with the rekey still open past its 7-day deadline, so the
--- "Turnover tasks overdue" counter is not a permanently empty card.
-cross join lateral (
-  select case
-    when l.rn = 7  then false                                   -- nothing done
-    when l.rn = 13 then c.item_key <> 'rekey_locks'             -- rekey still open
-    else true
-  end as completed
-) done
 on conflict (lease_id, item_key) do nothing;
 
 -- ------------------------------------------------------ parking assignment
@@ -1913,7 +1900,7 @@ ended as (
     (current_date - interval '24 days')::date,
     (current_date - interval '24 days')::date,
     'Unit left clean. Carpet in the second bedroom is stained; keys and both remotes returned.',
-    E'Emiliano Rivas Cuéllar\n1200 Montana Ave, Apt 4\nEl Paso, TX 79902',
+    E'1200 Montana Ave, Apt 4\nEl Paso, TX 79902',
     (current_date - interval '18 days')::date
   from target_unit tu
   returning id
@@ -1924,5 +1911,70 @@ from ended
 join lateral (
   select id from public.tenants order by created_at desc limit 1
 ) t on true;
+
+-- ------------------------------------------------- two fresh move-ins
+-- Added last, after the invoice run, because a tenant who took possession
+-- this week genuinely has no invoice history yet. Their turnover checklists
+-- are still in progress: one inside its 7-day rekey window, one already
+-- past it, so both the amber and the red state of §92.156 are on screen.
+
+with vacant as (
+  select u.id, u.base_rent, row_number() over (order by p.name, u.unit_number) as rn
+  from public.units u join public.properties p on p.id = u.property_id
+  where u.status = 'vacante'
+),
+free_tenants as (
+  select tn.id, row_number() over (order by tn.created_at, tn.id) as rn
+  from public.tenants tn
+  where not exists (select 1 from public.lease_tenants lt where lt.tenant_id = tn.id)
+),
+moved_in as (
+  insert into public.leases (
+    unit_id, start_date, end_date, rent_amount, rent_due_day, grace_days,
+    late_fee_type, late_fee_percent, late_fee_amount, deposit_amount, status
+  )
+  select
+    v.id,
+    (current_date - d.days_ago)::date,
+    (current_date - d.days_ago + interval '12 months' - interval '1 day')::date,
+    v.base_rent, 1, 2, 'percent', 10.00, 0, v.base_rent, 'activo'
+  from vacant v
+  join (values (1, 4), (2, 9)) as d(rn, days_ago) on d.rn = v.rn
+  returning id, unit_id, start_date
+),
+numbered_moves as (
+  select m.*, row_number() over (order by m.start_date desc) as rn from moved_in m
+),
+tenanted as (
+  insert into public.lease_tenants (lease_id, tenant_id, role)
+  select nm.id, ft.id, 'primary'
+  from numbered_moves nm join free_tenants ft on ft.rn = nm.rn
+  returning lease_id
+)
+insert into public.unit_turnover_checklist (unit_id, lease_id, item, item_key, position, completed, completed_at)
+select
+  m.unit_id, m.id, c.item, c.item_key, c.position,
+  -- The four-day-old move-in has made a start; the nine-day-old one has not,
+  -- and its rekey is therefore two days past the statutory deadline.
+  done.completed,
+  case when done.completed then now() - interval '1 day' end
+from numbered_moves m
+cross join (values
+  ('Rekey locks (required within 7 days)',          'rekey_locks',               0),
+  ('Test smoke alarms',                             'test_smoke_alarms',         1),
+  ('Verify deadbolt and keyless bolting device',    'verify_deadbolt_keyless',   2),
+  ('Verify window latches',                         'verify_window_latches',     3),
+  ('Document unit condition with photos',           'document_condition_photos', 4),
+  ('Collect renters insurance certificate',         'collect_renters_insurance', 5)
+) as c(item, item_key, position)
+cross join lateral (
+  select case
+    when m.start_date > current_date - 7 then c.item_key in ('test_smoke_alarms', 'document_condition_photos')
+    else false
+  end as completed
+) done;
+
+update public.units u set status = 'ocupada'
+where exists (select 1 from public.leases l where l.unit_id = u.id and l.status = 'activo');
 
 commit;

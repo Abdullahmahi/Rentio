@@ -33,7 +33,9 @@ Deno.serve(async (request) => {
     if (!userId) throw new Error("could not resolve the invited user");
 
     const { error: profileError } = await service.from("profiles").upsert({
-      id: userId, full_name: fullName ?? null, role, tenant_id: null, locale: "es-MX",
+      // locale stays NULL so the internal portal's English default applies
+      // until this person picks a language for themselves.
+      id: userId, full_name: fullName ?? null, role, tenant_id: null,
     });
     if (profileError) throw profileError;
 

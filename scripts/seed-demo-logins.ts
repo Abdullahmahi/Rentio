@@ -121,7 +121,10 @@ async function main() {
       full_name: user.fullName,
       role: user.role,
       tenant_id: user.tenantId,
-      locale: "es-MX",
+      // locale stays NULL — "never chosen", so each portal's default applies:
+      // English for staff, Spanish for tenants. Forcing it here put every
+      // staff account into Spanish regardless.
+      locale: null,
     });
     if (profileError) {
       console.error(`  ${user.email.padEnd(30)} profile failed: ${profileError.message}`);
