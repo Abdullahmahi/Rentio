@@ -1,29 +1,30 @@
-# Welcome to your Lovable project
+# Rentio
 
-This project was built with [Lovable](https://lovable.dev).
+Property and rental management for a portfolio in El Paso, Texas. Two portals:
+an internal one for staff and a tenant-facing one, both bilingual
+(English / Spanish).
 
-## Build with Lovable
+Built with TanStack Start, React, TypeScript, Tailwind CSS and Supabase.
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Running it
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+bun install
+bun run dev
 ```
 
-## Built with
+Setting up the database, the environment variables and the demo logins is in
+[SETUP.md](SETUP.md).
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+## Checks
+
+```sh
+bun test                 # unit tests
+bunx tsc --noEmit        # types
+bunx eslint .            # lint
+bun run build            # production build
+```
+
+Texas Property Code compliance — late fees, security deposits, repair
+notices — is summarised at the end of [SETUP.md](SETUP.md). It is a build
+specification, not legal advice.
