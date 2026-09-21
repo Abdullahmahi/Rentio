@@ -143,6 +143,28 @@ async function main() {
       `  ${user.email.padEnd(30)} ${user.role.padEnd(8)} ${signInError ? `SIGN-IN FAILED: ${signInError.message}` : "sign-in OK"}`,
     );
   }
+
+  // Prune logins this run did not claim.
+  //
+  // Reseeding changes which tenants exist, and their emails with them. The
+  // seed's TRUNCATE cascades away the profile rows but cannot touch
+  // auth.users, so every earlier demo account survives as a login with no
+  // profile — it signs in fine and then lands in the app with no role.
+  // Whoever is demoing hits a blank portal and has no idea why.
+  const wanted = new Set(demo.map((user) => user.email.toLowerCase()));
+  const stale = (await listAllUsers()).filter((user) => {
+    const email = user.email?.toLowerCase();
+    if (!email || wanted.has(email)) return false;
+    // Only ever touch demo domains. A real invited user is not ours to delete.
+    return /@(example\.com|example\.mx|suncitypm\.com|rentio\.mx)$/.test(email);
+  });
+
+  for (const user of stale) {
+    const { error } = await admin.auth.admin.deleteUser(user.id);
+    console.log(
+      `  ${(user.email ?? user.id).padEnd(30)} ${"stale".padEnd(8)} ${error ? `could not remove: ${error.message}` : "removed"}`,
+    );
+  }
 }
 
 main().catch((error) => {
