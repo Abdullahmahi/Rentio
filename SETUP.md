@@ -25,12 +25,20 @@ bun run db:demo-logins
 This goes through the Supabase Admin API and prints a real sign-in check per
 account, so a row that exists but cannot log in shows up immediately.
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Admin | `admin@suncitypm.com` | `Rentio2026!` |
-| Property manager | `manager@suncitypm.com` | `Rentio2026!` |
-| Admin (legacy alias) | `admin@rentio.mx` | `Rentio2026!` |
-| Tenant | the first three primary tenants from the seed | `Rentio2026!` |
+Password for every account below: `Rentio2026!`
+
+| Role | Email |
+| --- | --- |
+| Admin | `admin@suncitypm.com` |
+| Property manager | `manager@suncitypm.com` |
+| Admin (legacy alias) | `admin@rentio.mx` |
+| Tenant | `brandon.nguyen@example.com` |
+| Tenant | `lucia.beltran@example.com` |
+| Tenant | `rocio.guadalupe@example.com` |
+
+**The tenant logins change whenever the demo data is reseeded**, because they
+are derived from whichever tenants the seed created. `db:demo-logins` prints
+the current set at the end of every run — trust that over this table.
 
 Reseeding changes which tenants exist, so their logins change with them.
 `db:demo-logins` removes any demo login it did not just create — otherwise

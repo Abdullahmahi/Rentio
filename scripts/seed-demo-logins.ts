@@ -176,6 +176,17 @@ async function main() {
       `  ${(user.email ?? user.id).padEnd(30)} ${"stale".padEnd(8)} ${error ? `could not remove: ${error.message}` : "removed"}`,
     );
   }
+
+  // Reseeding changes which tenants exist, so the tenant logins change with
+  // them. Print them where whoever is about to demo will actually see them,
+  // rather than leaving them to be guessed from the seed.
+  console.log(`\n  Demo credentials — password for all of them: ${password}\n`);
+  for (const role of ["admin", "manager", "tenant"] as const) {
+    for (const user of demo.filter((candidate) => candidate.role === role)) {
+      console.log(`    ${role.padEnd(8)} ${user.email}`);
+    }
+  }
+  console.log("");
 }
 
 main().catch((error) => {
