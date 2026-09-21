@@ -29,7 +29,13 @@ account, so a row that exists but cannot log in shows up immediately.
 | --- | --- | --- |
 | Admin | `admin@suncitypm.com` | `Rentio2026!` |
 | Property manager | `manager@suncitypm.com` | `Rentio2026!` |
+| Admin (legacy alias) | `admin@rentio.mx` | `Rentio2026!` |
 | Tenant | the first three primary tenants from the seed | `Rentio2026!` |
+
+Reseeding changes which tenants exist, so their logins change with them.
+`db:demo-logins` removes any demo login it did not just create — otherwise
+the old accounts keep working, land with no profile, and show a blank
+portal. It only ever touches the demo domains.
 
 Change these before anyone outside the team sees the app.
 

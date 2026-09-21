@@ -63,6 +63,8 @@ async function main() {
   if (tenantError) throw tenantError;
 
   const demo: DemoUser[] = [
+    // The demo company is Sun City Property Management, so this is the
+    // credential to show a customer.
     {
       email: "admin@suncitypm.com",
       fullName: "Mariana Torres Aguilar",
@@ -73,6 +75,15 @@ async function main() {
       email: "manager@suncitypm.com",
       fullName: "Diego Lozano Ibarra",
       role: "manager",
+      tenantId: null,
+    },
+    // Kept so saved passwords from before the El Paso rename still work.
+    // It has to be listed here, not created by hand, or the prune below
+    // removes it on the next run.
+    {
+      email: "admin@rentio.mx",
+      fullName: "Mariana Torres Aguilar",
+      role: "admin",
       tenantId: null,
     },
     ...(tenants ?? []).map((tenant) => ({
