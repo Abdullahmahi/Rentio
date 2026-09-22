@@ -64,7 +64,7 @@ export function Footer() {
           <ul className="mt-3 space-y-2 text-sm">
             <li>
               <Link
-                to="/login"
+                to="/sign-in"
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
                 {t("footer.signIn")}

@@ -267,7 +267,7 @@ function PortalProfile() {
           className="h-12 w-full text-danger"
           onClick={() => {
             void signOut()
-              .then(() => navigate({ to: "/login", replace: true }))
+              .then(() => navigate({ to: "/sign-in", replace: true }))
               .catch((caught) => toast.error(t(describeError(caught))));
           }}
         >

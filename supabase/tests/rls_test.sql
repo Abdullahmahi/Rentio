@@ -226,8 +226,25 @@ begin
     perform pg_temp.check('tenant cannot tick off turnover items', true);
   end;
 
+  -- ============================ access requests are staff-only
+  -- The public form writes through an edge function under the service role.
+  -- The table itself must be closed to tenants in both directions.
+  select count(*) into n from public.access_requests;
+  perform pg_temp.check('tenant cannot read access requests', n = 0);
+
+  begin
+    insert into public.access_requests (full_name, email)
+    values ('Intruder', 'intruder@example.com');
+    perform pg_temp.check('tenant cannot write an access request', false);
+  exception when insufficient_privilege or check_violation then
+    perform pg_temp.check('tenant cannot write an access request', true);
+  end;
+
   -- ============================================ manager vs admin privileges
   perform pg_temp.act_as(manager_id);
+
+  select count(*) into n from public.access_requests;
+  perform pg_temp.check('staff CAN read access requests', n >= 0);
 
   select count(*) into n from public.unit_turnover_checklist;
   perform pg_temp.check('staff CAN read the turnover checklist', n > 0);

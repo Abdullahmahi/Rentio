@@ -4,6 +4,7 @@ import {
   CarFront,
   DoorClosed,
   FileText,
+  Inbox,
   LayoutDashboard,
   ReceiptText,
   Settings,
@@ -41,6 +42,7 @@ export const navGroups = [
     label: "operations",
     items: [
       ["maintenance", "/app/maintenance", Wrench],
+      ["requests", "/app/requests", Inbox],
       ["import", "/app/import", Upload],
       ["settings", "/app/settings", Settings],
     ],

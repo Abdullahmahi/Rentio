@@ -10,11 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ActivateRouteImport } from './routes/activate'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as RequestAccessRouteImport } from './routes/request-access'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
@@ -33,6 +36,7 @@ import { Route as AppPropertiesIdRouteImport } from './routes/app.properties.$id
 import { Route as AppReceiptsIndexRouteImport } from './routes/app.receipts.index'
 import { Route as AppReceiptsIdRouteImport } from './routes/app.receipts.$id'
 import { Route as AppReportsIndexRouteImport } from './routes/app.reports.index'
+import { Route as AppRequestsIndexRouteImport } from './routes/app.requests.index'
 import { Route as AppServicesIndexRouteImport } from './routes/app.services.index'
 import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
 import { Route as AppTenantsIndexRouteImport } from './routes/app.tenants.index'
@@ -47,6 +51,11 @@ import { Route as PortalReceiptsIdRouteImport } from './routes/portal.receipts.$
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivateRoute = ActivateRouteImport.update({
+  id: '/activate',
+  path: '/activate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -69,9 +78,19 @@ const PortalRoute = PortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RequestAccessRoute = RequestAccessRouteImport.update({
+  id: '/request-access',
+  path: '/request-access',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -164,6 +183,11 @@ const AppReportsIndexRoute = AppReportsIndexRouteImport.update({
   path: '/reports/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRequestsIndexRoute = AppRequestsIndexRouteImport.update({
+  id: '/requests/',
+  path: '/requests/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppServicesIndexRoute = AppServicesIndexRouteImport.update({
   id: '/services/',
   path: '/services/',
@@ -217,11 +241,14 @@ const PortalReceiptsIdRoute = PortalReceiptsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activate': typeof ActivateRoute
   '/app': typeof AppRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
+  '/request-access': typeof RequestAccessRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sign-in': typeof SignInRoute
   '/signup': typeof SignupRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
@@ -244,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/app/properties/': typeof AppPropertiesIndexRoute
   '/app/receipts/': typeof AppReceiptsIndexRoute
   '/app/reports/': typeof AppReportsIndexRoute
+  '/app/requests/': typeof AppRequestsIndexRoute
   '/app/services/': typeof AppServicesIndexRoute
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tenants/': typeof AppTenantsIndexRoute
@@ -253,9 +281,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activate': typeof ActivateRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/request-access': typeof RequestAccessRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sign-in': typeof SignInRoute
   '/signup': typeof SignupRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
@@ -278,6 +309,7 @@ export interface FileRoutesByTo {
   '/app/properties': typeof AppPropertiesIndexRoute
   '/app/receipts': typeof AppReceiptsIndexRoute
   '/app/reports': typeof AppReportsIndexRoute
+  '/app/requests': typeof AppRequestsIndexRoute
   '/app/services': typeof AppServicesIndexRoute
   '/app/settings': typeof AppSettingsIndexRoute
   '/app/tenants': typeof AppTenantsIndexRoute
@@ -288,11 +320,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activate': typeof ActivateRoute
   '/app': typeof AppRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
+  '/request-access': typeof RequestAccessRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sign-in': typeof SignInRoute
   '/signup': typeof SignupRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
@@ -315,6 +350,7 @@ export interface FileRoutesById {
   '/app/properties/': typeof AppPropertiesIndexRoute
   '/app/receipts/': typeof AppReceiptsIndexRoute
   '/app/reports/': typeof AppReportsIndexRoute
+  '/app/requests/': typeof AppRequestsIndexRoute
   '/app/services/': typeof AppServicesIndexRoute
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tenants/': typeof AppTenantsIndexRoute
@@ -326,11 +362,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/activate'
     | '/app'
     | '/forgot-password'
     | '/login'
     | '/portal'
+    | '/request-access'
     | '/reset-password'
+    | '/sign-in'
     | '/signup'
     | '/portal/contracts'
     | '/portal/profile'
@@ -353,6 +392,7 @@ export interface FileRouteTypes {
     | '/app/properties/'
     | '/app/receipts/'
     | '/app/reports/'
+    | '/app/requests/'
     | '/app/services/'
     | '/app/settings/'
     | '/app/tenants/'
@@ -362,9 +402,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/activate'
     | '/forgot-password'
     | '/login'
+    | '/request-access'
     | '/reset-password'
+    | '/sign-in'
     | '/signup'
     | '/portal/contracts'
     | '/portal/profile'
@@ -387,6 +430,7 @@ export interface FileRouteTypes {
     | '/app/properties'
     | '/app/receipts'
     | '/app/reports'
+    | '/app/requests'
     | '/app/services'
     | '/app/settings'
     | '/app/tenants'
@@ -396,11 +440,14 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/activate'
     | '/app'
     | '/forgot-password'
     | '/login'
     | '/portal'
+    | '/request-access'
     | '/reset-password'
+    | '/sign-in'
     | '/signup'
     | '/portal/contracts'
     | '/portal/profile'
@@ -423,6 +470,7 @@ export interface FileRouteTypes {
     | '/app/properties/'
     | '/app/receipts/'
     | '/app/reports/'
+    | '/app/requests/'
     | '/app/services/'
     | '/app/settings/'
     | '/app/tenants/'
@@ -433,11 +481,14 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivateRoute: typeof ActivateRoute
   AppRoute: typeof AppRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
+  RequestAccessRoute: typeof RequestAccessRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SignInRoute: typeof SignInRoute
   SignupRoute: typeof SignupRoute
 }
 
@@ -448,6 +499,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activate': {
+      id: '/activate'
+      path: '/activate'
+      fullPath: '/activate'
+      preLoaderRoute: typeof ActivateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -478,11 +536,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/request-access': {
+      id: '/request-access'
+      path: '/request-access'
+      fullPath: '/request-access'
+      preLoaderRoute: typeof RequestAccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -611,6 +683,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/requests/': {
+      id: '/app/requests/'
+      path: '/requests'
+      fullPath: '/app/requests/'
+      preLoaderRoute: typeof AppRequestsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/services/': {
       id: '/app/services/'
       path: '/services'
@@ -700,6 +779,7 @@ interface AppRouteChildren {
   AppPropertiesIndexRoute: typeof AppPropertiesIndexRoute
   AppReceiptsIndexRoute: typeof AppReceiptsIndexRoute
   AppReportsIndexRoute: typeof AppReportsIndexRoute
+  AppRequestsIndexRoute: typeof AppRequestsIndexRoute
   AppServicesIndexRoute: typeof AppServicesIndexRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
   AppTenantsIndexRoute: typeof AppTenantsIndexRoute
@@ -722,6 +802,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPropertiesIndexRoute: AppPropertiesIndexRoute,
   AppReceiptsIndexRoute: AppReceiptsIndexRoute,
   AppReportsIndexRoute: AppReportsIndexRoute,
+  AppRequestsIndexRoute: AppRequestsIndexRoute,
   AppServicesIndexRoute: AppServicesIndexRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
   AppTenantsIndexRoute: AppTenantsIndexRoute,
@@ -757,11 +838,14 @@ const PortalRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivateRoute: ActivateRoute,
   AppRoute: AppRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
+  RequestAccessRoute: RequestAccessRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SignInRoute: SignInRoute,
   SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport

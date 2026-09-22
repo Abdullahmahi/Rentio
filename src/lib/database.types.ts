@@ -6,6 +6,54 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      access_requests: {
+        Row: {
+          id: string;
+          full_name: string;
+          email: string;
+          phone: string | null;
+          property_hint: string | null;
+          unit_hint: string | null;
+          status: Database["public"]["Enums"]["access_request_status"];
+          matched_tenant_id: string | null;
+          note: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          full_name: string;
+          email: string;
+          phone?: string | null;
+          property_hint?: string | null;
+          unit_hint?: string | null;
+          status?: Database["public"]["Enums"]["access_request_status"];
+          matched_tenant_id?: string | null;
+          note?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          full_name?: string;
+          email?: string;
+          phone?: string | null;
+          property_hint?: string | null;
+          unit_hint?: string | null;
+          status?: Database["public"]["Enums"]["access_request_status"];
+          matched_tenant_id?: string | null;
+          note?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       activity_log: {
         Row: {
           id: string;
@@ -960,6 +1008,7 @@ export type Database = {
       next_invoice_number: { Args: Record<string, never>; Returns: string };
     };
     Enums: {
+      access_request_status: "pending" | "approved" | "declined";
       invoice_status:
         "borrador" | "enviado" | "pagado_parcial" | "pagado" | "vencido" | "cancelado";
       late_fee_type: "fixed" | "percent";

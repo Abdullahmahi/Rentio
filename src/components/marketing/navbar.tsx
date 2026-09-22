@@ -55,7 +55,7 @@ export function Navbar() {
 
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" className="hidden sm:inline-flex">
-            <Link to="/login">{t("nav.signIn")}</Link>
+            <Link to="/sign-in">{t("nav.signIn")}</Link>
           </Button>
           <BookingLink className="hidden sm:inline-flex">{t("nav.book")}</BookingLink>
 
@@ -86,7 +86,7 @@ export function Navbar() {
                 ))}
                 <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
                   <Button asChild variant="outline" className="h-12 w-full">
-                    <Link to="/login">{t("nav.signIn")}</Link>
+                    <Link to="/sign-in">{t("nav.signIn")}</Link>
                   </Button>
                   <BookingLink className="h-12 w-full">{t("nav.book")}</BookingLink>
                 </div>

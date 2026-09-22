@@ -25,7 +25,8 @@
       "money": "Dinero",
       "operations": "Operaciones"
     },
-    "maintenanceShort": "Solicitudes"
+    "maintenanceShort": "Solicitudes",
+    "requests": "Solicitudes de acceso"
   },
   "pages": {
     "dashboard": {
@@ -95,6 +96,10 @@
       "contract": "Contrato",
       "receipt": "Recibo",
       "workOrder": "Orden de trabajo"
+    },
+    "requests": {
+      "title": "Solicitudes de acceso",
+      "description": "Personas que piden acceso al portal y aún no tienen invitación."
     }
   },
   "empty": {
@@ -174,7 +179,6 @@
     "email": "Correo electrónico",
     "password": "Contraseña",
     "forgotPassword": "¿Olvidaste tu contraseña?",
-    "noSignup": "Los inquilinos crean su propio acceso arriba. Las cuentas del personal las crea un administrador.",
     "checkingSession": "Verificando tu sesión…",
     "forgotPasswordTitle": "Restablecer contraseña",
     "forgotPasswordDescription": "Te enviaremos un enlace para crear una contraseña nueva.",
@@ -196,15 +200,56 @@
       "emailRequired": "Ingresa tu correo electrónico.",
       "passwordRequired": "Ingresa tu contraseña.",
       "passwordTooShort": "La contraseña debe tener al menos {{min}} caracteres.",
-      "passwordMismatch": "Las contraseñas no coinciden."
+      "passwordMismatch": "Las contraseñas no coinciden.",
+      "nameRequired": "Escribe tu nombre completo."
     },
     "signUp": "Crear acceso al portal",
     "signUpTitle": "Crear acceso al portal",
     "signUpDescription": "Si rentas con nosotros, escribe el correo que aparece en tu contrato y te enviaremos un enlace para elegir tu contraseña.",
     "signUpSent": "Revisa tu correo.",
     "signUpSentHint": "Si ese correo está en un contrato, ya va en camino un enlace para establecer tu contraseña. Puede tardar unos minutos.",
-    "signUpStaffNote": "Las cuentas del personal las crea un administrador, no aquí.",
-    "tenantSignUpLink": "¿Eres inquilino? Crea tu acceso"
+    "tenantSignUpLink": "¿Eres inquilino? Crea tu acceso",
+    "firstTimeHere": "¿Primera vez aquí?",
+    "activateYourAccount": "Activa tu cuenta →",
+    "orContinueWith": "o continúa con",
+    "unrecognisedAccount": "No encontramos una cuenta con ese correo.",
+    "requestAccessCta": "Solicitar acceso →",
+    "activateTitle": "Crea tu contraseña",
+    "activateWelcome": "Bienvenido, {{name}}",
+    "activateDescription": "Elige una contraseña y tu portal queda listo.",
+    "linkExpiredTitle": "Ese enlace ya venció",
+    "linkExpiredDescription": "Los enlaces de invitación se usan una sola vez. Escribe tu correo y te enviamos otro.",
+    "sendNewLink": "Envíame un enlace nuevo",
+    "requestAccessTitle": "Solicitar acceso",
+    "requestAccessDescription": "Dinos dónde vives y te vinculamos con tu contrato.",
+    "requestAccessSubmit": "Solicitar acceso",
+    "requestAccessSent": "Gracias — recibimos tu solicitud.",
+    "requestAccessSentHint": "Si podemos vincularte con un contrato, recibirás un correo en un día hábil.",
+    "contactManager": "¿Lo necesitas antes? Contacta a tu administrador:",
+    "continueWith": {
+      "google": "Continuar con Google"
+    },
+    "fields": {
+      "fullName": "Nombre completo",
+      "property": "Propiedad o dirección",
+      "propertyPlaceholder": "p. ej. Mesa Hills Apartments, o 5820 Mesa Hills Dr",
+      "unit": "Número de unidad",
+      "phone": "Teléfono"
+    },
+    "valueRows": {
+      "leases": {
+        "title": "Contratos y documentos",
+        "body": "Tu contrato, recibos y avisos en un solo lugar, legibles desde el teléfono."
+      },
+      "payments": {
+        "title": "Pagos y recibos",
+        "body": "Consulta lo que debes, reporta un pago y guarda constancia de cada uno."
+      },
+      "maintenance": {
+        "title": "Solicitudes de mantenimiento",
+        "body": "Reporta un problema con fotos y dale seguimiento hasta que se resuelva."
+      }
+    }
   },
   "roles": {
     "admin": "Administrador",
@@ -1047,14 +1092,17 @@
       "expiring": "Contratos por vencer",
       "depositsDue": "Depósitos por devolver",
       "healthSafetyOverdue": "Reparaciones S y S a más de 7 días",
-      "turnoverOverdue": "Tareas de entrega vencidas"
+      "turnoverOverdue": "Tareas de entrega vencidas",
+      "accessRequests": "Solicitudes de acceso"
     },
     "depositsOverdue": "{{count}} depósito fuera del plazo legal",
     "depositsOverdue_other": "{{count}} depósitos fuera del plazo legal",
     "depositsSoonest": "El más próximo en {{count}} día",
     "depositsSoonest_other": "El más próximo en {{count}} días",
     "healthSafetyHint": "Código de Propiedad de Texas §92.056",
-    "turnoverHint": "Cambio de cerraduras en 7 días — §92.156"
+    "turnoverHint": "Cambio de cerraduras en 7 días — §92.156",
+    "accessRequestsPending": "{{count}} solicitud por revisar",
+    "accessRequestsPending_other": "{{count}} solicitudes por revisar"
   },
   "reports": {
     "daysOverdue": "Días vencido",
@@ -1259,6 +1307,37 @@
       "newWorkOrder": "Nueva orden de trabajo",
       "toggleLanguage": "Cambiar idioma",
       "toggleTheme": "Cambiar modo oscuro"
+    }
+  },
+  "requests": {
+    "emptyTitle": "Sin solicitudes",
+    "emptyDescription": "Las solicitudes del formulario de acceso llegan aquí para su revisión.",
+    "review": "Revisar",
+    "reviewTitle": "Revisar solicitud de acceso",
+    "reviewDescription": "Confirma de qué inquilino se trata antes de aprobar. Al aprobar se le envía una invitación al portal.",
+    "approve": "Aprobar e invitar",
+    "decline": "Rechazar",
+    "approved": "Aprobada — invitación enviada.",
+    "declined": "Solicitud rechazada.",
+    "noMatch": "Sin coincidencia",
+    "columns": {
+      "where": "Propiedad / unidad",
+      "match": "Coincidencia sugerida",
+      "received": "Recibida",
+      "status": "Estado"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "approved": "Aprobada",
+      "declined": "Rechazada"
+    },
+    "fields": {
+      "matchTo": "Vincular con inquilino",
+      "matchToHint": "La sugerencia solo compara el correo. Confírmala contra el contrato antes de aprobar.",
+      "note": "Nota interna"
+    },
+    "errors": {
+      "tenantRequired": "Elige el inquilino al que corresponde esta solicitud."
     }
   }
 }

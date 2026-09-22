@@ -83,7 +83,8 @@ Deployed to project `duttovdfuyywsvczkyur`. To redeploy after a change:
 export SUPABASE_ACCESS_TOKEN=sbp_...
 npx supabase functions deploy generate-invoice-pdf send-invoice-email \
   send-tenant-invite send-staff-invite generate-deposit-disposition \
-  generate-notice-to-vacate --project-ref duttovdfuyywsvczkyur
+  generate-notice-to-vacate tenant-self-enroll submit-access-request \
+  --project-ref duttovdfuyywsvczkyur
 ```
 
 > Every import in `supabase/functions/**` must be a fully-qualified
@@ -153,3 +154,24 @@ comparison goes through `src/lib/format.ts`, which answers "today" in
 `America/Denver` and treats a `date` column as a calendar date rather than a
 UTC instant. Do not reintroduce `new Date().toISOString().slice(0, 10)`; from
 6pm local until midnight it returns tomorrow.
+
+## Social sign-in
+
+No OAuth provider is enabled yet — `/auth/v1/settings` reports `google`,
+`apple` and `facebook` all false. The sign-in page asks that endpoint at
+runtime and renders a provider button only for what is actually switched on,
+so **no redeploy is needed** once you enable one.
+
+To turn on Google: create an OAuth client in Google Cloud, add
+`https://duttovdfuyywsvczkyur.supabase.co/auth/v1/callback` as an authorised
+redirect URI, then paste the client ID and secret into Supabase →
+Authentication → Providers → Google. The button appears on next page load.
+
+Apple needs an Apple Developer Program membership ($99/year); Facebook needs
+a Meta app and a public privacy policy URL. `src/lib/auth-providers.ts` takes
+either by adding to `SUPPORTED_PROVIDERS` and a mark to `oauth-buttons.tsx`.
+
+> Someone signing in with a social account that has no `profiles` row is
+> signed straight back out with "We couldn't find an account for that
+> address" and pointed at `/request-access`. Without that they would loop
+> between the route guard and the shell forever.

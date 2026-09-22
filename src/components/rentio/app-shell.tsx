@@ -59,7 +59,7 @@ export function AppShell() {
 
   const handleSignOut = async () => {
     await signOut();
-    void navigate({ to: "/login", replace: true });
+    void navigate({ to: "/sign-in", replace: true });
   };
 
   // Exact match first, then longest prefix, so /app/units/$id still titles the

@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Building2, Loader2, MailCheck, UserPlus } from "lucide-react";
+import { Loader2, MailCheck, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BrandPanel } from "@/components/rentio/brand-panel";
+import { AuthLayout } from "@/components/rentio/auth-layout";
 import { supabase } from "@/lib/supabase";
 import i18n from "@/lib/i18n";
 
@@ -50,63 +50,57 @@ function SignUpPage() {
   };
 
   return (
-    <div className="grid min-h-screen bg-background lg:grid-cols-2">
-      <div className="flex items-center justify-center px-4 py-12 sm:px-8">
-        <div className="w-full max-w-sm">
-          <h1 className="text-2xl font-semibold">{t("auth.signUpTitle")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("auth.signUpDescription")}</p>
-
-          {sent ? (
-            <div className="mt-8 rounded-lg border border-success/25 bg-success/10 p-4">
-              <MailCheck className="size-5 text-success" />
-              <p className="mt-2 text-sm font-medium text-foreground">{t("auth.signUpSent")}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{t("auth.signUpSentHint")}</p>
-            </div>
-          ) : (
-            <form className="mt-8 space-y-4" onSubmit={onSubmit} noValidate>
-              <div className="space-y-2">
-                <Label htmlFor="email">{t("auth.email")}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@company.com"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  aria-invalid={Boolean(error)}
-                  aria-describedby={error ? "signup-error" : undefined}
-                />
-              </div>
-
-              {error ? (
-                <p id="signup-error" role="alert" className="text-sm text-danger">
-                  {error}
-                </p>
-              ) : null}
-
-              <Button type="submit" className="h-11 w-full" disabled={submitting}>
-                {submitting ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <UserPlus className="size-4" />
-                )}
-                {t("auth.signUp")}
-              </Button>
-            </form>
-          )}
-
-          <Link
-            to="/login"
-            className="mt-6 inline-block text-sm font-medium text-primary hover:underline"
-          >
-            {t("auth.backToSignIn")}
-          </Link>
-
-          <p className="mt-8 text-xs text-muted-foreground">{t("auth.signUpStaffNote")}</p>
+    <AuthLayout title={t("auth.signUpTitle")} description={t("auth.signUpDescription")}>
+      {sent ? (
+        <div className="mt-8 rounded-lg border border-success/25 bg-success/10 p-4">
+          <MailCheck className="size-5 text-success" />
+          <p className="mt-2 text-sm font-medium text-foreground">{t("auth.signUpSent")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("auth.signUpSentHint")}</p>
         </div>
-      </div>
+      ) : (
+        <form className="mt-8 space-y-4" onSubmit={onSubmit} noValidate>
+          <div className="space-y-2">
+            <Label htmlFor="email">{t("auth.email")}</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              className="h-12"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "signup-error" : undefined}
+            />
+          </div>
 
-      <BrandPanel icon={Building2} />
-    </div>
+          {error ? (
+            <p
+              id="signup-error"
+              role="alert"
+              className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+            >
+              {error}
+            </p>
+          ) : null}
+
+          <Button type="submit" className="h-12 w-full text-base" disabled={submitting}>
+            {submitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <UserPlus className="size-4" />
+            )}
+            {t("auth.signUp")}
+          </Button>
+        </form>
+      )}
+
+      <Link
+        to="/sign-in"
+        className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+      >
+        {t("auth.backToSignIn")}
+      </Link>
+    </AuthLayout>
   );
 }

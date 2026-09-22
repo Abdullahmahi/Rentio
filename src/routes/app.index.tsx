@@ -292,6 +292,18 @@ function DashboardPage() {
     },
   });
 
+  const pendingRequests = useQuery({
+    queryKey: ["access-requests", "pending-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("access_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
   const openOrderCounts = useQuery({
     queryKey: [...qk.workOrders, "open-counts"],
     queryFn: async () => {
@@ -404,6 +416,19 @@ function DashboardPage() {
       />
 
       {/* Alert strip — the confirmation queue is the thing that goes stale. */}
+      {(pendingRequests.data ?? 0) > 0 ? (
+        <Link
+          to="/app/requests"
+          className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning hover:bg-warning/15"
+        >
+          <AlertTriangle className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1">
+            {t("dashboard.accessRequestsPending", { count: pendingRequests.data ?? 0 })}
+          </span>
+          <ArrowRight className="size-4 shrink-0" />
+        </Link>
+      ) : null}
+
       {(pendingPayments.data ?? 0) > 0 ? (
         <Link
           to="/app/payments"

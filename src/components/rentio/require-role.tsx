@@ -49,7 +49,7 @@ export function RequireRole({
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      void navigate({ to: "/login", search: { redirect: pathname }, replace: true });
+      void navigate({ to: "/sign-in", search: { redirect: pathname }, replace: true });
       return;
     }
     // Signed in but the profile row is missing or still loading a role.

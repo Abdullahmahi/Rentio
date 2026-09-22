@@ -25,7 +25,8 @@
       "money": "Money",
       "operations": "Operations"
     },
-    "maintenanceShort": "Requests"
+    "maintenanceShort": "Requests",
+    "requests": "Access requests"
   },
   "pages": {
     "dashboard": {
@@ -95,6 +96,10 @@
       "contract": "Contract",
       "receipt": "Receipt",
       "workOrder": "Work order"
+    },
+    "requests": {
+      "title": "Access requests",
+      "description": "People asking for portal access who have no invite yet."
     }
   },
   "empty": {
@@ -174,7 +179,6 @@
     "email": "Email address",
     "password": "Password",
     "forgotPassword": "Forgot your password?",
-    "noSignup": "Tenants set up their own access above. Staff accounts are created by an administrator.",
     "checkingSession": "Checking your session…",
     "forgotPasswordTitle": "Reset password",
     "forgotPasswordDescription": "We'll email you a link to set a new password.",
@@ -196,15 +200,56 @@
       "emailRequired": "Enter your email address.",
       "passwordRequired": "Enter your password.",
       "passwordTooShort": "Password must be at least {{min}} characters.",
-      "passwordMismatch": "Passwords do not match."
+      "passwordMismatch": "Passwords do not match.",
+      "nameRequired": "Please enter your full name."
     },
     "signUp": "Set up portal access",
     "signUpTitle": "Set up portal access",
     "signUpDescription": "If you rent from us, enter the email address on your lease and we will send you a link to choose a password.",
     "signUpSent": "Check your email.",
     "signUpSentHint": "If that address is on a lease, a link to set your password is on its way. It may take a few minutes.",
-    "signUpStaffNote": "Staff accounts are created by an administrator, not here.",
-    "tenantSignUpLink": "Are you a tenant? Set up access"
+    "tenantSignUpLink": "Are you a tenant? Set up access",
+    "firstTimeHere": "First time here?",
+    "activateYourAccount": "Activate your account →",
+    "orContinueWith": "or continue with",
+    "unrecognisedAccount": "We couldn't find an account for that address.",
+    "requestAccessCta": "Request access →",
+    "activateTitle": "Set your password",
+    "activateWelcome": "Welcome, {{name}}",
+    "activateDescription": "Choose a password and your portal is ready.",
+    "linkExpiredTitle": "That link has expired",
+    "linkExpiredDescription": "Invite links can only be used once. Enter your email and we'll send a new one.",
+    "sendNewLink": "Send me a new link",
+    "requestAccessTitle": "Request access",
+    "requestAccessDescription": "Tell us where you live and we'll match you to your lease.",
+    "requestAccessSubmit": "Request access",
+    "requestAccessSent": "Thanks — we've got your request.",
+    "requestAccessSentHint": "If we can match you to a lease, you'll get an email within one business day.",
+    "contactManager": "Need it sooner? Contact your property manager:",
+    "continueWith": {
+      "google": "Continue with Google"
+    },
+    "fields": {
+      "fullName": "Full name",
+      "property": "Property or street address",
+      "propertyPlaceholder": "e.g. Mesa Hills Apartments, or 5820 Mesa Hills Dr",
+      "unit": "Unit number",
+      "phone": "Phone"
+    },
+    "valueRows": {
+      "leases": {
+        "title": "Leases and documents",
+        "body": "Your lease, receipts and notices in one place, readable on a phone."
+      },
+      "payments": {
+        "title": "Payments and receipts",
+        "body": "See what's due, report a payment and keep a record of every one."
+      },
+      "maintenance": {
+        "title": "Maintenance requests",
+        "body": "Report a problem with photos and follow it through to done."
+      }
+    }
   },
   "roles": {
     "admin": "Administrator",
@@ -1047,14 +1092,17 @@
       "expiring": "Leases expiring",
       "depositsDue": "Deposits due",
       "healthSafetyOverdue": "H&S repairs past 7 days",
-      "turnoverOverdue": "Turnover tasks overdue"
+      "turnoverOverdue": "Turnover tasks overdue",
+      "accessRequests": "Access requests"
     },
     "depositsOverdue": "{{count}} deposit past its statutory deadline",
     "depositsOverdue_other": "{{count}} deposits past their statutory deadline",
     "depositsSoonest": "Soonest in {{count}} day",
     "depositsSoonest_other": "Soonest in {{count}} days",
     "healthSafetyHint": "Texas Property Code §92.056",
-    "turnoverHint": "Rekey within 7 days — §92.156"
+    "turnoverHint": "Rekey within 7 days — §92.156",
+    "accessRequestsPending": "{{count}} request awaiting review",
+    "accessRequestsPending_other": "{{count}} requests awaiting review"
   },
   "reports": {
     "daysOverdue": "Days overdue",
@@ -1259,6 +1307,37 @@
       "newWorkOrder": "New work order",
       "toggleLanguage": "Toggle language",
       "toggleTheme": "Toggle dark mode"
+    }
+  },
+  "requests": {
+    "emptyTitle": "No requests",
+    "emptyDescription": "Requests from the access form land here for review.",
+    "review": "Review",
+    "reviewTitle": "Review access request",
+    "reviewDescription": "Confirm which tenant this is before approving. Approving sends them a portal invite.",
+    "approve": "Approve and invite",
+    "decline": "Decline",
+    "approved": "Approved — invite sent.",
+    "declined": "Request declined.",
+    "noMatch": "No match",
+    "columns": {
+      "where": "Property / unit",
+      "match": "Suggested match",
+      "received": "Received",
+      "status": "Status"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "declined": "Declined"
+    },
+    "fields": {
+      "matchTo": "Match to tenant",
+      "matchToHint": "The suggestion is an email match only. Confirm it against the lease before approving.",
+      "note": "Internal note"
+    },
+    "errors": {
+      "tenantRequired": "Choose the tenant this request belongs to."
     }
   }
 }
