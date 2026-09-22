@@ -9,7 +9,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
@@ -60,8 +60,16 @@
   --border: oklch(from #e7e3dd l c h);
   --secondary: oklch(from #f3f0ec l c h);
   --muted: oklch(from #f3f0ec l c h);
-  --success: oklch(from #2f7a54 l c h);
-  --warning: oklch(from #b8860b l c h);
+  /* Worst case is `text-success` on `bg-success/10` over the PAGE background,
+     not the card: #2f7a54 measured 4.35:1 there. Same hue, L 0.52 -> 0.495,
+     which clears 4.5:1 across every tint/surface pair with margin (4.84:1). */
+  --success: oklch(from #26724d l c h);
+  /* Dark amber, same hue as #b8860b but dropped to L 0.50 so `text-warning` on
+     `bg-warning/10` clears 4.5:1 with margin (5.29 on the card, 5.04 on the
+     page). The old #b8860b measured 2.94:1 — overdue is the one state that
+     must never be missed. Deliberately NOT the same value as
+     --chart-maintenance below; that one is a validated chart fill. */
+  --warning: oklch(from #805c03 l c h);
   --danger: oklch(from #b3261e l c h);
   --info: oklch(from #2b5d8a l c h);
   --overlay: oklch(0.12 0.01 55 / 45%);
@@ -97,10 +105,19 @@
   --border: oklch(from #2e2a26 l c h);
   --secondary: oklch(from #25211e l c h);
   --muted: oklch(from #25211e l c h);
-  --success: oklch(from #2f7a54 l c h);
-  --warning: oklch(from #b8860b l c h);
-  --danger: oklch(from #b3261e l c h);
-  --info: oklch(from #2b5d8a l c h);
+  /* The four semantic tones, re-tuned for dark. They were byte-identical to
+     the light values, which was a copy-paste, not a choice — only --primary
+     had ever been lifted for this theme. Same method for all four: hold the
+     hue and chroma, raise lightness until `text-<tone>` on `bg-<tone>/10`
+     clears 4.5:1 with margin. They now sit in one 6.1–6.5 band, so no tone
+     reads louder than a more urgent one. */
+  --success: oklch(from #6db78e l c h); /* 6.24:1 */
+  --warning: oklch(from #d5a138 l c h); /* 6.33:1 */
+  /* Also the fill behind `bg-destructive`: near-black on the old #b3261e
+     measured 2.88:1 on the delete-confirm button. This takes it to 7.63:1,
+     the same light-fill/dark-text inversion --primary already uses here. */
+  --danger: oklch(from #ff7f6f l c h); /* 6.08:1 */
+  --info: oklch(from #7cb0e2 l c h); /* 6.45:1 */
   --overlay: oklch(0 0 0 / 65%);
 
 /* Chart palette — validated with the dataviz skill's six checks in BOTH

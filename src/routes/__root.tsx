@@ -4,14 +4,17 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
+import "@fontsource-variable/inter";
 import appCss from "../styles.css?url";
 import { AuthProvider } from "../lib/auth";
+import { INTERNAL_DEFAULT_LANGUAGE, PORTAL_DEFAULT_LANGUAGE } from "../lib/i18n";
 import { Toaster } from "../components/ui/sonner";
 import "../lib/i18n";
 
@@ -93,8 +96,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  // The shell renders on the server, where there is no profile and no
+  // localStorage, so the honest first-paint value is the per-portal default:
+  // tenants land in Spanish, staff in English. Once the client resolves the
+  // user's actual preference, `useLanguagePreference` updates the attribute.
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const lang = pathname.startsWith("/portal") ? PORTAL_DEFAULT_LANGUAGE : INTERNAL_DEFAULT_LANGUAGE;
+
   return (
-    <html lang="es-MX">
+    <html lang={lang}>
       <head>
         <HeadContent />
       </head>

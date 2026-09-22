@@ -27,8 +27,17 @@ import { occupancy, unitContexts, type UnitContext } from "@/lib/portfolio";
 import { DEFAULT_CITY, DEFAULT_STATE, US_STATES, formatCityStateZip } from "@/lib/us";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
+import i18n from "@/lib/i18n";
 
-export const Route = createFileRoute("/app/properties/$id")({ component: PropertyDetailPage });
+export const Route = createFileRoute("/app/properties/$id")({
+  head: () => ({
+    meta: [
+      { title: `${i18n.t("pages.detail.property")} — Rentio` },
+      { name: "description", content: i18n.t("pages.properties.description") },
+    ],
+  }),
+  component: PropertyDetailPage,
+});
 
 function PropertyDetailPage() {
   const { id } = Route.useParams();

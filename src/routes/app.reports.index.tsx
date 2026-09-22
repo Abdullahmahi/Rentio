@@ -19,6 +19,8 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { LeaseStatusBadge, UnitStatusBadge } from "@/components/rentio/status";
 import { StatusBadge } from "@/components/rentio/status-badge";
 import { formatPeriod } from "@/components/rentio/month-selector";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { EmptyState } from "@/components/rentio/empty-state";
 import { downloadCsv } from "@/lib/csv";
 import { daysBetween, formatDate, formatMoney, todayIso } from "@/lib/format";
 import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
@@ -37,6 +39,18 @@ export const Route = createFileRoute("/app/reports/")({
   }),
   component: ReportsPage,
 });
+
+/**
+ * A severity ramp, not four categorical hues: 30 days late and 90+ days late
+ * are the same kind of fact at different temperatures. Mixed from the existing
+ * warning and danger tokens so it follows the theme.
+ */
+const AGING_RAMP = {
+  b30: "var(--warning)",
+  b60: "color-mix(in oklab, var(--danger) 35%, var(--warning))",
+  b90: "color-mix(in oklab, var(--danger) 70%, var(--warning))",
+  b90plus: "var(--danger)",
+} as const;
 
 const ALL = "__all__";
 const MONTHS = 12;
@@ -179,6 +193,8 @@ function ReportsPage() {
     total: aging.filter((row) => row.bucket === bucket).reduce((sum, row) => sum + row.amount, 0),
     count: aging.filter((row) => row.bucket === bucket).length,
   }));
+
+  const overdueTotal = bucketTotals.reduce((sum, entry) => sum + entry.total, 0);
 
   // ------------------------------------------------------ income by month
   const leasePropertyId = useMemo(
@@ -613,159 +629,245 @@ function ReportsPage() {
       ),
   };
 
-  const ExportButton = ({ onClick, disabled }: { onClick: () => void; disabled: boolean }) => (
-    <Button variant="outline" onClick={onClick} disabled={disabled}>
-      <Download className="size-4" />
-      {t("actions.export")}
-    </Button>
-  );
+  /**
+   * "Export" tells you nothing. The row count and the filename tell you what
+   * you are about to get, and whether the filter you set is the one you meant.
+   */
+  const ExportButton = ({
+    onClick,
+    rows,
+    filename,
+  }: {
+    onClick: () => void;
+    rows: number;
+    filename: string;
+  }) => {
+    const disabled = rows === 0;
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={disabled ? "inline-flex cursor-not-allowed" : "inline-flex"}>
+            <Button variant="outline" onClick={onClick} disabled={disabled}>
+              <Download className="size-4" />
+              {disabled
+                ? t("reports.exportEmpty")
+                : t("reports.exportRows", { count: rows, filename: `${filename}.csv` })}
+            </Button>
+          </span>
+        </TooltipTrigger>
+        {disabled ? <TooltipContent>{t("reports.exportEmptyHint")}</TooltipContent> : null}
+      </Tooltip>
+    );
+  };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={t("pages.reports.title")}
-        description={t("pages.reports.description")}
-        actions={
-          <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-            <SelectTrigger className="w-56" aria-label={t("units.filters.property")}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>{t("units.filters.allProperties")}</SelectItem>
-              {portfolio.data?.properties.map((property) => (
-                <SelectItem key={property.id} value={property.id}>
-                  {property.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      />
+    <TooltipProvider>
+      <div className="space-y-6">
+        <PageHeader
+          title={t("pages.reports.title")}
+          description={t("pages.reports.description")}
+          actions={
+            <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+              <SelectTrigger className="w-56" aria-label={t("units.filters.property")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>{t("units.filters.allProperties")}</SelectItem>
+                {portfolio.data?.properties.map((property) => (
+                  <SelectItem key={property.id} value={property.id}>
+                    {property.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
 
-      <QueryState
-        isLoading={portfolio.isLoading}
-        error={portfolio.error ?? income.error}
-        onRetry={() => {
-          void portfolio.refetch();
-          void income.refetch();
-        }}
-        skeleton={<RowsSkeleton count={8} />}
-      >
-        <Tabs defaultValue="rent-roll">
-          <TabsList className="flex-wrap">
-            <TabsTrigger value="rent-roll">{t("reports.tabs.rentRoll")}</TabsTrigger>
-            <TabsTrigger value="aging">{t("reports.tabs.aging")}</TabsTrigger>
-            <TabsTrigger value="deposits">{t("reports.tabs.deposits")}</TabsTrigger>
-            <TabsTrigger value="income">{t("reports.tabs.income")}</TabsTrigger>
-            <TabsTrigger value="occupancy">{t("reports.tabs.occupancy")}</TabsTrigger>
-          </TabsList>
+        <QueryState
+          isLoading={portfolio.isLoading}
+          error={portfolio.error ?? income.error}
+          onRetry={() => {
+            void portfolio.refetch();
+            void income.refetch();
+          }}
+          skeleton={<RowsSkeleton count={8} />}
+        >
+          <Tabs defaultValue="rent-roll">
+            <TabsList className="flex-wrap">
+              <TabsTrigger value="rent-roll">{t("reports.tabs.rentRoll")}</TabsTrigger>
+              <TabsTrigger value="aging">{t("reports.tabs.aging")}</TabsTrigger>
+              <TabsTrigger value="deposits">{t("reports.tabs.deposits")}</TabsTrigger>
+              <TabsTrigger value="income">{t("reports.tabs.income")}</TabsTrigger>
+              <TabsTrigger value="occupancy">{t("reports.tabs.occupancy")}</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="rent-roll" className="mt-4 space-y-3">
-            <div className="flex justify-end">
-              <ExportButton onClick={exporters.rentRoll} disabled={rentRoll.length === 0} />
-            </div>
-            <DataTable
-              columns={rentRollColumns}
-              data={rentRoll}
-              getRowId={(row) => `${row.propertyName}-${row.unitNumber}`}
-              searchValue={(row) => `${row.unitNumber} ${row.propertyName} ${row.tenant}`}
-              pageSize={20}
-            />
-          </TabsContent>
+            <TabsContent value="rent-roll" className="mt-4 space-y-3">
+              <div className="flex justify-end">
+                <ExportButton
+                  onClick={exporters.rentRoll}
+                  rows={rentRoll.length}
+                  filename={`rent-roll-${todayIso()}`}
+                />
+              </div>
+              <DataTable
+                columns={rentRollColumns}
+                data={rentRoll}
+                getRowId={(row) => `${row.propertyName}-${row.unitNumber}`}
+                searchValue={(row) => `${row.unitNumber} ${row.propertyName} ${row.tenant}`}
+                pageSize={20}
+              />
+            </TabsContent>
 
-          <TabsContent value="aging" className="mt-4 space-y-3">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {bucketTotals.map((entry) => (
-                <div
-                  key={entry.bucket}
-                  className="rounded-lg border border-border bg-surface p-4 shadow-subtle"
-                >
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {t(`reports.buckets.${entry.bucket}`)}
-                  </p>
-                  <p className="numeric mt-1 text-xl font-semibold text-danger">
-                    {formatMoney(entry.total)}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {t("reports.leaseCount", { count: entry.count })}
-                  </p>
+            <TabsContent value="aging" className="mt-4 space-y-3">
+              {/* The shape of the delinquency is the insight — four numbers in a
+                row hide whether it is one very old lease or forty new ones. */}
+              {overdueTotal > 0 ? (
+                <div className="rounded-lg border border-border bg-surface p-5 shadow-subtle">
+                  <div className="flex h-7 w-full overflow-hidden rounded-full">
+                    {bucketTotals
+                      .filter((entry) => entry.total > 0)
+                      .map((entry) => (
+                        <div
+                          key={entry.bucket}
+                          className="h-full"
+                          style={{
+                            width: `${(entry.total / overdueTotal) * 100}%`,
+                            background: AGING_RAMP[entry.bucket],
+                          }}
+                          title={`${t(`reports.buckets.${entry.bucket}`)} · ${formatMoney(entry.total)}`}
+                        />
+                      ))}
+                  </div>
+                  <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+                    {bucketTotals.map((entry) => (
+                      <li key={entry.bucket} className="flex items-center gap-2 text-sm">
+                        <span
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={{ background: AGING_RAMP[entry.bucket] }}
+                        />
+                        <span className="text-muted-foreground">
+                          {t(`reports.buckets.${entry.bucket}`)}
+                        </span>
+                        <span className="numeric font-semibold">{formatMoney(entry.total)}</span>
+                        <span className="numeric text-xs text-muted-foreground">
+                          {t("reports.leaseCount", { count: entry.count })}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              ))}
-            </div>
-            <div className="flex justify-end">
-              <ExportButton onClick={exporters.aging} disabled={aging.length === 0} />
-            </div>
-            <DataTable
-              columns={agingColumns}
-              data={aging}
-              getRowId={(row) => `${row.unitNumber}-${row.tenant}`}
-              searchValue={(row) => `${row.tenant} ${row.unitNumber}`}
-              pageSize={20}
-            />
-          </TabsContent>
+              ) : (
+                <EmptyState message={t("reports.noOverdue")} />
+              )}
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {bucketTotals.map((entry) => (
+                  <div
+                    key={entry.bucket}
+                    className="rounded-lg border border-border bg-surface p-4 shadow-subtle"
+                  >
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {t(`reports.buckets.${entry.bucket}`)}
+                    </p>
+                    <p className="numeric mt-1 text-xl font-semibold text-danger">
+                      {formatMoney(entry.total)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {t("reports.leaseCount", { count: entry.count })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end">
+                <ExportButton
+                  onClick={exporters.aging}
+                  rows={aging.length}
+                  filename={`morosidad-${todayIso()}`}
+                />
+              </div>
+              <DataTable
+                columns={agingColumns}
+                data={aging}
+                getRowId={(row) => `${row.unitNumber}-${row.tenant}`}
+                searchValue={(row) => `${row.tenant} ${row.unitNumber}`}
+                pageSize={20}
+              />
+            </TabsContent>
 
-          <TabsContent value="deposits" className="mt-4 space-y-3">
-            <p className="rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-sm text-info">
-              {t("reports.depositComplianceHint")}
-            </p>
-            <div className="flex justify-end">
-              <ExportButton onClick={exporters.deposits} disabled={depositRows.length === 0} />
-            </div>
-            <DataTable
-              columns={depositColumns}
-              data={depositRows}
-              getRowId={(row) => row.leaseId}
-              searchValue={(row) => `${row.tenant} ${row.unitNumber}`}
-              pageSize={20}
-            />
-          </TabsContent>
+            <TabsContent value="deposits" className="mt-4 space-y-3">
+              <p className="rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-sm text-info">
+                {t("reports.depositComplianceHint")}
+              </p>
+              <div className="flex justify-end">
+                <ExportButton
+                  onClick={exporters.deposits}
+                  rows={depositRows.length}
+                  filename={`deposit-compliance-${todayIso()}`}
+                />
+              </div>
+              <DataTable
+                columns={depositColumns}
+                data={depositRows}
+                getRowId={(row) => row.leaseId}
+                searchValue={(row) => `${row.tenant} ${row.unitNumber}`}
+                pageSize={20}
+              />
+            </TabsContent>
 
-          <TabsContent value="income" className="mt-4 space-y-3">
-            <div className="flex justify-end">
-              <ExportButton onClick={exporters.income} disabled={monthlyIncome.length === 0} />
-            </div>
-            <DataTable
-              columns={incomeColumns}
-              data={monthlyIncome}
-              getRowId={(row) => row.period}
-              pageSize={12}
-            />
-          </TabsContent>
+            <TabsContent value="income" className="mt-4 space-y-3">
+              <div className="flex justify-end">
+                <ExportButton
+                  onClick={exporters.income}
+                  rows={monthlyIncome.length}
+                  filename={`ingresos-${todayIso()}`}
+                />
+              </div>
+              <DataTable
+                columns={incomeColumns}
+                data={monthlyIncome}
+                getRowId={(row) => row.period}
+                pageSize={12}
+              />
+            </TabsContent>
 
-          <TabsContent value="occupancy" className="mt-4 space-y-3">
-            <div className="grid gap-4 sm:grid-cols-3">
-              {(
-                [
-                  ["dashboard.kpi.occupancy", `${Math.round(occupancyStats.rate * 100)}%`],
+            <TabsContent value="occupancy" className="mt-4 space-y-3">
+              <div className="grid gap-4 sm:grid-cols-3">
+                {(
                   [
-                    "properties.stats.occupied",
-                    `${occupancyStats.occupied} / ${occupancyStats.total}`,
-                  ],
-                  ["reports.vacantUnits", String(occupancyStats.vacant)],
-                ] as const
-              ).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="rounded-lg border border-border bg-surface p-4 shadow-subtle"
-                >
-                  <p className="text-xs font-medium text-muted-foreground">{t(key)}</p>
-                  <p className="numeric mt-1 text-xl font-semibold">{value}</p>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-end">
-              <ExportButton onClick={exporters.occupancy} disabled={vacancies.length === 0} />
-            </div>
-            <DataTable
-              columns={vacancyColumns}
-              data={vacancies}
-              getRowId={(row) => `${row.propertyName}-${row.unitNumber}`}
-              searchValue={(row) => `${row.unitNumber} ${row.propertyName}`}
-              pageSize={20}
-            />
-          </TabsContent>
-        </Tabs>
-      </QueryState>
-    </div>
+                    ["dashboard.kpi.occupancy", `${Math.round(occupancyStats.rate * 100)}%`],
+                    [
+                      "properties.stats.occupied",
+                      `${occupancyStats.occupied} / ${occupancyStats.total}`,
+                    ],
+                    ["reports.vacantUnits", String(occupancyStats.vacant)],
+                  ] as const
+                ).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="rounded-lg border border-border bg-surface p-4 shadow-subtle"
+                  >
+                    <p className="text-xs font-medium text-muted-foreground">{t(key)}</p>
+                    <p className="numeric mt-1 text-xl font-semibold">{value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end">
+                <ExportButton
+                  onClick={exporters.occupancy}
+                  rows={vacancies.length}
+                  filename={`ocupacion-${todayIso()}`}
+                />
+              </div>
+              <DataTable
+                columns={vacancyColumns}
+                data={vacancies}
+                getRowId={(row) => `${row.propertyName}-${row.unitNumber}`}
+                searchValue={(row) => `${row.unitNumber} ${row.propertyName}`}
+                pageSize={20}
+              />
+            </TabsContent>
+          </Tabs>
+        </QueryState>
+      </div>
+    </TooltipProvider>
   );
 }

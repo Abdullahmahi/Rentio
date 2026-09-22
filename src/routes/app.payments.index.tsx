@@ -1,7 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { Check, Download, Plus, Receipt, WalletCards, X } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileText,
+  Plus,
+  Receipt,
+  WalletCards,
+  X,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -29,14 +40,19 @@ import { AdminOnly } from "@/lib/auth";
 import { formatDate, formatMoney, todayIso } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { allocateOldestFirst, type OpenInvoice } from "@/lib/invoicing";
-import { isActive, leaseContexts, leaseLabel } from "@/lib/portfolio";
+import { balanceOf, isActive, leaseContexts, leaseLabel } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { describeError, supabase } from "@/lib/supabase";
-import { signedUrl, uploadFile } from "@/lib/storage";
+import { openSigned, signedUrl, uploadFile } from "@/lib/storage";
+import { cn } from "@/lib/utils";
 import type { Enums, Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/payments/")({
+  // `?new=1` lets the command palette land straight in the create dialog. The
+  // page strips the param once it has opened it, so a refresh is not sticky.
+  validateSearch: (search: Record<string, unknown>): { new?: true } =>
+    search["new"] === true || search["new"] === "1" ? { new: true } : {},
   head: () => ({
     meta: [
       { title: `${i18n.t("pages.payments.title")} — Rentio` },
@@ -57,6 +73,11 @@ const METHODS: Enums<"payment_method">[] = [
   "other",
 ];
 
+/** Tenants upload phone photos, but a bank app export is a PDF. */
+function isPdf(path: string) {
+  return path.toLowerCase().endsWith(".pdf");
+}
+
 interface PaymentRow extends Tables<"payments"> {
   unitNumber: string;
   tenantName: string;
@@ -75,6 +96,15 @@ function PaymentsPage() {
   const [reason, setReason] = useState("");
   const [recordOpen, setRecordOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Arrived from the command palette's "Record a payment".
+  const navigate = useNavigate();
+  const openNew = Route.useSearch({ select: (search) => search["new"] });
+  useEffect(() => {
+    if (!openNew) return;
+    setRecordOpen(true);
+    void navigate({ to: "/app/payments", search: {}, replace: true });
+  }, [openNew, navigate]);
 
   const [methodFilter, setMethodFilter] = useState(ALL);
   const [propertyFilter, setPropertyFilter] = useState(ALL);
@@ -175,6 +205,71 @@ function PaymentsPage() {
     () => (payments.data ?? []).filter((payment) => payment.status === "pendiente").map(decorate),
     [payments.data, decorate],
   );
+
+  // -------------------------------------------------- the review pane
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const queueRef = useRef<HTMLUListElement>(null);
+
+  const selectedIndex = Math.max(
+    0,
+    queue.findIndex((payment) => payment.id === selectedId),
+  );
+  // Confirming a claim drops it out of the queue; land on whatever took its
+  // place rather than on nothing.
+  const selected = queue.find((payment) => payment.id === selectedId) ?? queue[selectedIndex];
+
+  useEffect(() => {
+    if (!selected) {
+      if (selectedId !== null) setSelectedId(null);
+      return;
+    }
+    if (selected.id !== selectedId) setSelectedId(selected.id);
+  }, [selected, selectedId]);
+
+  const step = (delta: number) => {
+    const next = queue[Math.min(queue.length - 1, Math.max(0, selectedIndex + delta))];
+    if (next) setSelectedId(next.id);
+  };
+
+  const onQueueKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    step(event.key === "ArrowDown" ? 1 : -1);
+  };
+
+  /** Sign only what is on screen — not the whole queue. */
+  const receiptUrl = useQuery({
+    queryKey: ["payment-receipt", selected?.id ?? null],
+    enabled: Boolean(selected?.receipt_url) && !isPdf(selected?.receipt_url ?? ""),
+    staleTime: 9 * 60 * 1000,
+    queryFn: () => signedUrl("payment-receipts", selected?.receipt_url as string),
+  });
+
+  /**
+   * What confirming would actually do. Same allocator the mutation runs, so
+   * the preview and the write cannot drift.
+   */
+  const preview = useMemo(() => {
+    if (!selected) {
+      return { allocations: [], credit: 0, balanceAfter: 0 };
+    }
+    const open = (openInvoices.data ?? []).filter(
+      (invoice) => invoice.leaseId === selected.lease_id,
+    );
+    const byId = new Map(open.map((invoice) => [invoice.id, invoice]));
+    const { allocations, credit } = allocateOldestFirst(Number(selected.amount), open);
+    const applied = allocations.reduce((sum, row) => sum + row.amount, 0);
+    const context = contextByLease.get(selected.lease_id);
+    return {
+      allocations: allocations.map((row) => ({
+        ...row,
+        invoiceNumber: byId.get(row.invoiceId)?.invoiceNumber ?? "—",
+        dueDate: byId.get(row.invoiceId)?.dueDate ?? "",
+      })),
+      credit,
+      balanceAfter: (context ? balanceOf(context) : 0) - applied,
+    };
+  }, [selected, openInvoices.data, contextByLease]);
 
   const history = useMemo(() => {
     return (payments.data ?? [])
@@ -443,7 +538,7 @@ function PaymentsPage() {
       cell: (row) => (
         <MoneyText
           value={Number(row.amount)}
-          className={row.status === "cancelado" ? "line-through" : ""}
+          className={cn("font-semibold", row.status === "cancelado" && "line-through")}
         />
       ),
     },
@@ -561,67 +656,195 @@ function PaymentsPage() {
               />
             }
           >
-            <ul className="grid gap-4 lg:grid-cols-2">
-              {queue.map((payment) => (
-                <li
-                  key={payment.id}
-                  className="rounded-lg border border-warning/30 bg-surface p-5 shadow-subtle"
+            <div className="grid gap-4 lg:grid-cols-[minmax(260px,1fr)_minmax(0,2fr)]">
+              {/* -------------------------------------------- the queue */}
+              <ul
+                ref={queueRef}
+                role="listbox"
+                aria-label={t("payments.tabs.queue")}
+                tabIndex={0}
+                onKeyDown={onQueueKeyDown}
+                className="hidden max-h-[70vh] min-w-0 flex-col divide-y divide-border overflow-y-auto rounded-lg border border-border bg-surface shadow-subtle outline-none focus-visible:ring-2 focus-visible:ring-ring lg:flex"
+              >
+                {queue.map((payment) => {
+                  const active = payment.id === selectedId;
+                  return (
+                    <li key={payment.id} role="option" aria-selected={active}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedId(payment.id)}
+                        className={cn(
+                          "grid w-full grid-cols-[minmax(0,1fr)_auto] gap-x-3 px-4 py-3 text-left transition-colors",
+                          active
+                            ? "bg-primary/10 ring-1 ring-inset ring-primary/40"
+                            : "hover:bg-muted",
+                        )}
+                      >
+                        <span className="truncate text-sm font-medium">{payment.tenantName}</span>
+                        <MoneyText
+                          value={Number(payment.amount)}
+                          className="text-sm font-semibold"
+                        />
+                        <span className="truncate text-xs text-muted-foreground">
+                          {t("units.columns.unit")} {payment.unitNumber}
+                        </span>
+                        <span className="numeric text-xs text-muted-foreground">
+                          {formatDate(payment.paid_at)}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {/* prev/next stands in for the queue below lg */}
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3 py-2 lg:hidden">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => step(-1)}
+                  disabled={selectedIndex <= 0}
+                  aria-label={t("actions.previous")}
                 >
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4">
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <span className="numeric text-sm text-muted-foreground">
+                  {t("payments.queuePosition", {
+                    position: selectedIndex + 1,
+                    total: queue.length,
+                  })}
+                </span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => step(1)}
+                  disabled={selectedIndex >= queue.length - 1}
+                  aria-label={t("actions.next")}
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+
+              {/* ------------------------------------- the selected claim */}
+              {selected ? (
+                <div className="min-w-0 space-y-4 rounded-lg border border-warning/30 bg-surface p-5 shadow-subtle">
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
                     <div className="min-w-0">
-                      <p className="truncate text-base font-semibold">{payment.tenantName}</p>
+                      <p className="truncate text-lg font-semibold">{selected.tenantName}</p>
                       <p className="text-sm text-muted-foreground">
-                        {t("units.columns.unit")} {payment.unitNumber}
+                        {t("units.columns.unit")} {selected.unitNumber}
                       </p>
-                      <dl className="mt-3 space-y-1 text-sm">
-                        <div className="flex gap-2">
-                          <dt className="text-muted-foreground">{t("payments.columns.date")}:</dt>
-                          <dd className="numeric font-medium">{formatDate(payment.paid_at)}</dd>
-                        </div>
-                        <div className="flex gap-2">
-                          <dt className="text-muted-foreground">{t("payments.columns.method")}:</dt>
-                          <dd className="font-medium">{t(`paymentMethod.${payment.method}`)}</dd>
-                        </div>
-                        <div className="flex min-w-0 gap-2">
-                          <dt className="shrink-0 text-muted-foreground">
-                            {t("payments.columns.reference")}:
-                          </dt>
-                          <dd className="numeric truncate font-medium">
-                            {payment.reference ?? "—"}
-                          </dd>
-                        </div>
-                      </dl>
                     </div>
-                    <div className="text-right">
-                      <MoneyText
-                        value={Number(payment.amount)}
-                        className="block text-xl font-semibold"
-                      />
-                      {payment.receipt_url ? (
-                        <button
-                          onClick={() => void openReceipt(payment)}
-                          className="mt-3 grid size-20 place-items-center rounded-lg border border-border bg-muted text-muted-foreground hover:border-primary/40"
-                          aria-label={t("payments.viewReceipt")}
-                        >
-                          <Receipt className="size-6" />
-                        </button>
-                      ) : (
-                        <p className="mt-3 text-xs text-muted-foreground">
-                          {t("payments.noReceipt")}
-                        </p>
-                      )}
+                    <MoneyText value={Number(selected.amount)} className="text-2xl font-semibold" />
+                  </div>
+
+                  <dl className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+                    <div className="flex gap-2">
+                      <dt className="text-muted-foreground">{t("payments.columns.date")}:</dt>
+                      <dd className="numeric font-medium">{formatDate(selected.paid_at)}</dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="text-muted-foreground">{t("payments.columns.method")}:</dt>
+                      <dd className="font-medium">{t(`paymentMethod.${selected.method}`)}</dd>
+                    </div>
+                    <div className="flex min-w-0 gap-2 sm:col-span-2">
+                      <dt className="shrink-0 text-muted-foreground">
+                        {t("payments.columns.reference")}:
+                      </dt>
+                      <dd className="numeric truncate font-medium">{selected.reference ?? "—"}</dd>
+                    </div>
+                  </dl>
+
+                  {selected.notes ? (
+                    <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+                      {selected.notes}
+                    </p>
+                  ) : null}
+
+                  {/* The question is not only "did the money arrive" but
+                      "is this allocation right". */}
+                  <div className="rounded-lg border border-border p-4">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {t("payments.wouldClear")}
+                    </h3>
+                    {preview.allocations.length === 0 ? (
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {t("payments.noOpenInvoices")}
+                      </p>
+                    ) : (
+                      <ul className="mt-2 space-y-1.5">
+                        {preview.allocations.map((row) => (
+                          <li
+                            key={row.invoiceId}
+                            className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 text-sm"
+                          >
+                            <span className="truncate">
+                              <span className="numeric font-medium">{row.invoiceNumber}</span>
+                              <span className="ml-2 numeric text-xs text-muted-foreground">
+                                {t("receipts.columns.due")} {formatDate(row.dueDate)}
+                              </span>
+                            </span>
+                            <MoneyText value={row.amount} className="text-sm font-semibold" />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {preview.credit > 0 ? (
+                      <p className="mt-2 text-sm text-warning">
+                        {t("payments.creditNotice", { amount: formatMoney(preview.credit) })}
+                      </p>
+                    ) : null}
+                    <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 border-t border-border pt-3">
+                      <span className="text-sm text-muted-foreground">
+                        {t("payments.resultingBalance")}
+                      </span>
+                      <MoneyText value={preview.balanceAfter} className="font-semibold" />
                     </div>
                   </div>
 
-                  {payment.notes ? (
-                    <p className="mt-3 text-sm text-muted-foreground">{payment.notes}</p>
-                  ) : null}
+                  {/* The primary object on this screen: what the tenant sent. */}
+                  {!selected.receipt_url ? (
+                    <div className="grid min-h-40 place-items-center rounded-lg border border-dashed border-border px-4 text-center text-sm text-muted-foreground">
+                      {t("payments.noReceipt")}
+                    </div>
+                  ) : isPdf(selected.receipt_url) ? (
+                    <div className="grid min-h-40 place-items-center gap-3 rounded-lg border border-border px-4 py-6 text-center">
+                      <FileText className="size-8 text-muted-foreground" />
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          void openSigned("payment-receipts", selected.receipt_url as string)
+                        }
+                      >
+                        {t("payments.openPdf")}
+                      </Button>
+                    </div>
+                  ) : receiptUrl.isLoading ? (
+                    <div className="h-72 animate-pulse rounded-lg bg-muted" />
+                  ) : receiptUrl.data ? (
+                    <button
+                      type="button"
+                      onClick={() => setLightbox(receiptUrl.data ?? null)}
+                      className="block w-full overflow-hidden rounded-lg border border-border bg-muted"
+                      aria-label={t("payments.viewReceipt")}
+                    >
+                      <img
+                        src={receiptUrl.data}
+                        alt={t("payments.viewReceipt")}
+                        className="max-h-[32rem] w-full object-contain"
+                      />
+                    </button>
+                  ) : (
+                    <div className="grid min-h-40 place-items-center rounded-lg border border-dashed border-border px-4 text-center text-sm text-muted-foreground">
+                      {t("payments.receiptUnavailable")}
+                    </div>
+                  )}
 
-                  <div className="mt-4 flex gap-2">
+                  <div className="flex gap-2">
                     <Button
                       className="flex-1"
                       disabled={confirm.isPending}
-                      onClick={() => confirm.mutate(payment)}
+                      onClick={() => confirm.mutate(selected)}
                     >
                       <Check className="size-4" />
                       {t("payments.confirm")}
@@ -630,7 +853,7 @@ function PaymentsPage() {
                       className="flex-1"
                       variant="outline"
                       onClick={() => {
-                        setRejectFor(payment);
+                        setRejectFor(selected);
                         setReason("");
                       }}
                     >
@@ -638,9 +861,11 @@ function PaymentsPage() {
                       {t("payments.reject")}
                     </Button>
                   </div>
-                </li>
-              ))}
-            </ul>
+                </div>
+              ) : (
+                <EmptyState icon={Receipt} message={t("payments.selectClaim")} />
+              )}
+            </div>
           </QueryState>
         </TabsContent>
 
@@ -708,6 +933,7 @@ function PaymentsPage() {
             }
           >
             <DataTable
+              striped
               columns={historyColumns}
               data={history}
               getRowId={(row) => row.id}

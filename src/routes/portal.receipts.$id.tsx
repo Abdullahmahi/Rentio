@@ -13,8 +13,17 @@ import { formatPeriod } from "@/components/rentio/month-selector";
 import { formatMoney, formatDate } from "@/lib/format";
 import { useMyPortal } from "@/lib/queries";
 import { describeError, supabase } from "@/lib/supabase";
+import i18n from "@/lib/i18n";
 
-export const Route = createFileRoute("/portal/receipts/$id")({ component: PortalReceiptDetail });
+export const Route = createFileRoute("/portal/receipts/$id")({
+  head: () => ({
+    meta: [
+      { title: `${i18n.t("pages.detail.receipt")} — Rentio` },
+      { name: "description", content: i18n.t("pages.receipts.description") },
+    ],
+  }),
+  component: PortalReceiptDetail,
+});
 
 function PortalReceiptDetail() {
   const { id } = Route.useParams();
@@ -36,18 +45,25 @@ function PortalReceiptDetail() {
     },
   });
 
-  const downloadPdf = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-invoice-pdf", {
-        body: { invoice_id: id },
-      });
-      if (error) throw error;
-      const url = (data as { url?: string } | null)?.url;
-      if (!url) throw new Error("no-url");
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (caught) {
-      toast.error(t(describeError(caught)));
-    }
+  // The Edge Function renders the PDF, which takes a few seconds — say so
+  // rather than leaving the button looking dead.
+  const downloadPdf = () => {
+    void toast.promise(
+      (async () => {
+        const { data, error } = await supabase.functions.invoke("generate-invoice-pdf", {
+          body: { invoice_id: id },
+        });
+        if (error) throw error;
+        const url = (data as { url?: string } | null)?.url;
+        if (!url) throw new Error("no-url");
+        window.open(url, "_blank", "noopener,noreferrer");
+      })(),
+      {
+        loading: t("receipts.pdfPending"),
+        success: t("receipts.pdfReady"),
+        error: (caught: unknown) => t(describeError(caught)),
+      },
+    );
   };
 
   return (

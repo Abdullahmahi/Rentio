@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, ReceiptText, Send, Sparkles } from "lucide-react";
@@ -32,6 +32,7 @@ import {
   type InvoiceWithPaid,
 } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/receipts/")({
@@ -60,6 +61,7 @@ function ReceiptsPage() {
   const actorId = useActorId();
 
   const [period, setPeriod] = useState(() => currentPeriod());
+  const [reviewingBatch, setReviewingBatch] = useState(false);
   const [statusFilter, setStatusFilter] = useState(ALL);
   const [propertyFilter, setPropertyFilter] = useState(ALL);
   const [selected, setSelected] = useState<string[]>([]);
@@ -189,8 +191,16 @@ function ReceiptsPage() {
       return created;
     },
     successKey: "receipts.generated",
+    pendingKey: "receipts.generating",
+    resultMessage: (created) => t("receipts.generatedCount", { count: created }),
     invalidate: [qk.portfolio, ["invoices"], qk.utilities(period)],
-    onSuccess: () => setGenerateOpen(false),
+    onSuccess: () => {
+      setGenerateOpen(false);
+      // A batch of ~40 drafts about to go to ~40 people is a different state
+      // from browsing the month. Mark it, and tick every draft so the review
+      // header is what the manager lands on.
+      setReviewingBatch(true);
+    },
   });
 
   const sendSelected = useToastMutation({
@@ -200,9 +210,32 @@ function ReceiptsPage() {
       await logActivity(actorId, "invoice", null, "send_bulk", { count: ids.length, period });
     },
     successKey: "receipts.sent",
+    pendingKey: "receipts.sending",
+    resultMessage: (_data, ids) => t("receipts.sentCount", { count: ids.length }),
     invalidate: [["invoices"]],
-    onSuccess: () => setSelected([]),
+    onSuccess: () => {
+      setSelected([]);
+      setReviewingBatch(false);
+    },
   });
+
+  const drafts = useMemo(() => rows.filter((row) => row.status === "borrador"), [rows]);
+
+  useEffect(() => {
+    if (!reviewingBatch) return;
+    setSelected(drafts.map((row) => row.id));
+  }, [reviewingBatch, drafts]);
+
+  const draftTotal = drafts.reduce((sum, row) => sum + Number(row.total), 0);
+
+  /**
+   * Dismisses the review header only. The drafts stay — this codebase never
+   * deletes a folio, so the label says "Review later", not "Discard".
+   */
+  const dismissBatch = () => {
+    setReviewingBatch(false);
+    setSelected([]);
+  };
 
   const columns: DataTableColumn<Row>[] = [
     {
@@ -248,14 +281,14 @@ function ReceiptsPage() {
       header: t("receipts.columns.total"),
       numeric: true,
       sortValue: (row) => Number(row.total),
-      cell: (row) => <MoneyText value={Number(row.total)} />,
+      cell: (row) => <MoneyText value={Number(row.total)} className="font-semibold" />,
     },
     {
       key: "paid",
       header: t("receipts.columns.paid"),
       numeric: true,
       sortValue: (row) => row.paid,
-      cell: (row) => <MoneyText value={row.paid} />,
+      cell: (row) => <MoneyText value={row.paid} className="font-semibold" />,
     },
     {
       key: "balance",
@@ -263,7 +296,10 @@ function ReceiptsPage() {
       numeric: true,
       sortValue: (row) => row.balance,
       cell: (row) => (
-        <MoneyText value={row.balance} className={row.balance > 0 ? "text-danger" : undefined} />
+        <MoneyText
+          value={row.balance}
+          className={cn("font-semibold", row.balance > 0 && "text-danger")}
+        />
       ),
     },
     {
@@ -377,7 +413,42 @@ function ReceiptsPage() {
           />
         }
       >
+        {reviewingBatch && drafts.length > 0 ? (
+          <div className="mb-3 grid gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">
+                {t("receipts.batchTitle", {
+                  month: formatPeriod(period, i18nInstance.language),
+                })}
+              </p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {t("receipts.batchSummary", { count: drafts.length })}{" "}
+                <span className="numeric font-semibold text-foreground">
+                  {formatMoney(draftTotal)}
+                </span>
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={dismissBatch}
+                disabled={sendSelected.isPending}
+              >
+                {t("receipts.batchDiscard")}
+              </Button>
+              <Button
+                disabled={sendSelected.isPending || drafts.length === 0}
+                onClick={() => sendSelected.mutate(drafts.map((row) => row.id))}
+              >
+                <Send className="size-4" />
+                {t("receipts.batchSendAll", { count: drafts.length })}
+              </Button>
+            </div>
+          </div>
+        ) : null}
         <DataTable
+          striped
           columns={columns}
           data={rows}
           getRowId={(row) => row.id}

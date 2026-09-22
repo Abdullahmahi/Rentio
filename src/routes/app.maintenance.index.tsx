@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -40,14 +40,19 @@ import { formatDate } from "@/lib/format";
 import { unitContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
-import { uploadFile } from "@/lib/storage";
+import { StatutoryClock } from "@/components/rentio/statutory-clock";
+import { signedUrls, uploadFile } from "@/lib/storage";
 import { CATEGORY_ICONS, SOURCE_ICONS, daysOpen } from "@/lib/maintenance";
-import { repairClock } from "@/lib/texas";
+import { REPAIR_WINDOW_DAYS, repairClock } from "@/lib/texas";
 import { cn } from "@/lib/utils";
 import type { Enums, Tables, TablesUpdate } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/maintenance/")({
+  // `?new=1` lets the command palette land straight in the create dialog. The
+  // page strips the param once it has opened it, so a refresh is not sticky.
+  validateSearch: (search: Record<string, unknown>): { new?: true } =>
+    search["new"] === true || search["new"] === "1" ? { new: true } : {},
   head: () => ({
     meta: [
       { title: `${i18n.t("pages.maintenance.title")} — Rentio` },
@@ -75,6 +80,28 @@ const CATEGORIES: Enums<"wo_category">[] = [
   "otro",
 ];
 const PRIORITIES: Enums<"wo_priority">[] = ["baja", "media", "alta", "urgente"];
+
+/** Three reads at a glance; the rest go behind a "+N". */
+const PHOTOS_PER_CARD = 3;
+/**
+ * The board shows four columns, not six: xl:grid-cols-6 forces horizontal
+ * scrolling on any laptop and two of those columns sit near-empty. The table
+ * view still filters on all six — nothing is hidden, the board is made to fit.
+ * `esperando_refacciones` rides with `en_progreso`; both mean "started, not
+ * finished", and dropping onto that column sets the one a human would pick.
+ */
+const BOARD_COLUMNS = [
+  { key: "nueva", drop: "nueva", statuses: ["nueva"] },
+  { key: "asignada", drop: "asignada", statuses: ["asignada"] },
+  { key: "en_progreso", drop: "en_progreso", statuses: ["en_progreso", "esperando_refacciones"] },
+  // Never straight to cerrada — closing is a decision, not a drag.
+  { key: "terminadas", drop: "resuelta", statuses: ["resuelta", "cerrada"] },
+] as const satisfies readonly {
+  key: string;
+  drop: Enums<"wo_status">;
+  statuses: readonly Enums<"wo_status">[];
+}[];
+
 const OPEN_STATUSES: Enums<"wo_status">[] = [
   "nueva",
   "asignada",
@@ -86,6 +113,7 @@ interface OrderRow extends Tables<"work_orders"> {
   unitNumber: string;
   propertyId: string | null;
   photoCount: number;
+  thumbnails: string[];
 }
 
 function MaintenancePage() {
@@ -97,8 +125,20 @@ function MaintenancePage() {
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Arrived from the command palette's "New work order".
+  const openNew = Route.useSearch({ select: (search) => search["new"] });
+  useEffect(() => {
+    if (!openNew) return;
+    setOpen(true);
+    void navigate({ to: "/app/maintenance", search: {}, replace: true });
+  }, [openNew, navigate]);
   const [dragging, setDragging] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<Enums<"wo_status"> | null>(null);
+  /** Per combined column: show only one of its statuses. */
+  const [columnFilter, setColumnFilter] = useState<Record<string, Enums<"wo_status"> | undefined>>(
+    {},
+  );
 
   const [filters, setFilters] = useState({
     status: ALL,
@@ -120,18 +160,50 @@ function MaintenancePage() {
 
   const orders = useQuery({
     queryKey: qk.workOrders,
+    // Signed URLs live 10 minutes; re-sign a little before they lapse rather
+    // than on every render.
+    staleTime: 8 * 60 * 1000,
     queryFn: async () => {
       const { data, error: caught } = await supabase
         .from("work_orders")
         .select("*")
         .order("created_at", { ascending: false });
       if (caught) throw caught;
-      const { data: photos } = await supabase.from("work_order_photos").select("work_order_id");
-      const counts = new Map<string, number>();
+      // A photo of the leak is a different object from the words "leaking
+      // faucet". Fetch the paths, then sign them all in ONE request — the
+      // per-path helper would be forty round trips for a full board.
+      const { data: photos } = await supabase
+        .from("work_order_photos")
+        .select("id, work_order_id, url")
+        .order("created_at");
+
+      const byOrder = new Map<string, string[]>();
       for (const photo of photos ?? []) {
-        counts.set(photo.work_order_id, (counts.get(photo.work_order_id) ?? 0) + 1);
+        const list = byOrder.get(photo.work_order_id) ?? [];
+        list.push(photo.url);
+        byOrder.set(photo.work_order_id, list);
       }
-      return (data ?? []).map((order) => ({ ...order, _photos: counts.get(order.id) ?? 0 }));
+
+      const shown = [...byOrder.values()].flatMap((list) => list.slice(0, PHOTOS_PER_CARD));
+      let urls = new Map<string, string>();
+      try {
+        urls = await signedUrls("work-order-photos", shown);
+      } catch (signError) {
+        // A board that loses its thumbnails is still a working board.
+        console.warn("work-order-photos sign failed", signError);
+      }
+
+      return (data ?? []).map((order) => {
+        const paths = byOrder.get(order.id) ?? [];
+        return {
+          ...order,
+          _photos: paths.length,
+          _thumbs: paths
+            .slice(0, PHOTOS_PER_CARD)
+            .map((path) => urls.get(path))
+            .filter((url): url is string => Boolean(url)),
+        };
+      });
     },
   });
 
@@ -150,6 +222,7 @@ function MaintenancePage() {
           unitNumber: context?.unit.unit_number ?? "—",
           propertyId: context?.property?.id ?? null,
           photoCount: order._photos,
+          thumbnails: order._thumbs,
         };
       })
       .filter((row) => {
@@ -496,12 +569,28 @@ function MaintenancePage() {
         }
       >
         {view === "kanban" ? (
-          <div className="grid gap-3 overflow-x-auto lg:grid-cols-3 xl:grid-cols-6">
-            {STATUSES.map((status) => {
-              const columnRows = rows.filter((row) => row.status === status);
+          <div className="grid gap-3 overflow-x-auto sm:grid-cols-2 xl:grid-cols-4">
+            {BOARD_COLUMNS.map((column) => {
+              const inColumn = rows.filter((row) =>
+                (column.statuses as readonly Enums<"wo_status">[]).includes(row.status),
+              );
+              const counts = column.statuses.map((status) => ({
+                status,
+                count: inColumn.filter((row) => row.status === status).length,
+              }));
+              const only = columnFilter[column.key];
+              const columnRows = (only ? inColumn.filter((row) => row.status === only) : inColumn)
+                // resuelta first, then cerrada — the order they happen in.
+                .slice()
+                .sort(
+                  (a, b) =>
+                    column.statuses.indexOf(a.status as never) -
+                    column.statuses.indexOf(b.status as never),
+                );
+              const status = column.drop;
               return (
                 <section
-                  key={status}
+                  key={column.key}
                   onDragOver={(event) => {
                     event.preventDefault();
                     setDropTarget(status);
@@ -521,19 +610,50 @@ function MaintenancePage() {
                     dropTarget === status ? "border-primary bg-primary/5" : "border-border",
                   )}
                 >
-                  <header className="flex items-center justify-between px-1.5 py-1.5">
-                    <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      {t(`woStatus.${status}`)}
-                    </h2>
-                    <span className="numeric text-xs font-semibold text-muted-foreground">
-                      {columnRows.length}
-                    </span>
+                  <header className="px-1.5 py-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        {t(`maintenance.board.${column.key}`)}
+                      </h2>
+                      <span className="numeric text-xs font-semibold text-muted-foreground">
+                        {inColumn.length}
+                      </span>
+                    </div>
+                    {column.statuses.length > 1 ? (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {counts.map(({ status: each, count }) => (
+                          <button
+                            key={each}
+                            type="button"
+                            onClick={() =>
+                              setColumnFilter((current) => ({
+                                ...current,
+                                [column.key]: current[column.key] === each ? undefined : each,
+                              }))
+                            }
+                            aria-pressed={only === each}
+                            className={cn(
+                              "numeric rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors",
+                              only === each
+                                ? "border-primary bg-primary/10 text-foreground"
+                                : "border-border text-muted-foreground hover:bg-muted",
+                            )}
+                          >
+                            {t(`woStatus.${each}`)} {count}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </header>
 
                   <ul className="space-y-2">
                     {columnRows.map((row) => {
                       const CategoryIcon = CATEGORY_ICONS[row.category];
                       const SourceIcon = SOURCE_ICONS[row.source];
+                      const repair =
+                        row.affects_health_safety && row.written_notice_at
+                          ? repairClock(row.written_notice_at, undefined, row.resolved_at)
+                          : null;
                       return (
                         <li key={row.id}>
                           <article
@@ -571,7 +691,7 @@ function MaintenancePage() {
                               >
                                 <SourceIcon className="size-3.5" />
                               </span>
-                              {row.photoCount > 0 ? (
+                              {row.photoCount > row.thumbnails.length ? (
                                 <span className="numeric flex items-center gap-1 text-xs text-muted-foreground">
                                   <Image className="size-3.5" />
                                   {row.photoCount}
@@ -583,6 +703,47 @@ function MaintenancePage() {
                                 })}
                               </span>
                             </div>
+
+                            {/* §92.056. A legal deadline, not a workflow step —
+                                so it does not look like the badges above. */}
+                            {repair ? (
+                              <div className="mt-2">
+                                <StatutoryClock
+                                  tone={repair.tone}
+                                  // The card gets "Day 4 of 7"; the sentence
+                                  // form belongs on the detail page.
+                                  label={
+                                    repair.overdue
+                                      ? t("maintenance.repairOverdueShort", { count: repair.day })
+                                      : t("maintenance.repairWindowShort", {
+                                          day: repair.day,
+                                          total: REPAIR_WINDOW_DAYS,
+                                        })
+                                  }
+                                />
+                              </div>
+                            ) : null}
+
+                            {row.thumbnails.length > 0 ? (
+                              <div className="mt-2 flex gap-1.5">
+                                {row.thumbnails.map((url) => (
+                                  <img
+                                    key={url}
+                                    src={url}
+                                    alt=""
+                                    loading="lazy"
+                                    width={56}
+                                    height={56}
+                                    className="size-14 shrink-0 rounded-md border border-border bg-muted object-cover"
+                                  />
+                                ))}
+                                {row.photoCount > row.thumbnails.length ? (
+                                  <span className="numeric grid size-14 shrink-0 place-items-center rounded-md border border-dashed border-border text-xs font-medium text-muted-foreground">
+                                    +{row.photoCount - row.thumbnails.length}
+                                  </span>
+                                ) : null}
+                              </div>
+                            ) : null}
                           </article>
                         </li>
                       );

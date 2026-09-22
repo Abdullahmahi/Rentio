@@ -1,25 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import {
-  BarChart3,
-  Building2,
-  CarFront,
-  ChevronLeft,
-  ChevronRight,
-  Upload,
-  FileText,
-  LayoutDashboard,
-  Menu,
-  Moon,
-  ReceiptText,
-  Settings,
-  Sun,
-  Users,
-  WalletCards,
-  Wrench,
-  X,
-  Zap,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -34,23 +15,9 @@ import {
 import { INTERNAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useLanguagePreference } from "@/lib/queries";
+import { CommandPalette } from "@/components/rentio/command-palette";
+import { dashboardItem, navGroups, navItems } from "@/components/rentio/nav-items";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  ["dashboard", "/app", LayoutDashboard],
-  ["properties", "/app/properties", Building2],
-  ["units", "/app/units", Menu],
-  ["parking", "/app/parking", CarFront],
-  ["tenants", "/app/tenants", Users],
-  ["contracts", "/app/contracts", FileText],
-  ["receipts", "/app/receipts", ReceiptText],
-  ["payments", "/app/payments", WalletCards],
-  ["services", "/app/services", Zap],
-  ["maintenance", "/app/maintenance", Wrench],
-  ["reports", "/app/reports", BarChart3],
-  ["import", "/app/import", Upload],
-  ["settings", "/app/settings", Settings],
-] as const;
 
 const THEME_STORAGE_KEY = "rentio-theme";
 
@@ -79,6 +46,7 @@ export function AppShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dark, setDark] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
@@ -110,7 +78,36 @@ export function AppShell() {
     void navigate({ to: "/login", replace: true });
   };
 
-  const currentKey = navItems.find(([, path]) => path === pathname)?.[0] ?? "dashboard";
+  // Exact match first, then longest prefix, so /app/units/$id still titles the
+  // header "Units" rather than falling through to "Dashboard".
+  const currentKey =
+    navItems.find(([, path]) => path === pathname)?.[0] ??
+    navItems
+      .filter(([, path]) => path !== "/app" && pathname.startsWith(`${path}/`))
+      .sort((a, b) => b[1].length - a[1].length)[0]?.[0] ??
+    "dashboard";
+
+  const navLink = ([key, path, Icon]: (typeof navItems)[number]) => {
+    const active = pathname === path;
+    return (
+      <Link
+        key={path}
+        to={path}
+        title={collapsed ? t(`nav.${key}`) : undefined}
+        onClick={() => setMobileOpen(false)}
+        className={cn(
+          "flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+          active
+            ? "bg-sidebar-primary text-sidebar-primary-foreground"
+            : "text-sidebar-foreground hover:bg-sidebar-accent",
+          collapsed && "justify-center px-0",
+        )}
+      >
+        <Icon className="size-4 shrink-0" />
+        {collapsed ? null : <span className="truncate">{t(`nav.${key}`)}</span>}
+      </Link>
+    );
+  };
 
   const sidebar = (
     <aside
@@ -122,28 +119,20 @@ export function AppShell() {
       <div className="flex h-16 items-center border-b border-sidebar-border px-3">
         <RentioMark compact={collapsed} />
       </div>
-      <nav className="flex-1 space-y-1 overflow-y-auto p-2">
-        {navItems.map(([key, path, Icon]) => {
-          const active = pathname === path;
-          return (
-            <Link
-              key={path}
-              to={path}
-              title={collapsed ? t(`nav.${key}`) : undefined}
-              onClick={() => setMobileOpen(false)}
-              className={cn(
-                "flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
-                active
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent",
-                collapsed && "justify-center px-0",
-              )}
-            >
-              <Icon className="size-4 shrink-0" />
-              {collapsed ? null : <span className="truncate">{t(`nav.${key}`)}</span>}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 overflow-y-auto p-2">
+        {navLink(dashboardItem)}
+        {navGroups.map((group) => (
+          <div key={group.label} className={cn(collapsed ? "mt-2 space-y-1" : "mt-4 space-y-1")}>
+            {collapsed ? (
+              <div className="mx-2 mb-2 border-t border-sidebar-border" />
+            ) : (
+              <div className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t(`nav.groups.${group.label}`)}
+              </div>
+            )}
+            {group.items.map(navLink)}
+          </div>
+        ))}
       </nav>
       <div className="border-t border-sidebar-border p-2">
         <Button
@@ -190,7 +179,7 @@ export function AppShell() {
         </div>
       ) : null}
       <div className={cn("transition-[padding] duration-200", collapsed ? "lg:pl-16" : "lg:pl-60")}>
-        <header className="sticky top-0 z-30 grid h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-surface px-4 sm:px-6">
+        <header className="sticky top-0 z-30 grid h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b md:grid-cols-[minmax(0,1fr)_auto_auto] border-border bg-surface px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <Button
               size="icon"
@@ -203,6 +192,17 @@ export function AppShell() {
             </Button>
             <h2 className="truncate text-base font-semibold">{t(`pages.${currentKey}.title`)}</h2>
           </div>
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            className="hidden h-9 min-w-56 items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm text-muted-foreground transition-colors hover:bg-muted md:flex"
+          >
+            <Search className="size-4 shrink-0" />
+            <span className="truncate">{t("palette.trigger")}</span>
+            <kbd className="ml-auto rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium">
+              {t("palette.shortcut")}
+            </kbd>
+          </button>
           <div className="flex shrink-0 items-center gap-1">
             <div
               className="flex rounded-lg border border-border p-0.5"
@@ -270,6 +270,12 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        onToggleTheme={toggleTheme}
+        onToggleLanguage={() => setLanguage(i18n.language === "en" ? "es-MX" : "en")}
+      />
     </div>
   );
 }

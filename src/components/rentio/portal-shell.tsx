@@ -63,7 +63,11 @@ export function PortalShell() {
             )}
           >
             <Icon className="size-5 shrink-0" />
-            <span className="max-w-full truncate">{t(`nav.${key}`)}</span>
+            {/* Wraps rather than clipping: "Mantenimiento" does not fit a
+                75px tab at 375px, so the tenant's own word is used instead. */}
+            <span className="max-w-full text-center leading-tight">
+              {t(key === "maintenance" ? "nav.maintenanceShort" : `nav.${key}`)}
+            </span>
           </Link>
         ))}
       </nav>

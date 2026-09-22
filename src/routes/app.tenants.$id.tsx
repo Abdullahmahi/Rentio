@@ -21,8 +21,17 @@ import { isActive, leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Tables } from "@/lib/database.types";
+import i18n from "@/lib/i18n";
 
-export const Route = createFileRoute("/app/tenants/$id")({ component: TenantDetailPage });
+export const Route = createFileRoute("/app/tenants/$id")({
+  head: () => ({
+    meta: [
+      { title: `${i18n.t("pages.detail.tenant")} — Rentio` },
+      { name: "description", content: i18n.t("pages.tenants.description") },
+    ],
+  }),
+  component: TenantDetailPage,
+});
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (

@@ -11,8 +11,17 @@ import { formatDate } from "@/lib/format";
 import { useMyPortal } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import { signedUrl } from "@/lib/storage";
+import i18n from "@/lib/i18n";
 
-export const Route = createFileRoute("/portal/maintenance/$id")({ component: PortalRequestDetail });
+export const Route = createFileRoute("/portal/maintenance/$id")({
+  head: () => ({
+    meta: [
+      { title: `${i18n.t("pages.detail.workOrder")} — Rentio` },
+      { name: "description", content: i18n.t("pages.maintenance.description") },
+    ],
+  }),
+  component: PortalRequestDetail,
+});
 
 function PortalRequestDetail() {
   const { id } = Route.useParams();

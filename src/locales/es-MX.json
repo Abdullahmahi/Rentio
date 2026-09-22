@@ -19,7 +19,13 @@
     "settings": "Configuración",
     "home": "Inicio",
     "profile": "Perfil",
-    "import": "Importar"
+    "import": "Importar",
+    "groups": {
+      "portfolio": "Portafolio",
+      "money": "Dinero",
+      "operations": "Operaciones"
+    },
+    "maintenanceShort": "Solicitudes"
   },
   "pages": {
     "dashboard": {
@@ -81,6 +87,14 @@
     "import": {
       "title": "Importar",
       "description": "Carga unidades, inquilinos y contratos desde CSV."
+    },
+    "detail": {
+      "property": "Propiedad",
+      "unit": "Unidad",
+      "tenant": "Inquilino",
+      "contract": "Contrato",
+      "receipt": "Recibo",
+      "workOrder": "Orden de trabajo"
     }
   },
   "empty": {
@@ -120,7 +134,9 @@
     "search": "Buscar",
     "apply": "Aplicar",
     "export": "Exportar CSV",
-    "viewAll": "Ver todo"
+    "viewAll": "Ver todo",
+    "previous": "Anterior",
+    "next": "Siguiente"
   },
   "language": {
     "es-MX": "ES",
@@ -649,7 +665,15 @@
     "healthSafetyOnly": "Solo salud y seguridad",
     "repairWindow": "Día {{day}} de {{total}} — plazo legal de reparación.",
     "repairOverdue": "Día {{count}} — fuera del plazo legal de 7 días para reparar.",
-    "writtenNoticeOn": "Aviso escrito recibido el {{date}}."
+    "writtenNoticeOn": "Aviso escrito recibido el {{date}}.",
+    "board": {
+      "nueva": "Nuevas",
+      "asignada": "Asignadas",
+      "en_progreso": "En progreso",
+      "terminadas": "Terminadas"
+    },
+    "repairWindowShort": "Día {{day}} de {{total}}",
+    "repairOverdueShort": "Día {{count}} · fuera de plazo"
   },
   "paymentMethod": {
     "ach": "Transferencia ACH",
@@ -779,7 +803,20 @@
     },
     "sentWithoutEmail": "Recibo marcado como enviado, pero no se pudo enviar el correo. Revisa la configuración de correo.",
     "lateFeeTooEarly": "La ley de Texas todavía no permite un recargo. Disponible a partir del {{date}}, cuando la renta lleve dos días completos sin pagarse.",
-    "lateFeeAlreadyApplied": "Este recibo ya tiene un recargo."
+    "lateFeeAlreadyApplied": "Este recibo ya tiene un recargo.",
+    "generating": "Generando recibos…",
+    "generatedCount": "{{count}} recibo generado",
+    "generatedCount_other": "{{count}} recibos generados",
+    "sending": "Enviando…",
+    "sentCount": "{{count}} recibo enviado",
+    "sentCount_other": "{{count}} recibos enviados",
+    "batchTitle": "Revisa el lote de {{month}}",
+    "batchSummary": "{{count}} borrador por facturar, por un total de",
+    "batchSummary_other": "{{count}} borradores por facturar, por un total de",
+    "batchSendAll": "Enviar los {{count}}",
+    "batchDiscard": "Revisar después",
+    "pdfPending": "Generando el PDF…",
+    "pdfReady": "PDF listo"
   },
   "payments": {
     "emptyTitle": "Sin pagos registrados",
@@ -831,7 +868,13 @@
       "amountRequired": "Captura el monto del pago.",
       "overAllocated": "Lo aplicado supera el monto del pago.",
       "reasonRequired": "Escribe el motivo."
-    }
+    },
+    "wouldClear": "Saldaría",
+    "resultingBalance": "Saldo del contrato después",
+    "selectClaim": "Selecciona un pago para revisar",
+    "queuePosition": "{{position}} de {{total}}",
+    "openPdf": "Abrir el PDF",
+    "receiptUnavailable": "No se pudo cargar el comprobante"
   },
   "month": {
     "previous": "Mes anterior",
@@ -962,7 +1005,8 @@
     "checkPayableTo": "Gira el cheque a nombre de",
     "checkMailingAddress": "Envía el cheque por correo a",
     "dropoffAddress": "Entrega efectivo o money orders en",
-    "officeHours": "Horario de oficina"
+    "officeHours": "Horario de oficina",
+    "viewReceipt": "Ver recibo"
   },
   "dashboard": {
     "pendingPayments": "{{count}} pago espera confirmación",
@@ -1036,7 +1080,12 @@
       "late": "Tarde",
       "pending": "Pendiente",
       "not_started": "Sin iniciar"
-    }
+    },
+    "exportRows": "Exportar {{count}} fila ({{filename}})",
+    "exportRows_other": "Exportar {{count}} filas ({{filename}})",
+    "exportEmpty": "Nada que exportar",
+    "exportEmptyHint": "Este filtro no arroja filas. Amplíalo y la exportación quedará disponible.",
+    "noOverdue": "Nada vencido"
   },
   "import": {
     "title": "Importar datos",
@@ -1182,6 +1231,27 @@
     },
     "errors": {
       "vacateBeforeDelivery": "La fecha para desocupar no puede ser anterior a la de entrega."
+    }
+  },
+  "palette": {
+    "trigger": "Buscar o ir a…",
+    "shortcut": "⌘K",
+    "placeholder": "Buscar unidades, inquilinos, contratos, acciones…",
+    "emptyTitle": "Nada coincide con eso",
+    "showingOf": "{{shown}} de {{total}}",
+    "groups": {
+      "navigation": "Navegación",
+      "units": "Unidades",
+      "tenants": "Inquilinos",
+      "contracts": "Contratos",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "generateReceipts": "Generar los recibos del mes",
+      "recordPayment": "Registrar un pago",
+      "newWorkOrder": "Nueva orden de trabajo",
+      "toggleLanguage": "Cambiar idioma",
+      "toggleTheme": "Cambiar modo oscuro"
     }
   }
 }

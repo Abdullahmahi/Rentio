@@ -33,6 +33,8 @@ interface DataTableProps<T> {
   isSelectable?: ((row: T) => boolean) | undefined;
   /** Bar rendered above the table while at least one row is ticked. */
   bulkActions?: ReactNode | undefined;
+  /** Zebra rows. Worth it on wide money tables, noise everywhere else. */
+  striped?: boolean | undefined;
 }
 
 type SortDirection = "asc" | "desc";
@@ -50,6 +52,7 @@ export function DataTable<T>({
   onSelectionChange,
   isSelectable,
   bulkActions,
+  striped = false,
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
@@ -208,12 +211,13 @@ export function DataTable<T>({
                       ))}
                     </tr>
                   ))
-                : rows.map((row) => (
+                : rows.map((row, rowIndex) => (
                     <tr
                       key={getRowId(row)}
                       onClick={() => onRowClick?.(row)}
                       className={cn(
                         "h-10 border-b border-border last:border-b-0",
+                        striped && rowIndex % 2 === 1 && "bg-muted/40",
                         onRowClick && "cursor-pointer hover:bg-muted/60",
                         selected.has(getRowId(row)) && "bg-primary/5",
                       )}

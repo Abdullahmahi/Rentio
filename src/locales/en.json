@@ -19,7 +19,13 @@
     "settings": "Settings",
     "home": "Home",
     "profile": "Profile",
-    "import": "Import"
+    "import": "Import",
+    "groups": {
+      "portfolio": "Portfolio",
+      "money": "Money",
+      "operations": "Operations"
+    },
+    "maintenanceShort": "Requests"
   },
   "pages": {
     "dashboard": {
@@ -81,6 +87,14 @@
     "import": {
       "title": "Import",
       "description": "Load units, tenants and leases from CSV."
+    },
+    "detail": {
+      "property": "Property",
+      "unit": "Unit",
+      "tenant": "Tenant",
+      "contract": "Contract",
+      "receipt": "Receipt",
+      "workOrder": "Work order"
     }
   },
   "empty": {
@@ -120,7 +134,9 @@
     "search": "Search",
     "apply": "Apply",
     "export": "Export CSV",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "previous": "Previous",
+    "next": "Next"
   },
   "language": {
     "es-MX": "ES",
@@ -649,7 +665,15 @@
     "healthSafetyOnly": "Health & safety only",
     "repairWindow": "Day {{day}} of {{total}} — statutory repair window.",
     "repairOverdue": "Day {{count}} — past the 7-day statutory repair window.",
-    "writtenNoticeOn": "Written notice received {{date}}."
+    "writtenNoticeOn": "Written notice received {{date}}.",
+    "board": {
+      "nueva": "New",
+      "asignada": "Assigned",
+      "en_progreso": "In progress",
+      "terminadas": "Done"
+    },
+    "repairWindowShort": "Day {{day}} of {{total}}",
+    "repairOverdueShort": "Day {{count}} · past 7"
   },
   "paymentMethod": {
     "ach": "ACH / Bank transfer",
@@ -779,7 +803,20 @@
     },
     "sentWithoutEmail": "Receipt marked as sent, but the email could not be delivered. Check your email configuration.",
     "lateFeeTooEarly": "Texas law does not allow a late fee yet. Available from {{date}}, once the rent has been unpaid for two full days.",
-    "lateFeeAlreadyApplied": "This receipt already has a late fee."
+    "lateFeeAlreadyApplied": "This receipt already has a late fee.",
+    "generating": "Generating receipts…",
+    "generatedCount": "{{count}} receipt generated",
+    "generatedCount_other": "{{count}} receipts generated",
+    "sending": "Sending…",
+    "sentCount": "{{count}} receipt sent",
+    "sentCount_other": "{{count}} receipts sent",
+    "batchTitle": "Review the {{month}} batch",
+    "batchSummary": "{{count}} draft about to be invoiced, totalling",
+    "batchSummary_other": "{{count}} drafts about to be invoiced, totalling",
+    "batchSendAll": "Send all {{count}}",
+    "batchDiscard": "Review later",
+    "pdfPending": "Generating the PDF…",
+    "pdfReady": "PDF ready"
   },
   "payments": {
     "emptyTitle": "No payments recorded",
@@ -831,7 +868,13 @@
       "amountRequired": "Enter the payment amount.",
       "overAllocated": "You've applied more than the payment amount.",
       "reasonRequired": "Enter a reason."
-    }
+    },
+    "wouldClear": "Would clear",
+    "resultingBalance": "Lease balance after",
+    "selectClaim": "Select a payment to review",
+    "queuePosition": "{{position}} of {{total}}",
+    "openPdf": "Open the PDF",
+    "receiptUnavailable": "The proof could not be loaded"
   },
   "month": {
     "previous": "Previous month",
@@ -962,7 +1005,8 @@
     "checkPayableTo": "Make checks payable to",
     "checkMailingAddress": "Mail checks to",
     "dropoffAddress": "Drop off cash or money orders at",
-    "officeHours": "Office hours"
+    "officeHours": "Office hours",
+    "viewReceipt": "View receipt"
   },
   "dashboard": {
     "pendingPayments": "{{count}} payment awaits confirmation",
@@ -1036,7 +1080,12 @@
       "late": "Late",
       "pending": "Pending",
       "not_started": "Not started"
-    }
+    },
+    "exportRows": "Export {{count}} row ({{filename}})",
+    "exportRows_other": "Export {{count}} rows ({{filename}})",
+    "exportEmpty": "Nothing to export",
+    "exportEmptyHint": "This filter yields no rows. Widen it and the export will be available.",
+    "noOverdue": "Nothing overdue"
   },
   "import": {
     "title": "Import data",
@@ -1182,6 +1231,27 @@
     },
     "errors": {
       "vacateBeforeDelivery": "The vacate date cannot be before the delivery date."
+    }
+  },
+  "palette": {
+    "trigger": "Search or jump to…",
+    "shortcut": "⌘K",
+    "placeholder": "Search units, tenants, contracts, actions…",
+    "emptyTitle": "Nothing matches that",
+    "showingOf": "{{shown}} of {{total}}",
+    "groups": {
+      "navigation": "Navigation",
+      "units": "Units",
+      "tenants": "Tenants",
+      "contracts": "Contracts",
+      "actions": "Actions"
+    },
+    "actions": {
+      "generateReceipts": "Generate this month's receipts",
+      "recordPayment": "Record a payment",
+      "newWorkOrder": "New work order",
+      "toggleLanguage": "Toggle language",
+      "toggleTheme": "Toggle dark mode"
     }
   }
 }

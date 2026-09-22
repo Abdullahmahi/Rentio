@@ -19,10 +19,11 @@ import { Field } from "@/components/rentio/form-dialog";
 import { MoneyInput } from "@/components/rentio/money-input";
 import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
+import { StatutoryClock } from "@/components/rentio/statutory-clock";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/rentio/status";
 import { CATEGORY_ICONS, SOURCE_ICONS, daysOpen } from "@/lib/maintenance";
-import { repairClock } from "@/lib/texas";
+import { REPAIR_WINDOW_DAYS, repairClock } from "@/lib/texas";
 import { formatDate } from "@/lib/format";
 import { leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
@@ -30,8 +31,17 @@ import { supabase } from "@/lib/supabase";
 import { signedUrl } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums, TablesUpdate } from "@/lib/database.types";
+import i18n from "@/lib/i18n";
 
-export const Route = createFileRoute("/app/maintenance/$id")({ component: WorkOrderDetailPage });
+export const Route = createFileRoute("/app/maintenance/$id")({
+  head: () => ({
+    meta: [
+      { title: `${i18n.t("pages.detail.workOrder")} — Rentio` },
+      { name: "description", content: i18n.t("pages.maintenance.description") },
+    ],
+  }),
+  component: WorkOrderDetailPage,
+});
 
 const STATUSES: Enums<"wo_status">[] = [
   "nueva",
@@ -309,11 +319,19 @@ function WorkOrderDetailPage() {
                       : "border-border bg-muted/40",
                 )}
               >
-                <p className="flex items-center gap-2 text-sm font-medium">
+                <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
                   <ShieldAlert className="size-4 shrink-0" />
-                  {repair?.overdue
-                    ? t("maintenance.repairOverdue", { count: repair.day })
-                    : t("maintenance.repairWindow", { day: repair?.day ?? 1, total: 7 })}
+                  <StatutoryClock
+                    tone={repair?.tone}
+                    label={
+                      repair?.overdue
+                        ? t("maintenance.repairOverdue", { count: repair.day })
+                        : t("maintenance.repairWindow", {
+                            day: repair?.day ?? 1,
+                            total: REPAIR_WINDOW_DAYS,
+                          })
+                    }
+                  />
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {t("maintenance.writtenNoticeOn", {
@@ -384,12 +402,20 @@ function WorkOrderDetailPage() {
                           {t("maintenance.noNotes")}
                         </li>
                       ) : (
+                        // Staff write blunt things here. A label gets skimmed
+                        // past in a way a background colour does not.
                         internalNotes.map((note) => (
                           <li
                             key={note.id}
-                            className="rounded-lg border border-border bg-surface px-3 py-2"
+                            className="rounded-lg border border-warning/25 bg-warning/10 px-3 py-2"
                           >
-                            <p className="whitespace-pre-wrap text-sm">{note.body}</p>
+                            <p className="flex gap-2 whitespace-pre-wrap text-sm">
+                              <Lock
+                                className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
+                                aria-label={t("maintenance.internalNotes")}
+                              />
+                              <span className="min-w-0">{note.body}</span>
+                            </p>
                             <p className="numeric mt-1 text-xs text-muted-foreground">
                               {formatDate(note.created_at)}
                             </p>

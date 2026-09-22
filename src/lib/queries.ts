@@ -139,6 +139,14 @@ interface ToastMutationOptions<TVars, TData> {
   /** Query keys to invalidate once it lands. */
   invalidate?: QueryKey[];
   onSuccess?: (data: TData, vars: TVars) => void;
+  /**
+   * i18n key for a "working on it" toast. Set it on anything slow or
+   * consequential — a 40-receipt send, an Edge Function that renders a PDF —
+   * and sonner shows pending, then the result, in the one toast.
+   */
+  pendingKey?: string;
+  /** Overrides the success line, so it can name the count that landed. */
+  resultMessage?: (data: TData, vars: TVars) => string;
 }
 
 /** Every mutation ends in a toast — success or failure, never silence. */
@@ -147,19 +155,32 @@ export function useToastMutation<TVars, TData>({
   successKey,
   invalidate = [],
   onSuccess,
+  pendingKey,
+  resultMessage,
 }: ToastMutationOptions<TVars, TData>) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn,
+    mutationFn: pendingKey
+      ? (vars: TVars) => {
+          const promise = mutationFn(vars);
+          toast.promise(promise, {
+            loading: t(pendingKey),
+            success: (data: TData) => resultMessage?.(data, vars) ?? t(successKey),
+            error: (error: unknown) => t(describeError(error)),
+          });
+          return promise;
+        }
+      : mutationFn,
     onSuccess: (data, vars) => {
-      toast.success(t(successKey));
+      // toast.promise already reported it; two toasts for one action is noise.
+      if (!pendingKey) toast.success(t(successKey));
       for (const key of invalidate) void queryClient.invalidateQueries({ queryKey: key });
       onSuccess?.(data, vars);
     },
     onError: (error) => {
-      toast.error(t(describeError(error)));
+      if (!pendingKey) toast.error(t(describeError(error)));
     },
   });
 }

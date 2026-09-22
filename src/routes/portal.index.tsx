@@ -3,7 +3,6 @@ import { CheckCircle2, ClipboardCopy, Clock, CreditCard, ReceiptText, Wrench } f
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmptyState } from "@/components/rentio/empty-state";
 import { MoneyText } from "@/components/rentio/money-text";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
@@ -138,34 +137,27 @@ function PortalHome() {
             </p>
           ) : null}
 
-          <div className="mt-5 grid gap-2 sm:grid-cols-2">
-            <Button asChild className="h-12 text-base">
+          {/* One working path, unmistakably primary. */}
+          <div className="mt-5">
+            <Button asChild className="h-12 w-full text-base">
               <Link to="/portal/report-payment">{t("portal.reportPayment")}</Link>
             </Button>
-
-            {/* Intentionally present and disabled — online payments are Phase 2. */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="inline-flex">
-                    <Button
-                      variant="outline"
-                      className="h-12 w-full text-base"
-                      disabled
-                      aria-disabled="true"
-                    >
-                      <CreditCard className="size-4" />
-                      {t("portal.payOnline")}
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>{t("portal.payOnlineSoon")}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground sm:text-right">
-            {t("portal.payOnlineSoon")}
-          </p>
+
+          {/* Intentionally present and disabled — online payments are Phase 2.
+              The caption carries the explanation; a tooltip would say the same
+              thing a second time, and hover does not exist on a phone. */}
+          <p className="mt-3 text-xs text-muted-foreground">{t("portal.payOnlineSoon")}</p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-1 h-9 px-0 text-muted-foreground hover:bg-transparent"
+            disabled
+            aria-disabled="true"
+          >
+            <CreditCard className="size-4" />
+            {t("portal.payOnline")}
+          </Button>
         </section>
 
         {/* ------------------------------------------------- how to pay */}

@@ -22,6 +22,25 @@ export async function signedUrl(bucket: Bucket, path: string, expiresInSeconds =
   return data.signedUrl;
 }
 
+/**
+ * Signs a batch in one request. Forty kanban cards through `signedUrl()` is
+ * forty round trips; this is one. Missing paths come back absent rather than
+ * throwing — a card whose photo went missing should still render.
+ */
+export async function signedUrls(bucket: Bucket, paths: string[], expiresInSeconds = 60 * 10) {
+  const unique = [...new Set(paths)];
+  if (unique.length === 0) return new Map<string, string>();
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .createSignedUrls(unique, expiresInSeconds);
+  if (error) throw error;
+  return new Map(
+    (data ?? []).flatMap((row) =>
+      row.signedUrl && row.path ? [[row.path, row.signedUrl] as const] : [],
+    ),
+  );
+}
+
 export async function openSigned(bucket: Bucket, path: string) {
   window.open(await signedUrl(bucket, path), "_blank", "noopener,noreferrer");
 }

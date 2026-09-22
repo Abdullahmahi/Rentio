@@ -33,6 +33,7 @@ import { LeaseWizard, seedFromLease, type LeaseWizardSeed } from "@/components/r
 import { MoneyInput } from "@/components/rentio/money-input";
 import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
+import { StatutoryClock } from "@/components/rentio/statutory-clock";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import {
   InvoiceStatusBadge,
@@ -75,8 +76,17 @@ import {
 } from "@/lib/queries";
 import { describeError, supabase } from "@/lib/supabase";
 import type { Tables } from "@/lib/database.types";
+import i18n from "@/lib/i18n";
 
-export const Route = createFileRoute("/app/contracts/$id")({ component: ContractDetailPage });
+export const Route = createFileRoute("/app/contracts/$id")({
+  head: () => ({
+    meta: [
+      { title: `${i18n.t("pages.detail.contract")} — Rentio` },
+      { name: "description", content: i18n.t("pages.contracts.description") },
+    ],
+  }),
+  component: ContractDetailPage,
+});
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -701,17 +711,20 @@ function ContractDetailPage() {
                               : "border-border bg-muted/40",
                         )}
                       >
-                        <p className="text-sm font-medium">
-                          {clock.stage === "overdue"
-                            ? t("contracts.depositOverdue", {
-                                date: formatDate(clock.dueDate ?? ""),
-                                count: Math.abs(clock.daysRemaining ?? 0),
-                              })
-                            : t("contracts.depositCountdown", {
-                                date: formatDate(clock.dueDate ?? ""),
-                                count: clock.daysRemaining ?? 0,
-                              })}
-                        </p>
+                        <StatutoryClock
+                          tone={clock.tone}
+                          label={
+                            clock.stage === "overdue"
+                              ? t("contracts.depositOverdue", {
+                                  date: formatDate(clock.dueDate ?? ""),
+                                  count: Math.abs(clock.daysRemaining ?? 0),
+                                })
+                              : t("contracts.depositCountdown", {
+                                  date: formatDate(clock.dueDate ?? ""),
+                                  count: clock.daysRemaining ?? 0,
+                                })
+                          }
+                        />
                         <Button
                           size="sm"
                           onClick={() => {
@@ -882,23 +895,26 @@ function ContractDetailPage() {
                                 {t(`turnover.items.${item.item_key}`, { defaultValue: item.item })}
                               </span>
                               {rekey ? (
-                                <span
-                                  className={cn(
-                                    "mt-0.5 block text-xs",
+                                <StatutoryClock
+                                  className="mt-1"
+                                  tone={
                                     rekey.overdue
-                                      ? "font-medium text-danger"
-                                      : "text-muted-foreground",
-                                  )}
-                                >
-                                  {rekey.overdue
-                                    ? t("turnover.rekeyOverdue", {
-                                        count: Math.abs(rekey.daysRemaining),
-                                      })
-                                    : t("turnover.rekeyCountdown", {
-                                        count: rekey.daysRemaining,
-                                        date: formatDate(rekey.deadline),
-                                      })}
-                                </span>
+                                      ? "danger"
+                                      : rekey.daysRemaining <= 2
+                                        ? "warning"
+                                        : "neutral"
+                                  }
+                                  label={
+                                    rekey.overdue
+                                      ? t("turnover.rekeyOverdue", {
+                                          count: Math.abs(rekey.daysRemaining),
+                                        })
+                                      : t("turnover.rekeyCountdown", {
+                                          count: rekey.daysRemaining,
+                                          date: formatDate(rekey.deadline),
+                                        })
+                                  }
+                                />
                               ) : null}
                               {item.completed && item.completed_at ? (
                                 <span className="mt-0.5 block text-xs text-muted-foreground">

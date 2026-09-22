@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, ArrowRight } from "lucide-react";
@@ -7,10 +7,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -46,28 +43,130 @@ export const Route = createFileRoute("/app/")({
 const MONTHS_BACK = 6;
 const UNIT_STATUSES: Enums<"unit_status">[] = ["ocupada", "vacante", "mantenimiento", "reservada"];
 
+/** Rounded outer ends only, so the stack reads as one bar. */
+function segmentRadius(index: number, count: number): [number, number, number, number] {
+  const left = index === 0 ? 4 : 0;
+  const right = index === count - 1 ? 4 : 0;
+  return [left, right, right, left];
+}
+
+/**
+ * The count, inside the segment, on a surface chip. The chip is what makes the
+ * label legible — none of the four chart fills reaches 4.5:1 against either
+ * white or ink on its own, and those fills are not ours to retune.
+ * Segments under 8% of the bar get no label; the legend row carries them.
+ */
+function SegmentLabel({
+  total,
+  count,
+  x,
+  y,
+  width,
+  height,
+}: {
+  total: number;
+  /** The segment's own count. Recharts hands a stacked bar its CUMULATIVE
+   *  value, so reading `value` here would label "vacant" with 36. */
+  count: number;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}) {
+  if (x === undefined || y === undefined || width === undefined || height === undefined)
+    return null;
+  if (!count || !total || count / total < 0.08) return null;
+  const text = String(count);
+  const chipWidth = Math.max(22, text.length * 9 + 10);
+  if (chipWidth > width - 6) return null;
+  return (
+    <g>
+      <rect
+        x={x + width / 2 - chipWidth / 2}
+        y={y + height / 2 - 10}
+        width={chipWidth}
+        height={20}
+        rx={10}
+        fill="var(--surface)"
+        opacity={0.92}
+      />
+      <text
+        x={x + width / 2}
+        y={y + height / 2}
+        textAnchor="middle"
+        dominantBaseline="central"
+        className="numeric"
+        fontSize={12}
+        fontWeight={600}
+        fill="var(--foreground)"
+      >
+        {text}
+      </text>
+    </g>
+  );
+}
+
+/**
+ * 0 → 1 over 350ms, ease-out, once per mount. A number that lands already
+ * final reads as stale data; a number that re-counts on every background
+ * refetch is worse than one that never moves, so this runs once.
+ */
+function useIntroProgress() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setProgress(1);
+      return;
+    }
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const linear = Math.min(1, (now - start) / 350);
+      setProgress(1 - Math.pow(1 - linear, 3));
+      if (linear < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return progress;
+}
+
+/** For the integer KPIs — the currency ones pass formatMoney instead. */
+const countInt = (value: number) => String(Math.round(value));
+
 function Kpi({
   label,
   value,
   note,
   tone,
   bar,
+  countTo,
+  format,
 }: {
   label: string;
   value: string;
   note?: string | undefined;
   tone?: string | undefined;
   bar?: number | undefined;
+  /** The raw number to count up from zero. */
+  countTo?: number | undefined;
+  /** Runs on every frame, so the currency symbol and tabular figures hold. */
+  format?: ((value: number) => string) | undefined;
 }) {
+  const progress = useIntroProgress();
+  const animating = countTo !== undefined && format !== undefined && progress < 1;
+
   return (
     <div className="rounded-lg border border-border bg-surface p-4 shadow-subtle">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className={`numeric mt-1 text-2xl font-semibold ${tone ?? ""}`}>{value}</p>
+      <p className={`numeric mt-1 text-2xl font-semibold ${tone ?? ""}`}>
+        {animating ? format(countTo * progress) : value}
+      </p>
       {bar !== undefined ? (
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-primary"
-            style={{ width: `${Math.min(100, Math.round(bar * 100))}%` }}
+            style={{ width: `${Math.min(100, Math.round(bar * progress * 100))}%` }}
           />
         </div>
       ) : null}
@@ -282,6 +381,13 @@ function DashboardPage() {
     value: (portfolio.data?.units ?? []).filter((unit) => unit.status === status).length,
   })).filter((entry) => entry.value > 0);
 
+  const unitTotal = byStatus.reduce((sum, entry) => sum + entry.value, 0);
+  // One row; Recharts stacks the four segments across it.
+  const unitStack = Object.fromEntries([
+    ["name", "units"],
+    ...byStatus.map((entry) => [entry.status, entry.value] as const),
+  ]) as Record<string, string | number>;
+
   const trendNote = (currentValue: number, previousValue: number) => {
     if (previousValue <= 0) return undefined;
     const delta = Math.round(((currentValue - previousValue) / previousValue) * 100);
@@ -334,36 +440,50 @@ function DashboardPage() {
           <Kpi
             label={t("dashboard.kpi.occupancy")}
             value={t("dashboard.unitsOf", { occupied: stats.occupied, total: stats.total })}
+            countTo={stats.occupied}
+            format={(value) =>
+              t("dashboard.unitsOf", { occupied: Math.round(value), total: stats.total })
+            }
             note={`${Math.round(stats.rate * 100)}%`}
             bar={stats.rate}
           />
           <Kpi
             label={t("dashboard.kpi.collected")}
             value={formatMoney(current.collected)}
+            countTo={current.collected}
+            format={formatMoney}
             note={t("dashboard.ofInvoiced", { amount: formatMoney(current.invoiced) })}
             bar={current.invoiced > 0 ? current.collected / current.invoiced : 0}
           />
           <Kpi
             label={t("dashboard.kpi.overdue")}
             value={formatMoney(overdue.reduce((sum, row) => sum + row.amount, 0))}
+            countTo={overdue.reduce((sum, row) => sum + row.amount, 0)}
+            format={formatMoney}
             note={t("dashboard.overdueLeases", { count: overdue.length })}
             tone="text-danger"
           />
           <Kpi
             label={t("dashboard.kpi.healthSafetyOverdue")}
             value={String(openOrderCounts.data?.healthSafetyOverdue ?? 0)}
+            countTo={openOrderCounts.data?.healthSafetyOverdue ?? 0}
+            format={countInt}
             note={t("dashboard.healthSafetyHint")}
             tone={(openOrderCounts.data?.healthSafetyOverdue ?? 0) > 0 ? "text-danger" : undefined}
           />
           <Kpi
             label={t("dashboard.kpi.turnoverOverdue")}
             value={String(turnoverOverdue.data ?? 0)}
+            countTo={turnoverOverdue.data ?? 0}
+            format={countInt}
             note={t("dashboard.turnoverHint")}
             tone={(turnoverOverdue.data ?? 0) > 0 ? "text-danger" : undefined}
           />
           <Kpi
             label={t("dashboard.kpi.openOrders")}
             value={String(openOrderCounts.data?.open ?? 0)}
+            countTo={openOrderCounts.data?.open ?? 0}
+            format={countInt}
             note={
               (openOrderCounts.data?.urgent ?? 0) > 0
                 ? t("dashboard.urgentOrders", { count: openOrderCounts.data?.urgent ?? 0 })
@@ -374,6 +494,8 @@ function DashboardPage() {
           <Kpi
             label={t("dashboard.kpi.depositsDue")}
             value={String(deposits.length)}
+            countTo={deposits.length}
+            format={countInt}
             note={
               depositsOverdue.length > 0
                 ? t("dashboard.depositsOverdue", { count: depositsOverdue.length })
@@ -388,6 +510,8 @@ function DashboardPage() {
           <Kpi
             label={t("dashboard.kpi.expiring")}
             value={String(expiring.length)}
+            countTo={expiring.length}
+            format={countInt}
             note={
               expiring.length > 0
                 ? t("dashboard.expiringSoonest", {
@@ -447,25 +571,22 @@ function DashboardPage() {
           <section className="rounded-lg border border-border bg-surface p-5 shadow-subtle">
             <h2 className="text-base font-semibold">{t("dashboard.unitsTitle")}</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">{t("dashboard.unitsHint")}</p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-              <div className="h-56">
+            {/* One bar, four segments. People compare lengths well and angles
+                badly, and this needs no legend of its own — the counts sit
+                directly underneath. */}
+            <div className="mt-4">
+              <div className="h-12">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={byStatus}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius="58%"
-                      outerRadius="86%"
-                      paddingAngle={2}
-                      stroke="var(--surface)"
-                      strokeWidth={2}
-                    >
-                      {byStatus.map((entry) => (
-                        <Cell key={entry.status} fill={UNIT_STATUS_COLOR[entry.status]} />
-                      ))}
-                    </Pie>
+                  <BarChart
+                    layout="vertical"
+                    data={[unitStack]}
+                    margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+                    barCategoryGap={0}
+                  >
+                    <XAxis type="number" hide domain={[0, unitTotal]} />
+                    <YAxis type="category" dataKey="name" hide />
                     <Tooltip
+                      cursor={false}
                       content={({ active, payload }) => {
                         if (!active || !payload?.length) return null;
                         const entry = payload[0];
@@ -478,20 +599,31 @@ function DashboardPage() {
                         );
                       }}
                     />
-                  </PieChart>
+                    {byStatus.map((entry, index) => (
+                      <Bar
+                        key={entry.status}
+                        dataKey={entry.status}
+                        stackId="units"
+                        name={entry.name}
+                        fill={UNIT_STATUS_COLOR[entry.status]}
+                        barSize={36}
+                        radius={segmentRadius(index, byStatus.length)}
+                        isAnimationActive={false}
+                        label={<SegmentLabel total={unitTotal} count={entry.value} />}
+                      />
+                    ))}
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
               {/* Direct labels — identity is never colour alone. */}
-              <ul className="space-y-2">
+              <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
                 {byStatus.map((entry) => (
                   <li key={entry.status} className="flex items-center gap-2 text-sm">
                     <span
                       className="size-2.5 shrink-0 rounded-full"
                       style={{ background: UNIT_STATUS_COLOR[entry.status] }}
                     />
-                    <span className="min-w-0 flex-1 truncate text-muted-foreground">
-                      {entry.name}
-                    </span>
+                    <span className="min-w-0 truncate text-muted-foreground">{entry.name}</span>
                     <span className="numeric font-semibold">{entry.value}</span>
                   </li>
                 ))}
