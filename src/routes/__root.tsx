@@ -79,10 +79,39 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Rentio" },
-      { name: "description", content: "Rentio" },
+      // Routes override the title and description through their own head().
+      // These are the fallbacks, and the og:* tags below are what a link
+      // pasted into email or WhatsApp actually unfurls with - the previous
+      // description was the literal string "Rentio" and there was no image.
+      {
+        name: "description",
+        content:
+          "Bilingual property management software for Texas landlords - a tenant portal in English and Spanish, every request tracked whichever way it arrives, and Texas compliance built in.",
+      },
       { name: "author", content: "Rentio" },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Rentio" },
+      { property: "og:title", content: "Property management your tenants can read" },
+      {
+        property: "og:description",
+        content:
+          "A bilingual tenant portal, every request tracked whichever way it arrives, and Texas compliance built in.",
+      },
+      { property: "og:image", content: "/og.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      {
+        property: "og:image:alt",
+        content: "The Rentio tenant portal shown side by side in English and Spanish",
+      },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Property management your tenants can read" },
+      {
+        name: "twitter:description",
+        content:
+          "A bilingual tenant portal, every request tracked whichever way it arrives, and Texas compliance built in.",
+      },
+      { name: "twitter:image", content: "/og.png" },
     ],
     links: [
       {
@@ -90,6 +119,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,

@@ -1,14 +1,11 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# The marketing page is public. Everything behind auth is not - and while it is
+# unreachable signed out anyway, there is no reason to invite a crawl of it.
 User-agent: *
 Allow: /
+Disallow: /app
+Disallow: /portal
+Disallow: /login
+Disallow: /reset-password
+Disallow: /forgot-password
+
+Sitemap: /sitemap.xml
