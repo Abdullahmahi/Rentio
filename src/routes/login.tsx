@@ -121,12 +121,20 @@ function LoginPage() {
             </Button>
           </form>
 
-          <Link
-            to="/forgot-password"
-            className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
-          >
-            {t("auth.forgotPassword")}
-          </Link>
+          <div className="mt-2 flex flex-wrap items-center gap-x-5">
+            <Link
+              to="/forgot-password"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+            >
+              {t("auth.forgotPassword")}
+            </Link>
+            <Link
+              to="/signup"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+            >
+              {t("auth.tenantSignUpLink")}
+            </Link>
+          </div>
 
           <p className="mt-8 text-xs text-muted-foreground">{t("auth.noSignup")}</p>
         </div>

@@ -1490,14 +1490,35 @@ create trigger invoice_lines_enforce_late_fee_rules
 
 begin;
 
-truncate table
-  public.activity_log, public.documents, public.work_order_photos,
-  public.work_order_notes, public.work_orders, public.utility_charges,
-  public.payment_allocations, public.payments, public.invoice_lines,
-  public.invoices, public.lease_notices, public.unit_turnover_checklist,
-  public.lease_tenants, public.parking_spaces,
-  public.leases, public.units, public.tenants, public.properties
-  restart identity cascade;
+-- DELETE, not TRUNCATE ... CASCADE, and the difference matters.
+--
+-- `profiles.tenant_id` is declared `on delete set null`. DELETE honours that:
+-- the profile row survives with its tenant link cleared. TRUNCATE CASCADE
+-- ignores it and truncates every referencing table wholesale, which took out
+-- `profiles` — including the admin and manager accounts, which have nothing
+-- to do with the demo data. Every reseed silently destroyed every login until
+-- db:demo-logins was run again, and if it was not, the next person to sign in
+-- authenticated fine and landed with no role at all.
+--
+-- These are listed children-first so the foreign keys are satisfied.
+delete from public.activity_log;
+delete from public.documents;
+delete from public.work_order_photos;
+delete from public.work_order_notes;
+delete from public.work_orders;
+delete from public.utility_charges;
+delete from public.payment_allocations;
+delete from public.payments;
+delete from public.invoice_lines;
+delete from public.invoices;
+delete from public.lease_notices;
+delete from public.unit_turnover_checklist;
+delete from public.lease_tenants;
+delete from public.parking_spaces;
+delete from public.leases;
+delete from public.units;
+delete from public.tenants;
+delete from public.properties;
 
 alter sequence public.invoice_number_seq restart with 1;
 alter sequence public.work_order_folio_seq restart with 1;
@@ -2063,5 +2084,21 @@ cross join lateral (
 
 update public.units u set status = 'ocupada'
 where exists (select 1 from public.leases l where l.unit_id = u.id and l.status = 'activo');
+
+-- ------------------------------------------- re-link the tenant logins
+-- Deleting the old tenants cleared `profiles.tenant_id` (on delete set null),
+-- so without this a tenant signs in successfully and lands on an empty
+-- portal, because my_lease_ids() has nothing to match. Re-point each tenant
+-- profile at the tenant record with the same email address.
+--
+-- Staff profiles are untouched: their tenant_id was already null and their
+-- role carries the access.
+update public.profiles p
+set tenant_id = t.id
+from auth.users u
+join public.tenants t on lower(t.email) = lower(u.email)
+where p.id = u.id
+  and p.role = 'tenant'
+  and p.tenant_id is distinct from t.id;
 
 commit;

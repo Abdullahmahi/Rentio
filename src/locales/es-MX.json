@@ -174,7 +174,7 @@
     "email": "Correo electrónico",
     "password": "Contraseña",
     "forgotPassword": "¿Olvidaste tu contraseña?",
-    "noSignup": "¿No tienes cuenta? El administrador crea las cuentas del equipo e invita a los inquilinos.",
+    "noSignup": "Los inquilinos crean su propio acceso arriba. Las cuentas del personal las crea un administrador.",
     "checkingSession": "Verificando tu sesión…",
     "forgotPasswordTitle": "Restablecer contraseña",
     "forgotPasswordDescription": "Te enviaremos un enlace para crear una contraseña nueva.",
@@ -197,7 +197,14 @@
       "passwordRequired": "Ingresa tu contraseña.",
       "passwordTooShort": "La contraseña debe tener al menos {{min}} caracteres.",
       "passwordMismatch": "Las contraseñas no coinciden."
-    }
+    },
+    "signUp": "Crear acceso al portal",
+    "signUpTitle": "Crear acceso al portal",
+    "signUpDescription": "Si rentas con nosotros, escribe el correo que aparece en tu contrato y te enviaremos un enlace para elegir tu contraseña.",
+    "signUpSent": "Revisa tu correo.",
+    "signUpSentHint": "Si ese correo está en un contrato, ya va en camino un enlace para establecer tu contraseña. Puede tardar unos minutos.",
+    "signUpStaffNote": "Las cuentas del personal las crea un administrador, no aquí.",
+    "tenantSignUpLink": "¿Eres inquilino? Crea tu acceso"
   },
   "roles": {
     "admin": "Administrador",

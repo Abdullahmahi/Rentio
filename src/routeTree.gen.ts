@@ -15,6 +15,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
@@ -71,6 +72,11 @@ const PortalRoute = PortalRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -285,6 +293,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/reset-password'
+    | '/signup'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/reset-password'
+    | '/signup'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/reset-password'
+    | '/signup'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -426,6 +438,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -470,6 +483,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -742,6 +762,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

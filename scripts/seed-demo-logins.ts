@@ -79,7 +79,10 @@ async function main() {
     const { data: fallback } = await admin
       .from("tenants")
       .select("id, full_name, email")
-      .in("id", (links ?? []).map((row) => row.tenant_id));
+      .in(
+        "id",
+        (links ?? []).map((row) => row.tenant_id),
+      );
     tenants = fallback ?? [];
   }
 

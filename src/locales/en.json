@@ -174,7 +174,7 @@
     "email": "Email address",
     "password": "Password",
     "forgotPassword": "Forgot your password?",
-    "noSignup": "No account? Administrators create staff accounts and invite tenants.",
+    "noSignup": "Tenants set up their own access above. Staff accounts are created by an administrator.",
     "checkingSession": "Checking your session…",
     "forgotPasswordTitle": "Reset password",
     "forgotPasswordDescription": "We'll email you a link to set a new password.",
@@ -197,7 +197,14 @@
       "passwordRequired": "Enter your password.",
       "passwordTooShort": "Password must be at least {{min}} characters.",
       "passwordMismatch": "Passwords do not match."
-    }
+    },
+    "signUp": "Set up portal access",
+    "signUpTitle": "Set up portal access",
+    "signUpDescription": "If you rent from us, enter the email address on your lease and we will send you a link to choose a password.",
+    "signUpSent": "Check your email.",
+    "signUpSentHint": "If that address is on a lease, a link to set your password is on its way. It may take a few minutes.",
+    "signUpStaffNote": "Staff accounts are created by an administrator, not here.",
+    "tenantSignUpLink": "Are you a tenant? Set up access"
   },
   "roles": {
     "admin": "Administrator",
