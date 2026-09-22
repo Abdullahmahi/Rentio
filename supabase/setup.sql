@@ -1574,9 +1574,23 @@ cross join lateral generate_series(1, cfg.n) as i;
 -- --------------------------------------------------------------- tenants
 -- A realistic El Paso mix: roughly four in five Hispanic surnames, the rest
 -- not, with (915) numbers throughout.
+--
+-- The first three carry FIXED ids. Everything in this file is dropped and
+-- recreated on every reseed, so tenants used to come back with new uuids and,
+-- because db:demo-logins picked "the first three primary tenants", a
+-- different three people got portal logins each time. The demo tenant
+-- credentials changed underneath whoever was about to demo. Pinning these
+-- three ids makes the demo logins stable for good; the other 27 are ordinary
+-- rows and may churn freely.
 
-insert into public.tenants (full_name, email, phone, emergency_contact_name, emergency_contact_phone)
+insert into public.tenants (id, full_name, email, phone, emergency_contact_name, emergency_contact_phone)
 select
+  case n.i
+    when 1 then '00000000-0000-4000-8000-00000000d001'::uuid
+    when 2 then '00000000-0000-4000-8000-00000000d002'::uuid
+    when 3 then '00000000-0000-4000-8000-00000000d003'::uuid
+    else gen_random_uuid()
+  end,
   n.full_name,
   lower(
     translate(split_part(n.full_name, ' ', 1), 'áéíóúÁÉÍÓÚñÑ', 'aeiouAEIOUnN') || '.' ||

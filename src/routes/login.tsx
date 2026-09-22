@@ -90,7 +90,7 @@ function LoginPage() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 aria-invalid={Boolean(error)}
-                placeholder="nombre@empresa.mx"
+                placeholder="you@company.com"
               />
             </div>
             <div className="space-y-2">

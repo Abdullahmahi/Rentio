@@ -42,25 +42,51 @@ async function listAllUsers() {
   return all;
 }
 
-async function main() {
-  // The three tenants with portal access are the first primary tenants in the
-  // seed, so the demo always matches whatever seed.sql actually created.
-  const { data: links, error: linkError } = await admin
-    .from("lease_tenants")
-    .select("tenant_id, created_at")
-    .eq("role", "primary")
-    .order("created_at")
-    .limit(3);
-  if (linkError) throw linkError;
+/**
+ * The three tenants seed.sql pins to fixed ids. Selecting by id is the whole
+ * point: this used to take "the first three primary tenants by created_at",
+ * but the seed inserts every tenant in one statement, so they share a
+ * timestamp and the order between them was arbitrary. A different three
+ * people got logins on each reseed and the demo credentials changed
+ * underneath whoever was about to present.
+ */
+const DEMO_TENANT_IDS = [
+  "00000000-0000-4000-8000-00000000d001",
+  "00000000-0000-4000-8000-00000000d002",
+  "00000000-0000-4000-8000-00000000d003",
+];
 
-  const { data: tenants, error: tenantError } = await admin
+async function main() {
+  const { data: pinned, error: tenantError } = await admin
     .from("tenants")
     .select("id, full_name, email")
-    .in(
-      "id",
-      (links ?? []).map((row) => row.tenant_id),
-    );
+    .in("id", DEMO_TENANT_IDS);
   if (tenantError) throw tenantError;
+
+  // Fall back rather than silently handing out zero tenant logins, in case
+  // someone reseeds from an older seed.sql that predates the pinned ids.
+  let tenants = pinned ?? [];
+  if (tenants.length === 0) {
+    console.warn(
+      "  no pinned demo tenants found — falling back to the first three primary tenants.\n" +
+        "  Re-run supabase/seed.sql to get stable logins.",
+    );
+    const { data: links } = await admin
+      .from("lease_tenants")
+      .select("tenant_id")
+      .eq("role", "primary")
+      .limit(3);
+    const { data: fallback } = await admin
+      .from("tenants")
+      .select("id, full_name, email")
+      .in("id", (links ?? []).map((row) => row.tenant_id));
+    tenants = fallback ?? [];
+  }
+
+  // Stable output order, so the printed credentials do not shuffle either.
+  tenants = [...tenants].sort(
+    (a, b) => DEMO_TENANT_IDS.indexOf(a.id) - DEMO_TENANT_IDS.indexOf(b.id),
+  );
 
   const demo: DemoUser[] = [
     // The demo company is Sun City Property Management, so this is the
