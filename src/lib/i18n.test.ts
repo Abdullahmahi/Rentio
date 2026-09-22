@@ -6,6 +6,7 @@
 import { expect, test } from "bun:test";
 import esMX from "@/locales/es-MX.json";
 import en from "@/locales/en.json";
+import marketingEn from "@/locales/marketing.en.json";
 
 type Tree = { [key: string]: string | Tree };
 
@@ -27,6 +28,22 @@ test("every Spanish key has an English counterpart", () => {
 test("every English key has a Spanish counterpart", () => {
   const missing = english.filter((key) => !spanish.includes(key));
   expect(missing).toEqual([]);
+});
+
+test("no marketing string is left empty", () => {
+  const blank = Object.entries(flatten(marketingEn as Tree)).filter(([, key]) => {
+    const value = key
+      .split(".")
+      .reduce<unknown>(
+        (node, part) =>
+          typeof node === "object" && node !== null
+            ? (node as Record<string, unknown>)[part]
+            : undefined,
+        marketingEn,
+      );
+    return typeof value === "string" && value.trim() === "";
+  });
+  expect(blank).toEqual([]);
 });
 
 test("no translation value is left empty", () => {
@@ -72,13 +89,19 @@ test("every literal t() key in the source exists in both locales", async () => {
   const dynamic = /\$\{|\bt\(`/; // template keys are resolved at runtime
   const missing: string[] = [];
 
+  // The public marketing page is a second namespace, English-only by design -
+  // see the comment in i18n.ts. Its keys are checked against its own file.
+  const marketingKeys = new Set(flatten(marketingEn as Tree));
+
   for await (const file of new Glob("src/**/*.{ts,tsx}").scan(".")) {
     if (file.endsWith(".test.ts")) continue;
+    const marketing = file.includes("components/marketing/");
+    const table = marketing ? marketingKeys : known;
     const source = await Bun.file(file).text();
     for (const match of source.matchAll(/\bt\(\s*"([A-Za-z0-9_.]+)"/g)) {
       const key = match[1]!;
       // Plural keys live in the locale as `key_other`; i18next resolves both.
-      if (known.has(key) || known.has(`${key}_other`)) continue;
+      if (table.has(key) || table.has(`${key}_other`)) continue;
       if (dynamic.test(key)) continue;
       missing.push(`${file}: ${key}`);
     }

@@ -2,6 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import esMX from "@/locales/es-MX.json";
 import en from "@/locales/en.json";
+import marketingEn from "@/locales/marketing.en.json";
 
 export const LANGUAGE_STORAGE_KEY = "rentio-language";
 export type AppLanguage = "es-MX" | "en";
@@ -35,7 +36,22 @@ export function resolveLanguage(
 
 if (!i18n.isInitialized) {
   void i18n.use(initReactI18next).init({
-    resources: { "es-MX": { translation: esMX }, en: { translation: en } },
+    /**
+     * Two namespaces. `translation` is the product, at exact parity in both
+     * locales. `marketing` is the public site, which ships English-only on
+     * purpose: it sells to landlords, who work in English, while the bilingual
+     * tenant portal is the thing being sold. Keeping it in a locale file
+     * anyway means translating it later is a translation job, not a refactor -
+     * add `src/locales/marketing.es-MX.json` and register it here.
+     *
+     * Spanish falls back to the English marketing copy rather than rendering
+     * raw key paths if a tenant-defaulted browser ever reaches the page.
+     */
+    resources: {
+      "es-MX": { translation: esMX, marketing: marketingEn },
+      en: { translation: en, marketing: marketingEn },
+    },
+    defaultNS: "translation",
     lng: INTERNAL_DEFAULT_LANGUAGE,
     fallbackLng: "en",
     interpolation: { escapeValue: false },

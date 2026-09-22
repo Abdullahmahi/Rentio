@@ -16,27 +16,11 @@ import { INTERNAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useLanguagePreference } from "@/lib/queries";
 import { CommandPalette } from "@/components/rentio/command-palette";
+import { RentioMark } from "@/components/rentio/rentio-mark";
 import { dashboardItem, navGroups, navItems } from "@/components/rentio/nav-items";
 import { cn } from "@/lib/utils";
 
 const THEME_STORAGE_KEY = "rentio-theme";
-
-function RentioMark({ compact = false }: { compact?: boolean }) {
-  const { t } = useTranslation();
-  return (
-    <div className="flex min-w-0 items-center gap-3">
-      <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
-        R
-      </div>
-      {compact ? null : (
-        <div className="min-w-0">
-          <div className="truncate text-base font-semibold">{t("brand.name")}</div>
-          <div className="truncate text-xs text-muted-foreground">{t("brand.internal")}</div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function AppShell() {
   const { t, i18n } = useTranslation();

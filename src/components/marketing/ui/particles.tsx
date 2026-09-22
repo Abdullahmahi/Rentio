@@ -25,12 +25,22 @@ interface Circle {
  */
 function resolveRgb(color: string, fallback: [number, number, number]): [number, number, number] {
   try {
+    // Canvas does NOT resolve custom properties — `fillStyle = "var(--primary)"`
+    // is simply invalid and silently leaves the previous colour in place. Look
+    // the variable up on the document first, then hand canvas a real colour.
+    let resolved = color.trim();
+    const variable = /^var\(\s*(--[\w-]+)\s*\)$/.exec(resolved);
+    if (variable?.[1]) {
+      resolved = getComputedStyle(document.documentElement).getPropertyValue(variable[1]).trim();
+    }
+    if (!resolved) return fallback;
+
     const canvas = document.createElement("canvas");
     canvas.width = 1;
     canvas.height = 1;
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return fallback;
-    ctx.fillStyle = color;
+    ctx.fillStyle = resolved;
     ctx.fillRect(0, 0, 1, 1);
     const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
     return [r ?? fallback[0], g ?? fallback[1], b ?? fallback[2]];

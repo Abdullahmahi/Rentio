@@ -1,0 +1,186 @@
+{
+  "nav": {
+    "whatItDoes": "What it does",
+    "bilingual": "Bilingual",
+    "compliance": "Compliance",
+    "signIn": "Sign in",
+    "book": "Book a meeting",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "home": "Rentio home"
+  },
+  "hero": {
+    "eyebrow": "English and Spanish, by default",
+    "headlineLead": "Property management your",
+    "headlineEmphasis": "tenants can read",
+    "subhead": "A bilingual tenant portal, every request tracked whichever way it arrives, and Texas compliance built in.",
+    "primaryCta": "Book a meeting",
+    "secondaryCta": "See what it does",
+    "imageAlt": "The Rentio tenant portal in Spanish on a phone, showing the balance due and a button to report a payment"
+  },
+  "features": {
+    "headingLead": "Everything the month",
+    "headingEmphasis": "actually needs",
+    "subhead": "Six things the software does. Not adjectives - the actual actions your staff take and your tenants see.",
+    "items": {
+      "portal": {
+        "title": "A portal tenants can read",
+        "body": "Every screen in English and Spanish, translated key by key. Not a translate widget bolted onto an English app."
+      },
+      "queue": {
+        "title": "Every request in one queue",
+        "body": "Portal, WhatsApp, phone or walk-in - each work order records how it arrived, so nothing falls through whichever way the tenant reached you."
+      },
+      "payments": {
+        "title": "Payments tenants can report",
+        "body": "Tenants pay by transfer, Zelle or check and report it with a photo. Staff compare the claim against the bank and confirm it."
+      },
+      "maintenance": {
+        "title": "Maintenance with photos",
+        "body": "Requests carry images from the tenant's phone, get assigned to a vendor, and are tracked through to close."
+      },
+      "compliance": {
+        "title": "Texas compliance built in",
+        "body": "Late-fee limits, the deposit clock, the repair window and rekey deadlines are tracked against the dates the statute counts from."
+      },
+      "cycle": {
+        "title": "The month's rent in one pass",
+        "body": "Generate every invoice for the period, review the batch before it goes out, and send them together."
+      }
+    }
+  },
+  "proof": {
+    "headingLead": "What your staff",
+    "headingEmphasis": "see",
+    "subhead": "Two of the screens they work in every day.",
+    "rentRoll": {
+      "title": "Rent roll",
+      "figureLabel": "Collected this month",
+      "figureNote": "of $31,140.00 invoiced",
+      "columns": {
+        "unit": "Unit",
+        "tenant": "Tenant",
+        "rent": "Rent",
+        "status": "Status"
+      },
+      "rows": {
+        "a": {
+          "unit": "101",
+          "tenant": "R. Delgado",
+          "rent": "$1,095.00",
+          "status": "Paid"
+        },
+        "b": {
+          "unit": "204",
+          "tenant": "K. Obrien",
+          "rent": "$1,550.00",
+          "status": "Overdue"
+        },
+        "c": {
+          "unit": "302",
+          "tenant": "E. Rivas",
+          "rent": "$1,010.00",
+          "status": "Paid"
+        }
+      },
+      "figure": "$14,720.00"
+    },
+    "queue": {
+      "title": "Work orders",
+      "figureLabel": "Open work orders",
+      "figureNote": "3 marked urgent",
+      "columns": {
+        "unit": "Unit",
+        "issue": "Issue",
+        "source": "Source",
+        "age": "Age"
+      },
+      "rows": {
+        "a": {
+          "unit": "201",
+          "issue": "No hot water",
+          "source": "WhatsApp",
+          "age": "2d"
+        },
+        "b": {
+          "unit": "104",
+          "issue": "Sparking outlet",
+          "source": "Portal",
+          "age": "5d"
+        },
+        "c": {
+          "unit": "303",
+          "issue": "Dripping shower",
+          "source": "Phone",
+          "age": "9d"
+        }
+      },
+      "figure": "10"
+    },
+    "disclaimer": "Illustrative interface with demo data. Not a claim about results."
+  },
+  "bilingual": {
+    "eyebrow": "The difference",
+    "headingLead": "The leak gets reported while it is",
+    "headingEmphasis": "still cheap",
+    "body": "Both portals ship in English and Mexican Spanish - every screen, at exact parity, translated key by key rather than machine-translated at runtime.",
+    "argument": "This is not a courtesy feature. A tenant who cannot comfortably report a problem tends not to report it, and a small repair left alone stops being a small repair. Reading the request is the cheapest part of fixing it.",
+    "parityLabel": "translated strings, both portals, exact parity",
+    "imageAlt": "The same Rentio tenant portal screen side by side in English and Spanish",
+    "captionEn": "English",
+    "captionEs": "Spanish (es-MX)"
+  },
+  "compliance": {
+    "eyebrow": "Texas Property Code",
+    "headingLead": "The deadlines the statute",
+    "headingEmphasis": "counts from",
+    "subhead": "Rentio tracks these dates and warns you before they pass. It does not file anything for you.",
+    "items": {
+      "lateFee": {
+        "title": "Late fees, held and capped",
+        "body": "The action stays disabled until rent is two full days late, and the amount is checked against the statutory cap.",
+        "cite": "§92.019"
+      },
+      "deposit": {
+        "title": "The 30-day deposit clock",
+        "body": "Starts when the forwarding address arrives, not at move-out, and tracks the itemised disposition against it.",
+        "cite": "§92.103-92.109"
+      },
+      "repair": {
+        "title": "The seven-day repair window",
+        "body": "Conditions affecting health or safety carry a day counter from the tenant's written notice, amber before it lapses and red after.",
+        "cite": "§92.052"
+      },
+      "rekey": {
+        "title": "Rekey within seven days",
+        "body": "A new tenancy opens a turnover checklist with the rekey deadline counted from the day possession starts.",
+        "cite": "§92.156"
+      },
+      "notice": {
+        "title": "Notice to vacate",
+        "body": "Generated as a PDF and recorded against the lease, with the date it was delivered.",
+        "cite": "§24.005"
+      }
+    },
+    "disclaimer": "Rentio helps you track statutory deadlines. It is not legal advice, and it does not guarantee compliance."
+  },
+  "cta": {
+    "headingLead": "See it on your",
+    "headingEmphasis": "portfolio",
+    "body": "A walkthrough on your own units and your own tenants - what the month looks like, what your tenants would see, and where the statutory clocks would already be running.",
+    "note": "Thirty minutes, no slides. Pick a time that suits you.",
+    "button": "Book a meeting"
+  },
+  "footer": {
+    "tagline": "Bilingual property management for Texas landlords.",
+    "productHeading": "Product",
+    "companyHeading": "Company",
+    "signIn": "Sign in",
+    "book": "Book a meeting",
+    "rights": "All rights reserved.",
+    "disclaimer": "Rentio helps you track statutory deadlines. It is not legal advice."
+  },
+  "external": {
+    "newTab": "(opens in a new tab)"
+  }
+}
