@@ -59,7 +59,7 @@ export function Bilingual() {
                         src={shot.src}
                         alt=""
                         width={390}
-                        height={660}
+                        height={530}
                         loading="lazy"
                         className="block h-auto w-full"
                       />

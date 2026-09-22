@@ -46,12 +46,12 @@ export function Hero() {
         <div className="flex flex-col items-center justify-center gap-y-4 px-4 text-center sm:px-6">
           {/* The spinning-border pill. Its two animations are the flip/rotate
               pair ported in prompt 33. */}
-          <Container className="relative overflow-hidden">
+          <Container className="relative flex justify-center overflow-hidden">
             {/* The ring is `bg-border`; the spark is a conic gradient rotating
                 over it, and `backdrop` covers the middle so only a travelling
                 highlight on the edge shows. Vetra got the same effect from a
                 1000px inset shadow, which only works on a dark page. */}
-            <span className="relative mx-auto grid overflow-hidden rounded-full bg-border p-px">
+            <span className="relative inline-grid overflow-hidden rounded-full bg-border p-px">
               <span
                 aria-hidden
                 className="absolute inset-0 h-full w-full animate-flip overflow-hidden rounded-full [mask:linear-gradient(white,_transparent_70%)] before:absolute before:aspect-square before:w-[200%] before:rotate-[-90deg] before:animate-rotate before:bg-[conic-gradient(from_0deg,transparent_0_300deg,var(--primary)_360deg)] before:content-[''] before:[inset:0_auto_auto_50%] before:[translate:-50%_-15%]"
@@ -97,7 +97,7 @@ export function Hero() {
                   src={portalEsHero}
                   alt={t("hero.imageAlt")}
                   width={390}
-                  height={600}
+                  height={530}
                   loading="eager"
                   className="block h-auto w-[260px] lg:w-[300px]"
                 />
