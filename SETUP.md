@@ -100,7 +100,20 @@ npx supabase functions deploy generate-invoice-pdf send-invoice-email \
 | `generate-deposit-disposition` | Working. The §92.104 itemized disposition, in the tenant's language. Verified against the live project with and without deductions. |
 | `generate-notice-to-vacate` | Working. The §24.005 notice, in the tenant's language. Verified against the live project. |
 | `send-invoice-email` | Working. Delivered a real email with the PDF attached, subject `Recibo de renta — Agosto de 2026 — Unidad 102`. |
-| `send-tenant-invite` / `send-staff-invite` | Deployed. Role guards verified — a tenant is refused by all three. |
+| `send-tenant-invite` / `send-staff-invite` | Working. Both mint the link with `generateLink` and deliver through Resend. Role guards verified — a tenant is refused by all three. |
+| `tenant-self-enroll` / `submit-access-request` | Working. The only two endpoints an anonymous caller can reach; both return an identical body and timing whatever happens. |
+
+> **Never use `inviteUserByEmail`.** It sends through Supabase's built-in
+> SMTP, which is rate limited to a few messages an hour and is documented as
+> not for production. Once it starts returning `over_email_send_rate_limit`
+> the account is not created either, so invites fail silently after the first
+> couple. Mint the link with `auth.admin.generateLink` and send it with
+> `sendEmail` (Resend) instead — every invite path here does.
+>
+> Both invite functions create the profile **before** sending, and return
+> `{ invited: true, emailed: false }` rather than throwing when delivery
+> fails. Otherwise a send failure leaves a login with no profile, which
+> authenticates and then lands on a blank portal.
 
 ### Before real tenants receive anything
 

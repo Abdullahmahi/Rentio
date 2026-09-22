@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Inbox } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -99,7 +100,7 @@ function RequestsPage() {
       const match = (portfolio.data?.tenants ?? []).find((row) => row.id === tenant);
       // Reuses the staff invite path rather than a second implementation of
       // "create an account and email a link".
-      const { error: caught } = await supabase.functions.invoke("send-tenant-invite", {
+      const { data, error: caught } = await supabase.functions.invoke("send-tenant-invite", {
         body: {
           tenant_id: tenant,
           email: match?.email ?? request.email,
@@ -107,6 +108,9 @@ function RequestsPage() {
         },
       });
       if (caught) throw caught;
+      if ((data as { emailed?: boolean } | null)?.emailed === false) {
+        toast.warning(t("tenants.invitedWithoutEmail"));
+      }
 
       const { error: updateError } = await supabase
         .from("access_requests")

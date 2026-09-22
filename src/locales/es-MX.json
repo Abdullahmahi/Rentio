@@ -776,7 +776,8 @@
       "nameRequired": "Escribe el nombre completo.",
       "emailInvalid": "El correo electrónico no es válido.",
       "emailRequiredForInvite": "Agrega un correo electrónico antes de invitar al portal."
-    }
+    },
+    "invitedWithoutEmail": "Cuenta creada, pero no se pudo entregar el correo de invitación. Revisa el dominio de envío en Resend."
   },
   "receipts": {
     "emptyTitle": "Sin recibos",

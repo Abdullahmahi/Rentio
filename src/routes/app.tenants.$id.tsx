@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle2, Mail, Users, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable, type DataTableColumn } from "@/components/rentio/data-table";
@@ -112,10 +113,16 @@ function TenantDetailPage() {
       if (!tenant?.email) throw new Error("missing-email");
       // Creating an auth user needs the service role, so it lives in an edge
       // function (send-tenant-invite). See supabase/functions.
-      const { error } = await supabase.functions.invoke("send-tenant-invite", {
+      const { data, error } = await supabase.functions.invoke("send-tenant-invite", {
         body: { tenant_id: id, email: tenant.email, full_name: tenant.full_name },
       });
       if (error) throw error;
+      // The account is created either way; only delivery can fail. Say so
+      // rather than reporting plain success and leaving someone waiting for
+      // an email that is never coming.
+      if ((data as { emailed?: boolean } | null)?.emailed === false) {
+        toast.warning(t("tenants.invitedWithoutEmail"));
+      }
       await logActivity(actorId, "tenant", id, "invite", { email: tenant.email });
     },
     successKey: "tenants.invited",

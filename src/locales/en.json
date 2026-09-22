@@ -776,7 +776,8 @@
       "nameRequired": "Enter the full name.",
       "emailInvalid": "That email address isn't valid.",
       "emailRequiredForInvite": "Add an email address before inviting them to the portal."
-    }
+    },
+    "invitedWithoutEmail": "Account created, but the invite email could not be delivered. Check the sending domain in Resend."
   },
   "receipts": {
     "emptyTitle": "No receipts",
