@@ -1,0 +1,26 @@
+{
+  "A · Evergreen": {
+    "light": { "background":"#faf9f7","surface":"#ffffff","foreground":"#1c1a17","mutedForeground":"#6b655c",
+      "primary":"#174a3c","primaryForeground":"#ffffff",
+      "success":"#26724d","warning":"#805c03","danger":"#b3261e","info":"#2b5d8a" },
+    "dark": { "background":"#14110f","surface":"#1c1917","foreground":"#f5f2ed","mutedForeground":"#a8a199",
+      "primary":"#46a684","primaryForeground":"#14110f","destructiveForeground":"#14110f",
+      "success":"#6db78e","warning":"#d5a138","danger":"#ff7f6f","info":"#7cb0e2" }
+  },
+  "B · Ledger": {
+    "light": { "background":"#f7f8fa","surface":"#ffffff","foreground":"#14181f","mutedForeground":"#5b6472",
+      "primary":"#14325c","primaryForeground":"#ffffff",
+      "success":"#1f6b4a","warning":"#7a5803","danger":"#b02418","info":"#255a87" },
+    "dark": { "background":"#0d1117","surface":"#151b24","foreground":"#eef1f6","mutedForeground":"#9aa4b4",
+      "primary":"#7fb0e8","primaryForeground":"#0d1117","destructiveForeground":"#0d1117",
+      "success":"#5fb98d","warning":"#d6a43c","danger":"#ff8375","info":"#8ebcea" }
+  },
+  "C · Frontera": {
+    "light": { "background":"#faf7f4","surface":"#fffdfb","foreground":"#1f1a16","mutedForeground":"#6e6257",
+      "primary":"#8f3a24","primaryForeground":"#ffffff",
+      "success":"#2a6f4d","warning":"#7a5a05","danger":"#a8281c","info":"#2f5c86" },
+    "dark": { "background":"#16120f","surface":"#1f1916","foreground":"#f6f1ec","mutedForeground":"#ab9f94",
+      "primary":"#e8927a","primaryForeground":"#16120f","destructiveForeground":"#16120f",
+      "success":"#6fba90","warning":"#d9a742","danger":"#ff8a79","info":"#84b4e4" }
+  }
+}

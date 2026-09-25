@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivateRouteImport } from './routes/activate'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as BrandPreviewRouteImport } from './routes/brand-preview'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PortalRouteImport } from './routes/portal'
@@ -61,6 +62,11 @@ const ActivateRoute = ActivateRouteImport.update({
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandPreviewRoute = BrandPreviewRouteImport.update({
+  id: '/brand-preview',
+  path: '/brand-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
   '/app': typeof AppRouteWithChildren
+  '/brand-preview': typeof BrandPreviewRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
@@ -282,6 +289,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
+  '/brand-preview': typeof BrandPreviewRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/request-access': typeof RequestAccessRoute
@@ -322,6 +330,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
   '/app': typeof AppRouteWithChildren
+  '/brand-preview': typeof BrandPreviewRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
@@ -364,6 +373,7 @@ export interface FileRouteTypes {
     | '/'
     | '/activate'
     | '/app'
+    | '/brand-preview'
     | '/forgot-password'
     | '/login'
     | '/portal'
@@ -403,6 +413,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activate'
+    | '/brand-preview'
     | '/forgot-password'
     | '/login'
     | '/request-access'
@@ -442,6 +453,7 @@ export interface FileRouteTypes {
     | '/'
     | '/activate'
     | '/app'
+    | '/brand-preview'
     | '/forgot-password'
     | '/login'
     | '/portal'
@@ -483,6 +495,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivateRoute: typeof ActivateRoute
   AppRoute: typeof AppRouteWithChildren
+  BrandPreviewRoute: typeof BrandPreviewRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
@@ -513,6 +526,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand-preview': {
+      id: '/brand-preview'
+      path: '/brand-preview'
+      fullPath: '/brand-preview'
+      preLoaderRoute: typeof BrandPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -840,6 +860,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivateRoute: ActivateRoute,
   AppRoute: AppRouteWithChildren,
+  BrandPreviewRoute: BrandPreviewRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
