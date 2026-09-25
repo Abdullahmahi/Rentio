@@ -19,6 +19,14 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { CardsSkeleton, QueryState } from "@/components/rentio/query-state";
 import { WorkOrderStatusBadge } from "@/components/rentio/status";
 import { formatPeriod } from "@/components/rentio/month-selector";
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { CHART, UNIT_STATUS_COLOR, compactMoney } from "@/lib/chart";
 import { daysBetween, formatDate, formatMoney, todayIso } from "@/lib/format";
 import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
@@ -175,29 +183,23 @@ function Kpi({
   );
 }
 
-function ChartTooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean | undefined;
-  payload?: { name?: string; value?: number; color?: string; dataKey?: string }[] | undefined;
-  label?: string | undefined;
-}) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-sm shadow-subtle">
-      <p className="font-medium">{label}</p>
-      {payload.map((entry) => (
-        <p key={entry.dataKey ?? entry.name} className="numeric mt-0.5 text-muted-foreground">
-          <span
-            className="mr-1.5 inline-block size-2 rounded-full align-middle"
-            style={{ background: entry.color }}
-          />
-          {entry.name}: {formatMoney(Number(entry.value ?? 0))}
-        </p>
-      ))}
-    </div>
+/**
+ * Series config for the income chart.
+ *
+ * Deliberately NOT shadcn's --chart-1..5 convention. The fills here carry
+ * meaning — they are validated for colour-vision separation in styles.css and
+ * mapped by scripts/validate_palette.js — so the semantic token names stay.
+ * ChartContainer emits --color-<key> from whatever value it is given, so the
+ * shadcn plumbing and the semantic tokens coexist.
+ */
+function useIncomeChartConfig(): ChartConfig {
+  const { t } = useTranslation();
+  return useMemo(
+    () => ({
+      invoiced: { label: t("dashboard.invoiced"), color: "var(--chart-track)" },
+      collected: { label: t("dashboard.collected"), color: "var(--chart-collected)" },
+    }),
+    [t],
   );
 }
 
@@ -205,6 +207,7 @@ function DashboardPage() {
   const { t, i18n: i18nInstance } = useTranslation();
   const navigate = useNavigate();
   const portfolio = usePortfolio();
+  const incomeChart = useIncomeChartConfig();
 
   const thisMonth = currentPeriod();
   const lastMonth = shiftPeriod(thisMonth, -1);
@@ -552,44 +555,43 @@ function DashboardPage() {
           <section className="rounded-lg border border-border bg-surface p-5 shadow-subtle">
             <h2 className="text-base font-semibold">{t("dashboard.incomeTitle")}</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">{t("dashboard.incomeHint")}</p>
-            <div className="mt-4 h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                {/* Part-of-whole: the total is a recessive track, not a second
-                    competing hue — a gray can never be a categorical slot. */}
-                <BarChart data={monthly} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
-                  <CartesianGrid stroke={CHART.grid} vertical={false} />
-                  <XAxis
-                    dataKey="label"
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fill: CHART.axis, fontSize: 12 }}
-                  />
-                  <YAxis
-                    tickFormatter={compactMoney}
-                    tickLine={false}
-                    axisLine={false}
-                    width={52}
-                    tick={{ fill: CHART.axis, fontSize: 12 }}
-                  />
-                  <Tooltip content={<ChartTooltip />} cursor={{ fill: CHART.grid }} />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-                  <Bar
-                    dataKey="invoiced"
-                    name={t("dashboard.invoiced")}
-                    fill={CHART.track}
-                    radius={[4, 4, 0, 0]}
-                    barSize={22}
-                  />
-                  <Bar
-                    dataKey="collected"
-                    name={t("dashboard.collected")}
-                    fill={CHART.collected}
-                    radius={[4, 4, 0, 0]}
-                    barSize={22}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <ChartContainer config={incomeChart} className="mt-4 aspect-auto h-64 w-full">
+              {/* Part-of-whole: the total is a recessive track, not a second
+                  competing hue — a gray can never be a categorical slot. */}
+              <BarChart data={monthly} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                <CartesianGrid stroke={CHART.grid} vertical={false} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                <YAxis tickFormatter={compactMoney} tickLine={false} axisLine={false} width={52} />
+                <ChartTooltip
+                  cursor={{ fill: CHART.grid }}
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value, name) => (
+                        <span className="flex w-full justify-between gap-3">
+                          <span className="text-muted-foreground">
+                            {incomeChart[name as string]?.label ?? name}
+                          </span>
+                          <span className="numeric font-medium">{formatMoney(Number(value))}</span>
+                        </span>
+                      )}
+                    />
+                  }
+                />
+                <ChartLegend content={<ChartLegendContent />} />
+                <Bar
+                  dataKey="invoiced"
+                  fill="var(--color-invoiced)"
+                  radius={[4, 4, 0, 0]}
+                  barSize={22}
+                />
+                <Bar
+                  dataKey="collected"
+                  fill="var(--color-collected)"
+                  radius={[4, 4, 0, 0]}
+                  barSize={22}
+                />
+              </BarChart>
+            </ChartContainer>
           </section>
 
           {/* ------------------------------------------- units by status */}

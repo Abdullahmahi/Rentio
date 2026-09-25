@@ -5,6 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { EmptyState } from "@/components/rentio/empty-state";
 import { cn } from "@/lib/utils";
 
@@ -142,113 +150,116 @@ export function DataTable<T>({
         ) : null}
       </div>
       <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-subtle">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead className="bg-muted/70 text-left text-xs font-semibold text-muted-foreground">
-              <tr>
-                {selectable ? (
-                  <th className="h-10 w-10 border-b border-border px-4">
-                    <Checkbox
-                      checked={allOnPageSelected}
-                      onCheckedChange={togglePage}
-                      aria-label={t("table.selectAll")}
-                    />
-                  </th>
-                ) : null}
-                {columns.map((column) => {
-                  const active = sort?.key === column.key;
-                  const Icon = active
-                    ? sort.direction === "asc"
-                      ? ArrowUp
-                      : ArrowDown
-                    : ChevronsUpDown;
-                  return (
-                    <th
-                      key={column.key}
-                      className={cn(
-                        "h-10 whitespace-nowrap border-b border-border px-4",
-                        column.numeric && "numeric text-right",
-                        column.className,
-                      )}
-                    >
-                      {column.sortValue ? (
-                        <button
-                          className={cn(
-                            "inline-flex items-center gap-1.5 font-semibold",
-                            column.numeric && "ml-auto",
-                          )}
-                          onClick={() => toggleSort(column)}
-                          title={t(
-                            active && sort.direction === "asc"
-                              ? "table.sortDescending"
-                              : "table.sortAscending",
-                          )}
-                        >
-                          {column.header}
-                          <Icon className="size-3.5" />
-                        </button>
-                      ) : (
-                        column.header
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {loading
-                ? Array.from({ length: 5 }).map((_, rowIndex) => (
-                    <tr key={rowIndex} className="h-10 border-b border-border last:border-b-0">
-                      {selectable ? (
-                        <td className="px-4">
-                          <Skeleton className="h-4 w-4" />
-                        </td>
-                      ) : null}
-                      {columns.map((column) => (
-                        <td key={column.key} className="px-4">
-                          <Skeleton className="h-4 w-24" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                : rows.map((row, rowIndex) => (
-                    <tr
-                      key={getRowId(row)}
-                      onClick={() => onRowClick?.(row)}
-                      className={cn(
-                        "h-10 border-b border-border last:border-b-0",
-                        striped && rowIndex % 2 === 1 && "bg-muted/40",
-                        onRowClick && "cursor-pointer hover:bg-muted/60",
-                        selected.has(getRowId(row)) && "bg-primary/5",
-                      )}
-                    >
-                      {selectable ? (
-                        <td className="px-4" onClick={(event) => event.stopPropagation()}>
-                          <Checkbox
-                            checked={selected.has(getRowId(row))}
-                            disabled={!(isSelectable?.(row) ?? true)}
-                            onCheckedChange={() => toggleRow(row)}
-                            aria-label={t("table.selectRow")}
-                          />
-                        </td>
-                      ) : null}
-                      {columns.map((column) => (
-                        <td
-                          key={column.key}
-                          className={cn(
-                            "whitespace-nowrap px-4",
-                            column.numeric && "numeric text-right",
-                            column.className,
-                          )}
-                        >
-                          {column.cell(row)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-            </tbody>
-          </table>
-        </div>
+        <Table className="border-collapse">
+          <TableHeader className="bg-muted/70 text-xs font-semibold text-muted-foreground">
+            <TableRow className="hover:bg-transparent">
+              {selectable ? (
+                <TableHead className="w-10 border-b border-border px-4">
+                  <Checkbox
+                    checked={allOnPageSelected}
+                    onCheckedChange={togglePage}
+                    aria-label={t("table.selectAll")}
+                  />
+                </TableHead>
+              ) : null}
+              {columns.map((column) => {
+                const active = sort?.key === column.key;
+                const Icon = active
+                  ? sort.direction === "asc"
+                    ? ArrowUp
+                    : ArrowDown
+                  : ChevronsUpDown;
+                return (
+                  <TableHead
+                    key={column.key}
+                    className={cn(
+                      "whitespace-nowrap border-b border-border px-4 font-semibold text-muted-foreground",
+                      column.numeric && "numeric text-right",
+                      column.className,
+                    )}
+                  >
+                    {column.sortValue ? (
+                      <button
+                        className={cn(
+                          "inline-flex items-center gap-1.5 font-semibold",
+                          column.numeric && "ml-auto",
+                        )}
+                        onClick={() => toggleSort(column)}
+                        title={t(
+                          active && sort.direction === "asc"
+                            ? "table.sortDescending"
+                            : "table.sortAscending",
+                        )}
+                      >
+                        {column.header}
+                        <Icon className="size-3.5" />
+                      </button>
+                    ) : (
+                      column.header
+                    )}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading
+              ? Array.from({ length: 5 }).map((_, rowIndex) => (
+                  <TableRow key={rowIndex} className="h-10 last:border-b-0 hover:bg-transparent">
+                    {selectable ? (
+                      <TableCell className="px-4">
+                        <Skeleton className="h-4 w-4" />
+                      </TableCell>
+                    ) : null}
+                    {columns.map((column) => (
+                      <TableCell key={column.key} className="px-4">
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : rows.map((row, rowIndex) => (
+                  <TableRow
+                    key={getRowId(row)}
+                    onClick={() => onRowClick?.(row)}
+                    data-state={selected.has(getRowId(row)) ? "selected" : undefined}
+                    className={cn(
+                      "h-10 last:border-b-0",
+                      striped && rowIndex % 2 === 1 && "bg-muted/40",
+                      // TableRow hovers unconditionally. A hover highlight on a
+                      // row that does nothing is a small lie, so it is opt-in.
+                      onRowClick ? "cursor-pointer hover:bg-muted/60" : "hover:bg-transparent",
+                      // Selection reads as primary here, not the shadcn default
+                      // muted, so it is distinguishable from the zebra stripe.
+                      selected.has(getRowId(row)) && "data-[state=selected]:bg-primary/5",
+                    )}
+                  >
+                    {selectable ? (
+                      <TableCell className="px-4" onClick={(event) => event.stopPropagation()}>
+                        <Checkbox
+                          checked={selected.has(getRowId(row))}
+                          disabled={!(isSelectable?.(row) ?? true)}
+                          onCheckedChange={() => toggleRow(row)}
+                          aria-label={t("table.selectRow")}
+                        />
+                      </TableCell>
+                    ) : null}
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.key}
+                        className={cn(
+                          "whitespace-nowrap px-4",
+                          column.numeric && "numeric text-right",
+                          column.className,
+                        )}
+                      >
+                        {column.cell(row)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+          </TableBody>
+        </Table>
         {!loading && rows.length === 0 ? (
           <EmptyState
             message={emptyMessage ?? t("empty.table")}

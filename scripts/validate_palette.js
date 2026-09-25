@@ -280,7 +280,8 @@ if (import.meta.main) {
     console.log(`\n  ${label}`);
     for (const r of checkCvd(charts)) {
       const mark = !r.pass ? "FAIL" : r.meetsTarget ? "ok  " : "gap ";
-      const note = r.pass && !r.meetsTarget ? `  (below target ${CVD_TARGET}, at the known ceiling)` : "";
+      const note =
+        r.pass && !r.meetsTarget ? `  (below target ${CVD_TARGET}, at the known ceiling)` : "";
       console.log(`    ${mark} ${String(r.d).padStart(6)}  ${r.kind.padEnd(13)} ${r.pair}${note}`);
       allPass &&= r.pass;
     }
