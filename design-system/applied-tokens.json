@@ -1,0 +1,11 @@
+{
+  "Rentio (applied)": {
+    "light": { "background":"#faf9f7","surface":"#ffffff","foreground":"#1c1a17","mutedForeground":"#6b655c",
+      "primary":"#174a3c","primaryForeground":"#ffffff",
+      "success":"#26724d","warning":"#805c03","danger":"#b3261e","info":"#2b5d8a" },
+    "dark": { "background":"#14110f","surface":"#1c1917","foreground":"#f5f2ed","mutedForeground":"#a8a199",
+      "primary":"#46a684","primaryForeground":"#14110f","destructiveForeground":"#14110f",
+      "success":"#6db78e","warning":"#d5a138","danger":"#ff7f6f","info":"#7cb0e2" },
+    "charts": { "occupied":"#1B7F5A","maintenance":"#B8860B","reserved":"#4F86CC","vacant":"#C2410C" }
+  }
+}

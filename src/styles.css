@@ -14,7 +14,10 @@
      italic word inside each h2; Inter italic keeps the rhythm for free, and
      swapping in a display face later is one token. `font-subheading` is always
      paired with `italic` in the JSX, so the slot only has to be a family. */
-  --font-heading: var(--font-sans);
+  /* Direction A · Evergreen. A serif says *record*, which is what this
+     product is. h1-h3 and PageHeader titles only — body, tables, money and
+     badges stay Inter, per design-system/rentio/MASTER.md. */
+  --font-heading: "Source Serif 4 Variable", ui-serif, Georgia, serif;
   --font-subheading: var(--font-sans);
   --font-base: var(--font-sans);
 
@@ -72,7 +75,10 @@
   --surface: oklch(from #ffffff l c h);
   --foreground: oklch(from #1c1a17 l c h);
   --muted-foreground: oklch(from #6b655c l c h);
-  --primary: oklch(from #1b4d3e l c h);
+  /* Deepened a touch from #1b4d3e for the rebrand. Stays green on purpose:
+     a warm primary is not separable from --danger, which in this product
+     means overdue rent. See MASTER.md, "Why the primary is not a warm hue". */
+  --primary: oklch(from #174a3c l c h);
   --primary-foreground: oklch(from #ffffff l c h);
   --accent: oklch(from #c2703d l c h);
   --accent-foreground: oklch(from #ffffff l c h);
@@ -93,20 +99,30 @@
   --info: oklch(from #2b5d8a l c h);
   --overlay: oklch(0.12 0.01 55 / 45%);
 
-/* Chart palette — validated with the dataviz skill's six checks in BOTH
-   light and dark (lightness band, chroma floor, CVD separation, normal-vision
-   separation, contrast). Do not hand-tweak these: re-run
-   scripts/validate_palette.js if they ever change.
-   The design system's deep green #1B4D3E is too dark to be a chart fill
-   against the surface, and a true gray can never be a categorical slot —
-   green vs gray reads as DeltaE 1.8 to a deuteranope. */
-  --chart-occupied: #35916A;   /* ocupada    */
+/* Chart palette — measured 2026-09-25 by scripts/validate_palette.js
+   (Vienot-Brettel-Mollon 1999 simulation, CIE76 DeltaE, worst pair of the four
+   categories). That script did not exist when the previous values were chosen,
+   so the claim above it was unverifiable; it does now, and these are the best
+   set found by searching 240 candidates that also clear 3:1 on both surfaces.
+
+     normal        42.8    deuteranopia  23.7
+     protanopia    27.0    tritanopia    14.8   <- below the 20 target
+
+   DeltaE >= 20 under EVERY simulation is not achievable with four hue-coded
+   fills: tritanopia collapses the blue-yellow axis, so green and blue converge
+   whatever you pick. Okabe-Ito, the canonical CVD-safe palette, reaches only
+   14.2 here. The previous set scored 5.0. The rest of that gap closes with a
+   second channel on the bar (labels or pattern), not with better hues.
+
+   Do not hand-tweak. Change these only by re-running the validator and
+   recording the new worst pair. */
+  --chart-occupied: #1B7F5A;   /* ocupada    */
   --chart-maintenance: #B8860B;/* mantenimiento — the system's own warning */
   --chart-reserved: #4F86CC;   /* reservada  */
-  --chart-vacant: #BC6350;     /* vacante    */
+  --chart-vacant: #C2410C;     /* vacante    */
   /* Money series: part-of-whole, so the total is a recessive track rather
      than a second competing hue. */
-  --chart-collected: #35916A;
+  --chart-collected: #1B7F5A;
   --chart-track: color-mix(in oklab, var(--foreground) 10%, transparent);
   --chart-grid: color-mix(in oklab, var(--foreground) 8%, transparent);
   color-scheme: light;
@@ -117,7 +133,7 @@
   --surface: oklch(from #1c1917 l c h);
   --foreground: oklch(from #f5f2ed l c h);
   --muted-foreground: oklch(from #a8a199 l c h);
-  --primary: oklch(from #3e9b7a l c h);
+  --primary: oklch(from #46a684 l c h);
   --primary-foreground: oklch(from #14110f l c h);
   --accent: oklch(from #c2703d l c h);
   --accent-foreground: oklch(from #ffffff l c h);
@@ -139,20 +155,30 @@
   --info: oklch(from #7cb0e2 l c h); /* 6.45:1 */
   --overlay: oklch(0 0 0 / 65%);
 
-/* Chart palette — validated with the dataviz skill's six checks in BOTH
-   light and dark (lightness band, chroma floor, CVD separation, normal-vision
-   separation, contrast). Do not hand-tweak these: re-run
-   scripts/validate_palette.js if they ever change.
-   The design system's deep green #1B4D3E is too dark to be a chart fill
-   against the surface, and a true gray can never be a categorical slot —
-   green vs gray reads as DeltaE 1.8 to a deuteranope. */
-  --chart-occupied: #35916A;   /* ocupada    */
+/* Chart palette — measured 2026-09-25 by scripts/validate_palette.js
+   (Vienot-Brettel-Mollon 1999 simulation, CIE76 DeltaE, worst pair of the four
+   categories). That script did not exist when the previous values were chosen,
+   so the claim above it was unverifiable; it does now, and these are the best
+   set found by searching 240 candidates that also clear 3:1 on both surfaces.
+
+     normal        42.8    deuteranopia  23.7
+     protanopia    27.0    tritanopia    14.8   <- below the 20 target
+
+   DeltaE >= 20 under EVERY simulation is not achievable with four hue-coded
+   fills: tritanopia collapses the blue-yellow axis, so green and blue converge
+   whatever you pick. Okabe-Ito, the canonical CVD-safe palette, reaches only
+   14.2 here. The previous set scored 5.0. The rest of that gap closes with a
+   second channel on the bar (labels or pattern), not with better hues.
+
+   Do not hand-tweak. Change these only by re-running the validator and
+   recording the new worst pair. */
+  --chart-occupied: #1B7F5A;   /* ocupada    */
   --chart-maintenance: #B8860B;/* mantenimiento — the system's own warning */
   --chart-reserved: #4F86CC;   /* reservada  */
-  --chart-vacant: #BC6350;     /* vacante    */
+  --chart-vacant: #C2410C;     /* vacante    */
   /* Money series: part-of-whole, so the total is a recessive track rather
      than a second competing hue. */
-  --chart-collected: #35916A;
+  --chart-collected: #1B7F5A;
   --chart-track: color-mix(in oklab, var(--foreground) 10%, transparent);
   --chart-grid: color-mix(in oklab, var(--foreground) 8%, transparent);
   color-scheme: dark;
@@ -163,6 +189,10 @@
   html { font-family: var(--font-sans); }
   body { margin: 0; background: var(--background); color: var(--foreground); font-size: 14px; letter-spacing: 0; }
   button, input { font: inherit; letter-spacing: 0; }
+  /* Headings only. Table cells, money, badges and labels inherit Inter from
+     `html` above and must stay there — a serif in a money column is harder to
+     scan and breaks tabular alignment. */
+  h1, h2, h3 { font-family: var(--font-heading); }
 }
 
 @utility numeric {

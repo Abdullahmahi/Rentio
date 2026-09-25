@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import "@fontsource-variable/inter";
+import "@fontsource-variable/source-serif-4";
 // Real italic cuts, not synthesised obliques — the marketing headings set one
 // italic word per h2 and a faux-italic Inter is visibly wrong at display size.
 import "@fontsource-variable/inter/wght-italic.css";
