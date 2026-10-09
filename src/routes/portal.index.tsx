@@ -214,6 +214,10 @@ function PortalHome() {
             <Button asChild variant="outline" className="mt-4 h-11 w-full">
               <Link to="/portal/receipts">{t("portal.viewReceipts")}</Link>
             </Button>
+            {/* Out of the tab bar, but §92.024 wants the tenant to have the lease. */}
+            <Button asChild variant="ghost" className="mt-2 h-11 w-full">
+              <Link to="/portal/contracts">{t("portal.viewLease")}</Link>
+            </Button>
           </section>
 
           {/* ---------------------------------------------- open requests */}

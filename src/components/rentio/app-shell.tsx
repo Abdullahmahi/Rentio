@@ -62,14 +62,11 @@ export function AppShell() {
     void navigate({ to: "/sign-in", replace: true });
   };
 
-  // Exact match first, then longest prefix, so /app/units/$id still titles the
-  // header "Units" rather than falling through to "Dashboard".
-  const currentKey =
-    navItems.find(([, path]) => path === pathname)?.[0] ??
-    navItems
-      .filter(([, path]) => path !== "/app" && pathname.startsWith(`${path}/`))
-      .sort((a, b) => b[1].length - a[1].length)[0]?.[0] ??
-    "dashboard";
+  // The first segment under /app is the page key, so /app/units/$id titles the
+  // header "Units", and pages kept out of the nav (receipts, settings) still
+  // get their own title.
+  const segment = pathname.split("/")[2];
+  const currentKey = segment && i18n.exists(`pages.${segment}.title`) ? segment : "dashboard";
 
   const navLink = ([key, path, Icon]: (typeof navItems)[number]) => {
     const active = pathname === path;

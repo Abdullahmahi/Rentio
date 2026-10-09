@@ -24,8 +24,9 @@
       "money": "Dinero",
       "operations": "Operaciones"
     },
-    "maintenanceShort": "Solicitudes",
-    "requests": "Solicitudes de acceso"
+    "requests": "Solicitudes de acceso",
+    "expenses": "Gastos",
+    "serviceRequests": "Solicitudes de servicio"
   },
   "pages": {
     "dashboard": {
@@ -70,7 +71,7 @@
     },
     "reports": {
       "title": "Reportes",
-      "description": "Consulta indicadores y reportes de la operación."
+      "description": "Ingresos por renta vs. gastos."
     },
     "settings": {
       "title": "Configuración",
@@ -99,6 +100,10 @@
     "requests": {
       "title": "Solicitudes de acceso",
       "description": "Personas que piden acceso al portal y aún no tienen invitación."
+    },
+    "expenses": {
+      "title": "Gastos",
+      "description": "Gastos capturados a mano, por unidad y propiedad."
     }
   },
   "empty": {
@@ -692,7 +697,9 @@
       "urgent": "Urgentes",
       "resolved": "Resueltas este mes",
       "average": "Tiempo promedio de resolución",
-      "healthSafetyOverdue": "S y S a más de 7 días"
+      "healthSafetyOverdue": "S y S a más de 7 días",
+      "new": "Solicitudes nuevas",
+      "completed": "Completadas este mes"
     },
     "fields": {
       "unitHint": "Al elegir la unidad se vinculan el contrato y el inquilino.",
@@ -721,7 +728,8 @@
       "nueva": "Nuevas",
       "asignada": "Asignadas",
       "en_progreso": "En progreso",
-      "terminadas": "Terminadas"
+      "terminadas": "Completadas",
+      "nuevas": "Nuevas"
     },
     "repairWindowShort": "Día {{day}} de {{total}}",
     "repairOverdueShort": "Día {{count}} · fuera de plazo"
@@ -797,7 +805,7 @@
     "generateSubmit": "Generar recibos",
     "generatePreview": "Se generarán {{count}} recibos por un total de {{total}}.",
     "generateNothing": "No hay contratos pendientes de facturar en este mes.",
-    "generateNote": "Los cargos de servicios pendientes de este mes se incluyen y pasan a «facturado». Los recibos se crean como borrador.",
+    "generateNote": "Los recibos incluyen renta y estacionamiento, y se crean como borrador.",
     "generated": "Recibos generados correctamente.",
     "skippedTitle": "{{count}} contrato omitido",
     "skippedTitle_other": "{{count}} contratos omitidos",
@@ -1058,7 +1066,8 @@
     "checkMailingAddress": "Envía el cheque por correo a",
     "dropoffAddress": "Entrega efectivo o money orders en",
     "officeHours": "Horario de oficina",
-    "viewReceipt": "Ver recibo"
+    "viewReceipt": "Ver recibo",
+    "viewLease": "Ver mi contrato"
   },
   "dashboard": {
     "pendingPayments": "{{count}} pago espera confirmación",
@@ -1140,7 +1149,14 @@
     "exportRows_other": "Exportar {{count}} filas ({{filename}})",
     "exportEmpty": "Nada que exportar",
     "exportEmptyHint": "Este filtro no arroja filas. Amplíalo y la exportación quedará disponible.",
-    "noOverdue": "Nada vencido"
+    "noOverdue": "Nada vencido",
+    "income": "Ingresos por renta",
+    "expenses": "Gastos",
+    "net": "Neto",
+    "last12": "últimos 12 meses",
+    "chartTitle": "Ingresos por renta vs. gastos",
+    "chartHint": "Pagos confirmados por fecha de pago; gastos por fecha del gasto.",
+    "allUnits": "Todas las unidades"
   },
   "import": {
     "title": "Importar datos",
@@ -1338,6 +1354,31 @@
     },
     "errors": {
       "tenantRequired": "Elige el inquilino al que corresponde esta solicitud."
+    }
+  },
+  "expenses": {
+    "new": "Nuevo gasto",
+    "edit": "Editar gasto",
+    "saved": "Gasto guardado.",
+    "deleted": "Gasto eliminado.",
+    "deleteTitle": "¿Eliminar este gasto?",
+    "deleteDescription": "Se quitará de Gastos y de Reportes.",
+    "descriptionPlaceholder": "p. ej. Reparación del calentador",
+    "emptyTitle": "Sin gastos en {{month}}",
+    "emptyDescription": "Registra lo que gastas en cada unidad para compararlo con la renta en Reportes.",
+    "columns": {
+      "date": "Fecha",
+      "description": "Descripción"
+    },
+    "summary": {
+      "total": "Total del mes",
+      "byProperty": "Por propiedad"
+    },
+    "errors": {
+      "unitRequired": "Elige una unidad.",
+      "amountRequired": "Escribe un monto mayor a cero.",
+      "dateRequired": "Elige una fecha.",
+      "descriptionRequired": "Describe el gasto."
     }
   }
 }

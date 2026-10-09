@@ -14,6 +14,7 @@ export const qk = {
   invoice: (id: string) => ["invoice", id] as const,
   payments: ["payments"] as const,
   utilities: (period?: string) => ["utilities", period ?? "all"] as const,
+  expenses: (period?: string) => ["expenses", period ?? "all"] as const,
   workOrders: ["work-orders"] as const,
   workOrder: (id: string) => ["work-order", id] as const,
   documents: (ownerType: string, ownerId: string) => ["documents", ownerType, ownerId] as const,

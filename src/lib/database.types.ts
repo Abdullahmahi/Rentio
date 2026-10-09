@@ -120,6 +120,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      expenses: {
+        Row: {
+          id: string;
+          unit_id: string;
+          amount: number;
+          spent_at: string;
+          description: string;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          unit_id: string;
+          amount: number;
+          spent_at?: string;
+          description: string;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          unit_id?: string;
+          amount?: number;
+          spent_at?: string;
+          description?: string;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       invoice_lines: {
         Row: {
           id: string;

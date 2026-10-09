@@ -21,7 +21,7 @@ import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/portal/maintenance/")({
-  head: () => ({ meta: [{ title: pageTitle(i18n.t("pages.maintenance.title")) }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("nav.serviceRequests")) }] }),
   component: PortalMaintenance,
 });
 
@@ -205,7 +205,7 @@ function PortalMaintenance() {
   return (
     <div className="space-y-5">
       <PageHeader
-        title={t("pages.maintenance.title")}
+        title={t("nav.serviceRequests")}
         description={t("portal.maintenanceHint")}
         actions={
           <Button className="h-11" onClick={() => setCreating(true)}>

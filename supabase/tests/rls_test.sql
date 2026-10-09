@@ -115,6 +115,8 @@ begin
   perform pg_temp.check('tenant cannot read units', n = 0);
   select count(*) into n from public.utility_charges;
   perform pg_temp.check('tenant cannot read utility charges', n = 0);
+  select count(*) into n from public.expenses;
+  perform pg_temp.check('tenant cannot read expenses', n = 0);
   select count(*) into n from public.settings;
   perform pg_temp.check('tenant cannot read settings table', n = 0);
   select count(*) into n from public.activity_log;

@@ -27,6 +27,7 @@ delete from public.work_order_photos;
 delete from public.work_order_notes;
 delete from public.work_orders;
 delete from public.utility_charges;
+delete from public.expenses;
 delete from public.payment_allocations;
 delete from public.payments;
 delete from public.invoice_lines;
@@ -309,6 +310,27 @@ cross join lateral (values
 ) as ut(type, amount)
 where l.status = 'activo'
 on conflict (unit_id, type, period_month) do nothing;
+
+-- --------------------------------------------------------------- expenses
+-- A few hand-entered landlord costs on the first units, over three months.
+
+insert into public.expenses (unit_id, amount, spent_at, description)
+select
+  u.id,
+  e.amount,
+  (date_trunc('month', current_date) - e.offset_months * interval '1 month')::date + e.day_offset,
+  e.description
+from (
+  select u.id, row_number() over (order by u.created_at, u.id) as rn from public.units u
+) u
+join (values
+  (1, 0, 3, 185.00, 'Plumbing repair'),
+  (1, 1, 10, 60.00, 'Pest control'),
+  (2, 0, 5, 420.00, 'Water heater replacement'),
+  (3, 1, 12, 95.00, 'Lock rekey'),
+  (4, 2, 8, 150.00, 'Paint touch-up'),
+  (5, 0, 1, 75.00, 'Landscaping')
+) as e(rn, offset_months, day_offset, amount, description) on e.rn = u.rn;
 
 -- --------------------------------------------------------------- invoices
 -- Months M-2 and M-1 for all 30 leases; month M for 26 of them.

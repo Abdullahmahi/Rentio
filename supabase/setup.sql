@@ -21,7 +21,7 @@
 
 
 -- ============================================================================
--- 1/13  20260919000100_schema
+-- 1/14  20260919000100_schema
 -- ============================================================================
 -- Rentio — core schema
 -- All money is numeric(12,2). Never float.
@@ -436,7 +436,7 @@ insert into public.settings (company_name, invoice_prefix) values ('Rentio', 'RE
 
 
 -- ============================================================================
--- 2/13  20260919000200_rls
+-- 2/14  20260919000200_rls
 -- ============================================================================
 -- Rentio — row level security. Deny by default, everywhere.
 --
@@ -834,7 +834,7 @@ create policy storage_tenant_write on storage.objects
 
 
 -- ============================================================================
--- 3/13  20260919000300_portal_views
+-- 3/14  20260919000300_portal_views
 -- ============================================================================
 -- The tenant portal needs the tenant's OWN unit number and building address:
 -- it is the payment reference on the Inicio screen and the whole of the
@@ -869,7 +869,7 @@ grant select on public.my_lease_details to authenticated;
 
 
 -- ============================================================================
--- 4/13  20260919000400_public_settings_address
+-- 4/14  20260919000400_public_settings_address
 -- ============================================================================
 -- The recibo PDF prints the landlord's letterhead — company name, address and
 -- bank details — and a tenant must be able to render their own receipt. The
@@ -905,7 +905,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 5/13  20260920000500_us_localization
+-- 5/14  20260920000500_us_localization
 -- ============================================================================
 -- Prompt 15 — the properties are in El Paso, Texas, not Mexico.
 -- Addresses become US addresses. No business logic changes here.
@@ -995,7 +995,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 6/13  20260920000501_drop_rfc
+-- 6/14  20260920000501_drop_rfc
 -- ============================================================================
 -- Prompt 20's cleanup, pulled forward: `rfc` was captured for Mexican tax
 -- invoicing (CFDI) that will never happen for a Texas landlord. Removing it
@@ -1025,7 +1025,7 @@ $$;
 
 
 -- ============================================================================
--- 7/13  20260920000600_us_payment_methods
+-- 7/14  20260920000600_us_payment_methods
 -- ============================================================================
 -- Prompt 16 — US payment rails.
 --
@@ -1110,7 +1110,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 8/13  20260920000700_texas_late_fees
+-- 8/14  20260920000700_texas_late_fees
 -- ============================================================================
 -- Prompt 17 — Texas Property Code §92.019 constrains residential late fees.
 --
@@ -1185,7 +1185,7 @@ alter table public.settings
 
 
 -- ============================================================================
--- 9/13  20260920000800_deposit_clock
+-- 9/14  20260920000800_deposit_clock
 -- ============================================================================
 -- Prompt 18 — Texas Property Code §92.103–92.109, security deposit returns.
 --
@@ -1253,7 +1253,7 @@ grant select on public.deposit_obligations to authenticated;
 
 
 -- ============================================================================
--- 10/13  20260920000900_texas_repairs_notices_turnover
+-- 10/14  20260920000900_texas_repairs_notices_turnover
 -- ============================================================================
 -- Prompt 19 — three smaller Texas Property Code obligations.
 
@@ -1403,7 +1403,7 @@ create policy turnover_admin_delete on public.unit_turnover_checklist
 
 
 -- ============================================================================
--- 11/13  20260920001000_late_fee_guard
+-- 11/14  20260920001000_late_fee_guard
 -- ============================================================================
 -- Prompt 17 said "do not let a manager bypass the 2-day rule anywhere in the
 -- UI". The gated "Apply late fee" button honoured it; "Add line" did not.
@@ -1476,7 +1476,7 @@ create trigger invoice_lines_enforce_late_fee_rules
 
 
 -- ============================================================================
--- 12/13  20260922001100_access_requests
+-- 12/14  20260922001100_access_requests
 -- ============================================================================
 -- A tenant with no invite needs somewhere to go.
 --
@@ -1540,7 +1540,50 @@ create policy access_requests_admin_delete on public.access_requests
 
 
 -- ============================================================================
--- 13/13  DEMO DATA
+-- 13/14  20260925001200_expenses
+-- ============================================================================
+-- Gastos: landlord expenses, entered by hand, one row per unit.
+-- The property is reached through units.property_id, like utility_charges.
+
+create table public.expenses (
+  id           uuid primary key default gen_random_uuid(),
+  unit_id      uuid not null references public.units (id) on delete restrict,
+  amount       numeric(12,2) not null check (amount > 0),
+  spent_at     date not null default current_date,
+  description  text not null check (length(trim(description)) > 0),
+  notes        text,
+  created_by   uuid references public.profiles (id) on delete set null,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz
+);
+
+comment on table public.expenses is
+  'Landlord expenses per unit. Staff-only; rolled up per property in Reportes.';
+
+create index on public.expenses (unit_id, spent_at);
+create index on public.expenses (spent_at);
+
+create trigger expenses_set_updated_at
+  before update on public.expenses
+  for each row execute function public.set_updated_at();
+
+-- ------------------------------------------------------------------- RLS
+-- Staff-only, exactly like utility_charges.
+
+alter table public.expenses enable row level security;
+
+create policy expenses_staff_select on public.expenses
+  for select to authenticated using (public.is_staff());
+create policy expenses_staff_insert on public.expenses
+  for insert to authenticated with check (public.is_staff());
+create policy expenses_staff_update on public.expenses
+  for update to authenticated using (public.is_staff()) with check (public.is_staff());
+create policy expenses_admin_delete on public.expenses
+  for delete to authenticated using (public.is_admin());
+
+
+-- ============================================================================
+-- 14/14  DEMO DATA
 -- ============================================================================
 -- Rentio — demo data (El Paso, Texas).
 -- Safe to re-run: it clears the demo tables first.
@@ -1571,6 +1614,7 @@ delete from public.work_order_photos;
 delete from public.work_order_notes;
 delete from public.work_orders;
 delete from public.utility_charges;
+delete from public.expenses;
 delete from public.payment_allocations;
 delete from public.payments;
 delete from public.invoice_lines;
@@ -1853,6 +1897,27 @@ cross join lateral (values
 ) as ut(type, amount)
 where l.status = 'activo'
 on conflict (unit_id, type, period_month) do nothing;
+
+-- --------------------------------------------------------------- expenses
+-- A few hand-entered landlord costs on the first units, over three months.
+
+insert into public.expenses (unit_id, amount, spent_at, description)
+select
+  u.id,
+  e.amount,
+  (date_trunc('month', current_date) - e.offset_months * interval '1 month')::date + e.day_offset,
+  e.description
+from (
+  select u.id, row_number() over (order by u.created_at, u.id) as rn from public.units u
+) u
+join (values
+  (1, 0, 3, 185.00, 'Plumbing repair'),
+  (1, 1, 10, 60.00, 'Pest control'),
+  (2, 0, 5, 420.00, 'Water heater replacement'),
+  (3, 1, 12, 95.00, 'Lock rekey'),
+  (4, 2, 8, 150.00, 'Paint touch-up'),
+  (5, 0, 1, 75.00, 'Landscaping')
+) as e(rn, offset_months, day_offset, amount, description) on e.rn = u.rn;
 
 -- --------------------------------------------------------------- invoices
 -- Months M-2 and M-1 for all 30 leases; month M for 26 of them.

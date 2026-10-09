@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Check,
   ChevronLeft,
@@ -10,6 +10,7 @@ import {
   FileText,
   Plus,
   Receipt,
+  ReceiptText,
   WalletCards,
   X,
 } from "lucide-react";
@@ -47,8 +48,8 @@ import { openSigned, signedUrl, uploadFile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums, Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
-
 import { pageTitle } from "@/lib/brand";
+
 export const Route = createFileRoute("/app/payments/")({
   // `?new=1` lets the command palette land straight in the create dialog. The
   // page strips the param once it has opened it, so a refresh is not sticky.
@@ -621,10 +622,19 @@ function PaymentsPage() {
         title={t("pages.payments.title")}
         description={t("pages.payments.description")}
         actions={
-          <Button onClick={() => setRecordOpen(true)}>
-            <Plus className="size-4" />
-            {t("payments.record")}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Receipts are out of the nav; the month is still generated there. */}
+            <Button asChild variant="outline">
+              <Link to="/app/receipts">
+                <ReceiptText className="size-4" />
+                {t("nav.receipts")}
+              </Link>
+            </Button>
+            <Button onClick={() => setRecordOpen(true)}>
+              <Plus className="size-4" />
+              {t("payments.record")}
+            </Button>
+          </div>
         }
       />
 

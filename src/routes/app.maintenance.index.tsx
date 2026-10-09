@@ -85,16 +85,16 @@ const PRIORITIES: Enums<"wo_priority">[] = ["baja", "media", "alta", "urgente"];
 /** Three reads at a glance; the rest go behind a "+N". */
 const PHOTOS_PER_CARD = 3;
 /**
- * The board shows four columns, not six: xl:grid-cols-6 forces horizontal
- * scrolling on any laptop and two of those columns sit near-empty. The table
- * view still filters on all six — nothing is hidden, the board is made to fit.
- * `esperando_refacciones` rides with `en_progreso`; both mean "started, not
- * finished", and dropping onto that column sets the one a human would pick.
+ * The owner reads maintenance as two piles: new and completed. Every open
+ * status rides in "Nuevas" (the chips still split it), and the detail page
+ * can still set any of the six.
  */
 const BOARD_COLUMNS = [
-  { key: "nueva", drop: "nueva", statuses: ["nueva"] },
-  { key: "asignada", drop: "asignada", statuses: ["asignada"] },
-  { key: "en_progreso", drop: "en_progreso", statuses: ["en_progreso", "esperando_refacciones"] },
+  {
+    key: "nuevas",
+    drop: "nueva",
+    statuses: ["nueva", "asignada", "en_progreso", "esperando_refacciones"],
+  },
   // Never straight to cerrada — closing is a decision, not a drag.
   { key: "terminadas", drop: "resuelta", statuses: ["resuelta", "cerrada"] },
 ] as const satisfies readonly {
@@ -227,7 +227,11 @@ function MaintenancePage() {
         };
       })
       .filter((row) => {
-        if (filters.status !== ALL && row.status !== filters.status) return false;
+        if (
+          filters.status !== ALL &&
+          OPEN_STATUSES.includes(row.status) !== (filters.status === "open")
+        )
+          return false;
         if (filters.priority !== ALL && row.priority !== filters.priority) return false;
         if (filters.category !== ALL && row.category !== filters.category) return false;
         if (filters.property !== ALL && row.propertyId !== filters.property) return false;
@@ -246,27 +250,7 @@ function MaintenancePage() {
     const resolvedThisMonth = all.filter(
       (order) => order.resolved_at && new Date(order.resolved_at) >= monthStart,
     );
-    const durations = all
-      .filter((order) => order.resolved_at)
-      .map((order) => daysOpen(order.created_at, order.resolved_at));
-    // §92.056 — 7 days presumed reasonable, counted from the tenant's
-    // written notice. Past that is the number the client needs to see.
-    const healthSafetyOverdue = open.filter(
-      (order) =>
-        order.affects_health_safety &&
-        order.written_notice_at &&
-        repairClock(order.written_notice_at, undefined, order.resolved_at).overdue,
-    );
-    return {
-      open: open.length,
-      healthSafetyOverdue: healthSafetyOverdue.length,
-      urgent: open.filter((order) => order.priority === "urgente").length,
-      resolvedThisMonth: resolvedThisMonth.length,
-      averageDays:
-        durations.length === 0
-          ? null
-          : Math.round(durations.reduce((a, b) => a + b, 0) / durations.length),
-    };
+    return { open: open.length, resolvedThisMonth: resolvedThisMonth.length };
   }, [orders.data]);
 
   const unitOptions = useMemo<ComboboxOption[]>(
@@ -284,6 +268,8 @@ function MaintenancePage() {
     mutationFn: async ({ order, status }: { order: OrderRow; status: Enums<"wo_status"> }) => {
       const patch: TablesUpdate<"work_orders"> = { status };
       if (status === "resuelta" && !order.resolved_at) patch.resolved_at = new Date().toISOString();
+      // Reopened: the §92.056 clock must run again, not stay stopped.
+      if (OPEN_STATUSES.includes(status) && order.resolved_at) patch.resolved_at = null;
       const { error: caught } = await supabase.from("work_orders").update(patch).eq("id", order.id);
       if (caught) throw caught;
       // The detail timeline is rebuilt from these entries.
@@ -411,22 +397,8 @@ function MaintenancePage() {
   ];
 
   const summaryCards = [
-    { key: "open", value: String(summary.open), tone: "" },
-    {
-      key: "healthSafetyOverdue",
-      value: String(summary.healthSafetyOverdue),
-      tone: summary.healthSafetyOverdue > 0 ? "text-danger" : "",
-    },
-    { key: "urgent", value: String(summary.urgent), tone: summary.urgent > 0 ? "text-accent" : "" },
-    { key: "resolved", value: String(summary.resolvedThisMonth), tone: "text-success" },
-    {
-      key: "average",
-      value:
-        summary.averageDays === null
-          ? "—"
-          : t("maintenance.dayCount", { count: summary.averageDays }),
-      tone: "",
-    },
+    { key: "new", value: String(summary.open), tone: "" },
+    { key: "completed", value: String(summary.resolvedThisMonth), tone: "text-success" },
   ] as const;
 
   return (
@@ -468,7 +440,7 @@ function MaintenancePage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2">
         {summaryCards.map((card) => (
           <div
             key={card.key}
@@ -487,7 +459,10 @@ function MaintenancePage() {
           [
             [
               "status",
-              STATUSES.map((value) => ({ value, label: t(`woStatus.${value}`) })),
+              [
+                { value: "open", label: t("maintenance.board.nuevas") },
+                { value: "done", label: t("maintenance.board.terminadas") },
+              ],
               "maintenance.columns.status",
             ],
             [
@@ -570,7 +545,7 @@ function MaintenancePage() {
         }
       >
         {view === "kanban" ? (
-          <div className="grid gap-3 overflow-x-auto sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2">
             {BOARD_COLUMNS.map((column) => {
               const inColumn = rows.filter((row) =>
                 (column.statuses as readonly Enums<"wo_status">[]).includes(row.status),

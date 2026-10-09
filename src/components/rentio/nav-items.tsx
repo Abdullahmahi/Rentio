@@ -1,30 +1,28 @@
 import {
   BarChart3,
   Building2,
-  CarFront,
   DoorClosed,
   FileText,
-  Inbox,
   LayoutDashboard,
-  ReceiptText,
-  Settings,
-  Upload,
+  Receipt,
   Users,
   WalletCards,
   Wrench,
-  Zap,
 } from "lucide-react";
 
 export const dashboardItem = ["dashboard", "/app", LayoutDashboard] as const;
 
-/** Thirteen equal items is a list of links; three groups is a tool. */
+/**
+ * Only what the owner asked for. Receipts, parking, services, access
+ * requests, import and settings keep their routes: receipts open from Pagos,
+ * settings from the user menu, the rest by URL.
+ */
 export const navGroups = [
   {
     label: "portfolio",
     items: [
       ["properties", "/app/properties", Building2],
       ["units", "/app/units", DoorClosed],
-      ["parking", "/app/parking", CarFront],
       ["tenants", "/app/tenants", Users],
       ["contracts", "/app/contracts", FileText],
     ],
@@ -32,20 +30,14 @@ export const navGroups = [
   {
     label: "money",
     items: [
-      ["receipts", "/app/receipts", ReceiptText],
       ["payments", "/app/payments", WalletCards],
-      ["services", "/app/services", Zap],
+      ["expenses", "/app/expenses", Receipt],
       ["reports", "/app/reports", BarChart3],
     ],
   },
   {
     label: "operations",
-    items: [
-      ["maintenance", "/app/maintenance", Wrench],
-      ["requests", "/app/requests", Inbox],
-      ["import", "/app/import", Upload],
-      ["settings", "/app/settings", Settings],
-    ],
+    items: [["maintenance", "/app/maintenance", Wrench]],
   },
 ] as const;
 

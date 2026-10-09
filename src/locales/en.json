@@ -24,8 +24,9 @@
       "money": "Money",
       "operations": "Operations"
     },
-    "maintenanceShort": "Requests",
-    "requests": "Access requests"
+    "requests": "Access requests",
+    "expenses": "Expenses",
+    "serviceRequests": "Service requests"
   },
   "pages": {
     "dashboard": {
@@ -70,7 +71,7 @@
     },
     "reports": {
       "title": "Reports",
-      "description": "Review operating indicators and reports."
+      "description": "Rent income vs. expenses."
     },
     "settings": {
       "title": "Settings",
@@ -99,6 +100,10 @@
     "requests": {
       "title": "Access requests",
       "description": "People asking for portal access who have no invite yet."
+    },
+    "expenses": {
+      "title": "Expenses",
+      "description": "Expenses entered by hand, per unit and property."
     }
   },
   "empty": {
@@ -692,7 +697,9 @@
       "urgent": "Urgent",
       "resolved": "Resolved this month",
       "average": "Average time to resolve",
-      "healthSafetyOverdue": "H&S past 7 days"
+      "healthSafetyOverdue": "H&S past 7 days",
+      "new": "New requests",
+      "completed": "Completed this month"
     },
     "fields": {
       "unitHint": "Choosing the unit links the lease and tenant automatically.",
@@ -721,7 +728,8 @@
       "nueva": "New",
       "asignada": "Assigned",
       "en_progreso": "In progress",
-      "terminadas": "Done"
+      "terminadas": "Completed",
+      "nuevas": "New"
     },
     "repairWindowShort": "Day {{day}} of {{total}}",
     "repairOverdueShort": "Day {{count}} · past 7"
@@ -797,7 +805,7 @@
     "generateSubmit": "Generate receipts",
     "generatePreview": "This will create {{count}} receipts totalling {{total}}.",
     "generateNothing": "Every active lease already has a receipt for this month.",
-    "generateNote": "Pending utility charges for this month are included and flipped to billed. Receipts are created as drafts.",
+    "generateNote": "Receipts include rent and parking, and are created as drafts.",
     "generated": "Receipts generated.",
     "skippedTitle": "{{count}} lease skipped",
     "skippedTitle_other": "{{count}} leases skipped",
@@ -1058,7 +1066,8 @@
     "checkMailingAddress": "Mail checks to",
     "dropoffAddress": "Drop off cash or money orders at",
     "officeHours": "Office hours",
-    "viewReceipt": "View receipt"
+    "viewReceipt": "View receipt",
+    "viewLease": "View my lease"
   },
   "dashboard": {
     "pendingPayments": "{{count}} payment awaits confirmation",
@@ -1140,7 +1149,14 @@
     "exportRows_other": "Export {{count}} rows ({{filename}})",
     "exportEmpty": "Nothing to export",
     "exportEmptyHint": "This filter yields no rows. Widen it and the export will be available.",
-    "noOverdue": "Nothing overdue"
+    "noOverdue": "Nothing overdue",
+    "income": "Rent income",
+    "expenses": "Expenses",
+    "net": "Net",
+    "last12": "last 12 months",
+    "chartTitle": "Rent income vs. expenses",
+    "chartHint": "Confirmed payments by date paid, expenses by date spent.",
+    "allUnits": "All units"
   },
   "import": {
     "title": "Import data",
@@ -1338,6 +1354,31 @@
     },
     "errors": {
       "tenantRequired": "Choose the tenant this request belongs to."
+    }
+  },
+  "expenses": {
+    "new": "New expense",
+    "edit": "Edit expense",
+    "saved": "Expense saved.",
+    "deleted": "Expense deleted.",
+    "deleteTitle": "Delete this expense?",
+    "deleteDescription": "It will be removed from Expenses and Reports.",
+    "descriptionPlaceholder": "e.g. Water heater repair",
+    "emptyTitle": "No expenses in {{month}}",
+    "emptyDescription": "Record what you spend on each unit to see it against rent income in Reports.",
+    "columns": {
+      "date": "Date",
+      "description": "Description"
+    },
+    "summary": {
+      "total": "Total this month",
+      "byProperty": "By property"
+    },
+    "errors": {
+      "unitRequired": "Choose a unit.",
+      "amountRequired": "Enter an amount greater than zero.",
+      "dateRequired": "Choose a date.",
+      "descriptionRequired": "Describe the expense."
     }
   }
 }

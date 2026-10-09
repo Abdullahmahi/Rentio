@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, ReceiptText, Send, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -33,8 +32,8 @@ import {
 } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
-import { pageTitle } from "@/lib/brand";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/app/receipts/")({
   head: () => ({
@@ -69,20 +68,6 @@ function ReceiptsPage() {
   const [generateOpen, setGenerateOpen] = useState(false);
 
   const invoices = useInvoices({ period });
-
-  /** Pending charges drive the generation preview, so they load with the page. */
-  const pendingUtilities = useQuery({
-    queryKey: [...qk.utilities(period), "pending"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("utility_charges")
-        .select("*")
-        .eq("status", "pendiente")
-        .eq("period_month", period);
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const rows = useMemo<Row[]>(() => {
     if (!invoices.data || !portfolio.data) return [];
@@ -126,13 +111,14 @@ function ReceiptsPage() {
       portfolio: portfolio.data,
       period,
       invoicedLeaseIds: new Set(invoices.data.map((invoice) => invoice.lease_id)),
-      pendingUtilities: pendingUtilities.data ?? [],
+      // The owner no longer bills utilities: receipts are rent and parking only.
+      pendingUtilities: [],
       labels: {
         rent: t("receipts.lines.rent"),
         parking: (label) => t("receipts.lines.parking", { label }),
       },
     });
-  }, [portfolio.data, invoices.data, pendingUtilities.data, period, t]);
+  }, [portfolio.data, invoices.data, period, t]);
 
   const generate = useToastMutation({
     mutationFn: async () => {
@@ -174,17 +160,6 @@ function ReceiptsPage() {
           })),
         );
         if (linesError) throw linesError;
-
-        const consumed = planned.lines
-          .map((line) => line.utilityChargeId)
-          .filter((value): value is string => Boolean(value));
-        if (consumed.length > 0) {
-          const { error: utilityError } = await supabase
-            .from("utility_charges")
-            .update({ status: "facturado", invoice_id: invoice.id })
-            .in("id", consumed);
-          if (utilityError) throw utilityError;
-        }
         created += 1;
       }
 
@@ -194,7 +169,7 @@ function ReceiptsPage() {
     successKey: "receipts.generated",
     pendingKey: "receipts.generating",
     resultMessage: (created) => t("receipts.generatedCount", { count: created }),
-    invalidate: [qk.portfolio, ["invoices"], qk.utilities(period)],
+    invalidate: [qk.portfolio, ["invoices"]],
     onSuccess: () => {
       setGenerateOpen(false);
       // A batch of ~40 drafts about to go to ~40 people is a different state
