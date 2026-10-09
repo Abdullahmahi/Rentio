@@ -18,9 +18,10 @@ import { uploadFile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/portal/maintenance/")({
-  head: () => ({ meta: [{ title: `${i18n.t("pages.maintenance.title")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("pages.maintenance.title")) }] }),
   component: PortalMaintenance,
 });
 

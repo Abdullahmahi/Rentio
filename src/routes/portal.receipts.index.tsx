@@ -12,9 +12,10 @@ import { formatDate } from "@/lib/format";
 import { useMyPortal } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/portal/receipts/")({
-  head: () => ({ meta: [{ title: `${i18n.t("pages.receipts.title")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("pages.receipts.title")) }] }),
   component: PortalReceipts,
 });
 

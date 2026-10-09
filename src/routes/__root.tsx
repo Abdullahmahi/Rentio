@@ -21,6 +21,7 @@ import { AuthProvider } from "../lib/auth";
 import { INTERNAL_DEFAULT_LANGUAGE, PORTAL_DEFAULT_LANGUAGE } from "../lib/i18n";
 import { Toaster } from "../components/ui/sonner";
 import "../lib/i18n";
+import { BRAND_NAME } from "../lib/brand";
 
 function NotFoundComponent() {
   const { t } = useTranslation();
@@ -79,7 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Rentio" },
+      { title: BRAND_NAME },
       // Routes override the title and description through their own head().
       // These are the fallbacks, and the og:* tags below are what a link
       // pasted into email or WhatsApp actually unfurls with - the previous
@@ -89,9 +90,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Bilingual property management software for Texas landlords - a tenant portal in English and Spanish, every request tracked whichever way it arrives, and Texas compliance built in.",
       },
-      { name: "author", content: "Rentio" },
+      { name: "author", content: BRAND_NAME },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "Rentio" },
+      { property: "og:site_name", content: BRAND_NAME },
       { property: "og:title", content: "Property management your tenants can read" },
       {
         property: "og:description",
@@ -103,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image:height", content: "630" },
       {
         property: "og:image:alt",
-        content: "The Rentio tenant portal shown side by side in English and Spanish",
+        content: `The ${BRAND_NAME} tenant portal shown side by side in English and Spanish`,
       },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Property management your tenants can read" },

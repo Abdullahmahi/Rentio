@@ -11,9 +11,10 @@ import { AuthLayout } from "@/components/rentio/auth-layout";
 import { homeFor, useAuth } from "@/lib/auth";
 import { describeError, supabase } from "@/lib/supabase";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/activate")({
-  head: () => ({ meta: [{ title: `${i18n.t("auth.activateTitle")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("auth.activateTitle")) }] }),
   component: ActivatePage,
 });
 

@@ -25,11 +25,12 @@ import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/l
 import { supabase } from "@/lib/supabase";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/app/tenants/")({
   head: () => ({
     meta: [
-      { title: `${i18n.t("pages.tenants.title")} — Rentio` },
+      { title: pageTitle(i18n.t("pages.tenants.title")) },
       { name: "description", content: i18n.t("pages.tenants.description") },
     ],
   }),

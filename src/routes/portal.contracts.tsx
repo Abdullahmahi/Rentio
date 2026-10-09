@@ -13,9 +13,10 @@ import { useMyPortal } from "@/lib/queries";
 import { describeError } from "@/lib/supabase";
 import { openSigned } from "@/lib/storage";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/portal/contracts")({
-  head: () => ({ meta: [{ title: `${i18n.t("pages.contracts.title")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("pages.contracts.title")) }] }),
   component: PortalContract,
 });
 

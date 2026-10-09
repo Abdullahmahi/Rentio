@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { RentioMark } from "@/components/rentio/rentio-mark";
 import { BookingLink } from "@/components/marketing/booking-link";
+import { BRAND_NAME } from "@/lib/brand";
 
 /**
  * Vetra's footer carries social icons and a newsletter form. Both are cut:
@@ -80,7 +81,7 @@ export function Footer() {
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-muted-foreground sm:px-6">
           <span className="numeric">
-            &copy; {year} Rentio. {t("footer.rights")}
+            &copy; {year} {BRAND_NAME}. {t("footer.rights")}
           </span>
         </div>
       </div>

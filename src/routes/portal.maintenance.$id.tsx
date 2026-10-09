@@ -12,11 +12,12 @@ import { useMyPortal } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import { signedUrl } from "@/lib/storage";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/portal/maintenance/$id")({
   head: () => ({
     meta: [
-      { title: `${i18n.t("pages.detail.workOrder")} — Rentio` },
+      { title: pageTitle(i18n.t("pages.detail.workOrder")) },
       { name: "description", content: i18n.t("pages.maintenance.description") },
     ],
   }),

@@ -37,11 +37,12 @@ import { qk, usePortfolio } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Enums } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/app/")({
   head: () => ({
     meta: [
-      { title: `${i18n.t("pages.dashboard.title")} — Rentio` },
+      { title: pageTitle(i18n.t("pages.dashboard.title")) },
       { name: "description", content: i18n.t("pages.dashboard.description") },
     ],
   }),

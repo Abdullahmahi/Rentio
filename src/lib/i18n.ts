@@ -2,6 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import esMX from "@/locales/es-MX.json";
 import en from "@/locales/en.json";
+import { BRAND_NAME } from "@/lib/brand";
 import marketingEn from "@/locales/marketing.en.json";
 
 export const LANGUAGE_STORAGE_KEY = "rentio-language";
@@ -54,7 +55,10 @@ if (!i18n.isInitialized) {
     defaultNS: "translation",
     lng: INTERNAL_DEFAULT_LANGUAGE,
     fallbackLng: "en",
-    interpolation: { escapeValue: false },
+    // `{{brand}}` resolves everywhere without every call site remembering to
+    // pass it. The alternative — `t(key, { brand: BRAND_NAME })` at four and
+    // counting call sites — is a rename waiting to be half-done.
+    interpolation: { escapeValue: false, defaultVariables: { brand: BRAND_NAME } },
   });
 }
 

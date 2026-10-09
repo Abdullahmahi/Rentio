@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { AuthLayout } from "@/components/rentio/auth-layout";
 import { supabase } from "@/lib/supabase";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: `${i18n.t("auth.signUp")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("auth.signUp")) }] }),
   component: SignUpPage,
 });
 

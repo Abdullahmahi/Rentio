@@ -30,10 +30,11 @@ import { usePortfolio } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import i18n from "@/lib/i18n";
 
+import { pageTitle } from "@/lib/brand";
 export const Route = createFileRoute("/app/reports/")({
   head: () => ({
     meta: [
-      { title: `${i18n.t("pages.reports.title")} — Rentio` },
+      { title: pageTitle(i18n.t("pages.reports.title")) },
       { name: "description", content: i18n.t("pages.reports.description") },
     ],
   }),

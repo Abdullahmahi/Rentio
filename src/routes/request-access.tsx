@@ -10,9 +10,10 @@ import { supabase } from "@/lib/supabase";
 import { usePublicSettings } from "@/lib/queries";
 import { formatUsPhone } from "@/lib/us";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/request-access")({
-  head: () => ({ meta: [{ title: `${i18n.t("auth.requestAccessTitle")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("auth.requestAccessTitle")) }] }),
   component: RequestAccessPage,
 });
 

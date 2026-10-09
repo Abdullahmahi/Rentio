@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { BRAND_NAME } from "@/lib/brand";
 
 /**
  * The brand lockup, shared by the app shell and the public navbar.
@@ -23,7 +24,7 @@ export function RentioMark({
       </div>
       {compact ? null : (
         <div className="min-w-0">
-          <div className="truncate text-base font-semibold">{t("brand.name")}</div>
+          <div className="truncate text-base font-semibold">{BRAND_NAME}</div>
           {subtitle === null ? null : (
             <div className="truncate text-xs text-muted-foreground">
               {subtitle ?? t("brand.internal")}

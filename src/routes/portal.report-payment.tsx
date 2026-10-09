@@ -15,9 +15,10 @@ import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
 import type { Enums } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/portal/report-payment")({
-  head: () => ({ meta: [{ title: `${i18n.t("portal.reportPayment")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("portal.reportPayment")) }] }),
   component: ReportPaymentPage,
 });
 

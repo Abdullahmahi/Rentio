@@ -28,11 +28,12 @@ import { DEFAULT_CITY, DEFAULT_STATE, US_STATES, formatCityStateZip } from "@/li
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/app/properties/$id")({
   head: () => ({
     meta: [
-      { title: `${i18n.t("pages.detail.property")} — Rentio` },
+      { title: pageTitle(i18n.t("pages.detail.property")) },
       { name: "description", content: i18n.t("pages.properties.description") },
     ],
   }),

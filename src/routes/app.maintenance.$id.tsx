@@ -32,11 +32,12 @@ import { signedUrl } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums, TablesUpdate } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/app/maintenance/$id")({
   head: () => ({
     meta: [
-      { title: `${i18n.t("pages.detail.workOrder")} — Rentio` },
+      { title: pageTitle(i18n.t("pages.detail.workOrder")) },
       { name: "description", content: i18n.t("pages.maintenance.description") },
     ],
   }),

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { PORTAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
 import { useLanguagePreference } from "@/lib/queries";
 import { cn } from "@/lib/utils";
+import { BRAND_NAME } from "@/lib/brand";
 
 const tenantItems = [
   ["home", "/portal", Home],
@@ -26,7 +27,7 @@ export function PortalShell() {
               R
             </div>
             <div className="min-w-0">
-              <div className="truncate font-semibold">{t("brand.name")}</div>
+              <div className="truncate font-semibold">{BRAND_NAME}</div>
               <div className="truncate text-xs text-muted-foreground">{t("brand.tenant")}</div>
             </div>
           </div>

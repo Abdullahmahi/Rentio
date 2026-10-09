@@ -47,6 +47,7 @@ import { REPAIR_WINDOW_DAYS, repairClock } from "@/lib/texas";
 import { cn } from "@/lib/utils";
 import type { Enums, Tables, TablesUpdate } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/app/maintenance/")({
   // `?new=1` lets the command palette land straight in the create dialog. The
@@ -55,7 +56,7 @@ export const Route = createFileRoute("/app/maintenance/")({
     search["new"] === true || search["new"] === "1" ? { new: true } : {},
   head: () => ({
     meta: [
-      { title: `${i18n.t("pages.maintenance.title")} — Rentio` },
+      { title: pageTitle(i18n.t("pages.maintenance.title")) },
       { name: "description", content: i18n.t("pages.maintenance.description") },
     ],
   }),

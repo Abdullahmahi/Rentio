@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import type { Enums, Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 
+import { pageTitle } from "@/lib/brand";
 export const Route = createFileRoute("/app/payments/")({
   // `?new=1` lets the command palette land straight in the create dialog. The
   // page strips the param once it has opened it, so a refresh is not sticky.
@@ -55,7 +56,7 @@ export const Route = createFileRoute("/app/payments/")({
     search["new"] === true || search["new"] === "1" ? { new: true } : {},
   head: () => ({
     meta: [
-      { title: `${i18n.t("pages.payments.title")} — Rentio` },
+      { title: pageTitle(i18n.t("pages.payments.title")) },
       { name: "description", content: i18n.t("pages.payments.description") },
     ],
   }),

@@ -10,11 +10,12 @@ import { AuthLayout } from "@/components/rentio/auth-layout";
 import { homeFor, useAuth } from "@/lib/auth";
 import { describeError, supabase } from "@/lib/supabase";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 const MIN_PASSWORD = 8;
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({ meta: [{ title: `${i18n.t("auth.newPasswordTitle")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("auth.newPasswordTitle")) }] }),
   component: ResetPasswordPage,
 });
 

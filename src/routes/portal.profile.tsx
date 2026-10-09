@@ -15,10 +15,11 @@ import { useLanguagePreference, useMyTenant, useToastMutation } from "@/lib/quer
 import { describeError, supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 import { formatUsPhone } from "@/lib/us";
 
 export const Route = createFileRoute("/portal/profile")({
-  head: () => ({ meta: [{ title: `${i18n.t("pages.profile.title")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("pages.profile.title")) }] }),
   component: PortalProfile,
 });
 

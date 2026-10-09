@@ -1,6 +1,5 @@
 {
   "brand": {
-    "name": "Rentio",
     "internal": "Management",
     "tenant": "Tenant portal"
   },
@@ -31,7 +30,7 @@
   "pages": {
     "dashboard": {
       "title": "Dashboard",
-      "description": "A complete overview of Rentio operations."
+      "description": "A complete overview of {{brand}} operations."
     },
     "properties": {
       "title": "Properties",
@@ -75,7 +74,7 @@
     },
     "settings": {
       "title": "Settings",
-      "description": "Configure Rentio's general preferences."
+      "description": "Configure {{brand}}'s general preferences."
     },
     "home": {
       "title": "Home",
@@ -171,7 +170,7 @@
     "description": "This action cannot be undone. Would you like to continue?"
   },
   "meta": {
-    "description": "Rentio, professional property and rental management in El Paso, Texas."
+    "description": "{{brand}}, professional property and rental management in El Paso, Texas."
   },
   "auth": {
     "signIn": "Sign in",
@@ -195,7 +194,7 @@
     "passwordHint": "At least {{min}} characters.",
     "brandHeadline": "Your rental operation, in one place.",
     "brandBody": "Leases, receipts, payments and maintenance across your whole portfolio, with control spreadsheets can't give you.",
-    "brandFooter": "Rentio — rental property management",
+    "brandFooter": "{{brand}} — rental property management",
     "errors": {
       "emailRequired": "Enter your email address.",
       "passwordRequired": "Enter your password.",

@@ -10,13 +10,14 @@ import { OAuthButtons } from "@/components/rentio/oauth-buttons";
 import { homeFor, useAuth } from "@/lib/auth";
 import { describeError, isSupabaseConfigured, supabase } from "@/lib/supabase";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/sign-in")({
   // Returned as a genuinely optional key so linking to /sign-in never has to
   // pass a search object.
   validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
     typeof search["redirect"] === "string" ? { redirect: search["redirect"] } : {},
-  head: () => ({ meta: [{ title: `${i18n.t("auth.signIn")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("auth.signIn")) }] }),
   component: SignInPage,
 });
 

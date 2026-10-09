@@ -7,7 +7,7 @@
     "book": "Book a meeting",
     "menu": "Menu",
     "openMenu": "Open menu",
-    "home": "Rentio home"
+    "home": "{{brand}} home"
   },
   "hero": {
     "eyebrow": "English and Spanish, by default",
@@ -16,7 +16,7 @@
     "subhead": "A bilingual tenant portal, every request tracked whichever way it arrives, and Texas compliance built in.",
     "primaryCta": "Book a meeting",
     "secondaryCta": "See what it does",
-    "imageAlt": "The Rentio tenant portal in Spanish on a phone, showing the balance due and a button to report a payment"
+    "imageAlt": "The {{brand}} tenant portal in Spanish on a phone, showing the balance due and a button to report a payment"
   },
   "features": {
     "headingLead": "Everything the month",
@@ -126,7 +126,7 @@
     "body": "Both portals ship in English and Mexican Spanish - every screen, at exact parity, translated key by key rather than machine-translated at runtime.",
     "argument": "This is not a courtesy feature. A tenant who cannot comfortably report a problem tends not to report it, and a small repair left alone stops being a small repair. Reading the request is the cheapest part of fixing it.",
     "parityLabel": "translated strings, both portals, exact parity",
-    "imageAlt": "The same Rentio tenant portal screen side by side in English and Spanish",
+    "imageAlt": "The same {{brand}} tenant portal screen side by side in English and Spanish",
     "captionEn": "English",
     "captionEs": "Spanish (es-MX)"
   },
@@ -134,7 +134,7 @@
     "eyebrow": "Texas Property Code",
     "headingLead": "The deadlines the statute",
     "headingEmphasis": "counts from",
-    "subhead": "Rentio tracks these dates and warns you before they pass. It does not file anything for you.",
+    "subhead": "{{brand}} tracks these dates and warns you before they pass. It does not file anything for you.",
     "items": {
       "lateFee": {
         "title": "Late fees, held and capped",
@@ -162,7 +162,7 @@
         "cite": "§24.005"
       }
     },
-    "disclaimer": "Rentio helps you track statutory deadlines. It is not legal advice, and it does not guarantee compliance."
+    "disclaimer": "{{brand}} helps you track statutory deadlines. It is not legal advice, and it does not guarantee compliance."
   },
   "cta": {
     "headingLead": "See it on your",
@@ -178,7 +178,7 @@
     "signIn": "Sign in",
     "book": "Book a meeting",
     "rights": "All rights reserved.",
-    "disclaimer": "Rentio helps you track statutory deadlines. It is not legal advice."
+    "disclaimer": "{{brand}} helps you track statutory deadlines. It is not legal advice."
   },
   "external": {
     "newTab": "(opens in a new tab)"

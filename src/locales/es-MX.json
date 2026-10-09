@@ -1,6 +1,5 @@
 {
   "brand": {
-    "name": "Rentio",
     "internal": "Administración",
     "tenant": "Portal de inquilinos"
   },
@@ -31,7 +30,7 @@
   "pages": {
     "dashboard": {
       "title": "Panel",
-      "description": "Resumen general de la operación de Rentio."
+      "description": "Resumen general de la operación de {{brand}}."
     },
     "properties": {
       "title": "Propiedades",
@@ -75,7 +74,7 @@
     },
     "settings": {
       "title": "Configuración",
-      "description": "Configura las preferencias generales de Rentio."
+      "description": "Configura las preferencias generales de {{brand}}."
     },
     "home": {
       "title": "Inicio",
@@ -171,7 +170,7 @@
     "description": "Esta acción no se puede deshacer. ¿Deseas continuar?"
   },
   "meta": {
-    "description": "Rentio, administración profesional de propiedades y rentas en El Paso, Texas."
+    "description": "{{brand}}, administración profesional de propiedades y rentas en El Paso, Texas."
   },
   "auth": {
     "signIn": "Iniciar sesión",
@@ -195,7 +194,7 @@
     "passwordHint": "Mínimo {{min}} caracteres.",
     "brandHeadline": "La administración de tus rentas, en un solo lugar.",
     "brandBody": "Contratos, recibos, pagos y mantenimiento de toda tu cartera, con el control que las hojas de cálculo no te dan.",
-    "brandFooter": "Rentio — administración de propiedades en renta",
+    "brandFooter": "{{brand}} — administración de propiedades en renta",
     "errors": {
       "emailRequired": "Ingresa tu correo electrónico.",
       "passwordRequired": "Ingresa tu contraseña.",

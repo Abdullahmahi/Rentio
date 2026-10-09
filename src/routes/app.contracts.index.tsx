@@ -22,11 +22,12 @@ import { formatDate } from "@/lib/format";
 import { daysUntilEnd, isExpiringSoon, leaseContexts, type LeaseContext } from "@/lib/portfolio";
 import { usePortfolio } from "@/lib/queries";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/app/contracts/")({
   head: () => ({
     meta: [
-      { title: `${i18n.t("pages.contracts.title")} — Rentio` },
+      { title: pageTitle(i18n.t("pages.contracts.title")) },
       { name: "description", content: i18n.t("pages.contracts.description") },
     ],
   }),

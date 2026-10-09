@@ -14,10 +14,11 @@ import {
 import { formatMoney, formatDate } from "@/lib/format";
 import { useMyPortal, usePublicSettings } from "@/lib/queries";
 import i18n from "@/lib/i18n";
+import { pageTitle } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/portal/")({
-  head: () => ({ meta: [{ title: `${i18n.t("pages.home.title")} — Rentio` }] }),
+  head: () => ({ meta: [{ title: pageTitle(i18n.t("pages.home.title")) }] }),
   component: PortalHome,
 });
 

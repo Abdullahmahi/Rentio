@@ -3,12 +3,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { homeFor, useAuth } from "@/lib/auth";
 import { MarketingPage } from "@/components/marketing/marketing-page";
 import i18n from "@/lib/i18n";
+import { BRAND_NAME } from "@/lib/brand";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       {
-        title: `Rentio — ${i18n.t("marketing:hero.headlineLead")} ${i18n.t("marketing:hero.headlineEmphasis")}`,
+        title: `${BRAND_NAME} — ${i18n.t("marketing:hero.headlineLead")} ${i18n.t("marketing:hero.headlineEmphasis")}`,
       },
       { name: "description", content: i18n.t("marketing:hero.subhead") },
     ],
