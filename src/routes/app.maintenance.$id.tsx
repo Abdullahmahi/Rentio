@@ -27,7 +27,7 @@ import { REPAIR_WINDOW_DAYS, repairClock } from "@/lib/texas";
 import { formatDate } from "@/lib/format";
 import { leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { signedUrl } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums, TablesUpdate } from "@/lib/database.types";
@@ -72,11 +72,7 @@ function WorkOrderDetailPage() {
   const order = useQuery({
     queryKey: qk.workOrder(id),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("work_orders")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
+      const { data, error } = await db.from("work_orders").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -85,7 +81,7 @@ function WorkOrderDetailPage() {
   const photos = useQuery({
     queryKey: [...qk.workOrder(id), "photos"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("work_order_photos")
         .select("*")
         .eq("work_order_id", id);
@@ -97,7 +93,7 @@ function WorkOrderDetailPage() {
   const notes = useQuery({
     queryKey: [...qk.workOrder(id), "notes"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("work_order_notes")
         .select("*")
         .eq("work_order_id", id)
@@ -111,7 +107,7 @@ function WorkOrderDetailPage() {
   const timeline = useQuery({
     queryKey: [...qk.workOrder(id), "timeline"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("activity_log")
         .select("*")
         .eq("entity_type", "work_order")
@@ -170,7 +166,7 @@ function WorkOrderDetailPage() {
       const patch: TablesUpdate<"work_orders"> = { status };
       if (status === "resuelta" && !order.data?.resolved_at)
         patch.resolved_at = new Date().toISOString();
-      const { error } = await supabase.from("work_orders").update(patch).eq("id", id);
+      const { error } = await db.from("work_orders").update(patch).eq("id", id);
       if (error) throw error;
       await logActivity(actorId, "work_order", id, "status", {
         from: order.data?.status,
@@ -183,7 +179,7 @@ function WorkOrderDetailPage() {
 
   const saveVendor = useToastMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await db
         .from("work_orders")
         .update({
           vendor_name: vendor.vendor_name.trim() || null,
@@ -203,7 +199,7 @@ function WorkOrderDetailPage() {
 
   const addNote = useToastMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("work_order_notes").insert({
+      const { error } = await db.from("work_order_notes").insert({
         work_order_id: id,
         author_id: actorId,
         body: noteBody.trim(),

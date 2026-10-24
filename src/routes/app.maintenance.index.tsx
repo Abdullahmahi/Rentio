@@ -39,7 +39,7 @@ import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/renti
 import { formatDate } from "@/lib/format";
 import { unitContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { StatutoryClock } from "@/components/rentio/statutory-clock";
 import { signedUrls, uploadFile } from "@/lib/storage";
 import { CATEGORY_ICONS, SOURCE_ICONS, daysOpen } from "@/lib/maintenance";
@@ -165,7 +165,7 @@ function MaintenancePage() {
     // than on every render.
     staleTime: 8 * 60 * 1000,
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("work_orders")
         .select("*")
         .order("created_at", { ascending: false });
@@ -173,7 +173,7 @@ function MaintenancePage() {
       // A photo of the leak is a different object from the words "leaking
       // faucet". Fetch the paths, then sign them all in ONE request — the
       // per-path helper would be forty round trips for a full board.
-      const { data: photos } = await supabase
+      const { data: photos } = await db
         .from("work_order_photos")
         .select("id, work_order_id, url")
         .order("created_at");
@@ -270,7 +270,7 @@ function MaintenancePage() {
       if (status === "resuelta" && !order.resolved_at) patch.resolved_at = new Date().toISOString();
       // Reopened: the §92.056 clock must run again, not stay stopped.
       if (OPEN_STATUSES.includes(status) && order.resolved_at) patch.resolved_at = null;
-      const { error: caught } = await supabase.from("work_orders").update(patch).eq("id", order.id);
+      const { error: caught } = await db.from("work_orders").update(patch).eq("id", order.id);
       if (caught) throw caught;
       // The detail timeline is rebuilt from these entries.
       await logActivity(actorId, "work_order", order.id, "status", {
@@ -287,7 +287,7 @@ function MaintenancePage() {
       if (!form.unit_id) throw new Error("no-unit");
       const context = units.find((row) => row.unit.id === form.unit_id);
 
-      const { data: order, error: caught } = await supabase
+      const { data: order, error: caught } = await db
         .from("work_orders")
         .insert({
           unit_id: form.unit_id,
@@ -306,7 +306,7 @@ function MaintenancePage() {
 
       for (const photo of form.photos) {
         const path = await uploadFile("work-order-photos", order.id, photo);
-        await supabase.from("work_order_photos").insert({
+        await db.from("work_order_photos").insert({
           work_order_id: order.id,
           url: path,
           uploaded_by: actorId,

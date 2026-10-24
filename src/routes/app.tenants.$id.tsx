@@ -20,7 +20,7 @@ import {
 import { formatDate } from "@/lib/format";
 import { isActive, leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db, invokeFn } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -71,7 +71,7 @@ function TenantDetailPage() {
   const portalProfile = useQuery({
     queryKey: ["tenant-profile", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("profiles")
         .select("id, created_at, role")
         .eq("tenant_id", id)
@@ -85,7 +85,7 @@ function TenantDetailPage() {
     queryKey: [...qk.payments, "tenant", id, leaseIds.join(",")],
     enabled: leaseIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("payments")
         .select("*")
         .in("lease_id", leaseIds)
@@ -99,7 +99,7 @@ function TenantDetailPage() {
     queryKey: [...qk.workOrders, "tenant", id, leaseIds.join(",")],
     enabled: leaseIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("work_orders")
         .select("*")
         .in("lease_id", leaseIds)
@@ -114,7 +114,7 @@ function TenantDetailPage() {
       if (!tenant?.email) throw new Error("missing-email");
       // Creating an auth user needs the service role, so it lives in an edge
       // function (send-tenant-invite). See supabase/functions.
-      const { data, error } = await supabase.functions.invoke("send-tenant-invite", {
+      const { data, error } = await invokeFn("send-tenant-invite", {
         body: { tenant_id: id, email: tenant.email, full_name: tenant.full_name },
       });
       if (error) throw error;

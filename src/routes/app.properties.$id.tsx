@@ -26,7 +26,7 @@ import { AdminOnly } from "@/lib/auth";
 import { occupancy, unitContexts, type UnitContext } from "@/lib/portfolio";
 import { DEFAULT_CITY, DEFAULT_STATE, US_STATES, formatCityStateZip } from "@/lib/us";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 
@@ -78,7 +78,7 @@ function PropertyDetailPage() {
 
   const save = useToastMutation({
     mutationFn: async (values: typeof form) => {
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("properties")
         .update({
           ...values,
@@ -95,7 +95,7 @@ function PropertyDetailPage() {
 
   const destroy = useToastMutation({
     mutationFn: async () => {
-      const { error: caught } = await supabase.from("properties").delete().eq("id", id);
+      const { error: caught } = await db.from("properties").delete().eq("id", id);
       if (caught) throw caught;
       await logActivity(actorId, "property", id, "delete", { name: property?.name });
     },

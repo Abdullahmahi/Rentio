@@ -30,7 +30,7 @@ import {
   useSettings,
   useToastMutation,
 } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db, invokeFn } from "@/lib/db";
 import { uploadFile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums } from "@/lib/database.types";
@@ -95,7 +95,7 @@ function SettingsPage() {
     queryKey: ["staff-users"],
     enabled: isAdmin,
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("profiles")
         .select("*")
         .in("role", ["admin", "manager"])
@@ -144,7 +144,7 @@ function SettingsPage() {
   const save = useToastMutation({
     mutationFn: async (patch: Record<string, unknown>) => {
       if (!settings.data) throw new Error("no-settings");
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("settings")
         .update(patch as never)
         .eq("id", settings.data.id);
@@ -161,7 +161,7 @@ function SettingsPage() {
     mutationFn: async (file: File) => {
       if (!settings.data) throw new Error("no-settings");
       const path = await uploadFile("company", "logo", file);
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("settings")
         .update({ logo_url: path })
         .eq("id", settings.data.id);
@@ -173,7 +173,7 @@ function SettingsPage() {
 
   const changeRole = useToastMutation({
     mutationFn: async ({ id, role }: { id: string; role: Enums<"user_role"> }) => {
-      const { error: caught } = await supabase.from("profiles").update({ role }).eq("id", id);
+      const { error: caught } = await db.from("profiles").update({ role }).eq("id", id);
       if (caught) throw caught;
       await logActivity(actorId, "profile", id, "change_role", { role });
     },
@@ -184,7 +184,7 @@ function SettingsPage() {
   const sendInvite = useToastMutation({
     mutationFn: async () => {
       // Creating an auth user needs the service role, so it lives in an edge function.
-      const { error: caught } = await supabase.functions.invoke("send-staff-invite", {
+      const { error: caught } = await invokeFn("send-staff-invite", {
         body: { email: invite.email.trim(), full_name: invite.full_name.trim(), role: invite.role },
       });
       if (caught) throw caught;

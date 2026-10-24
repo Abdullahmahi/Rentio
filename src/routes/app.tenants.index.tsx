@@ -22,7 +22,7 @@ import { LeaseStatusBadge } from "@/components/rentio/status";
 import { isActive, leaseContexts } from "@/lib/portfolio";
 import { PHONE_HINT, formatUsPhone } from "@/lib/us";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -97,7 +97,7 @@ function TenantsPage() {
 
   const create = useToastMutation({
     mutationFn: async (values: typeof EMPTY_FORM) => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("tenants")
         .insert({
           full_name: values.full_name.trim(),

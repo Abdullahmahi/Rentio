@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthLayout } from "@/components/rentio/auth-layout";
-import { supabase } from "@/lib/supabase";
+import { invokeFn } from "@/lib/db";
 import { usePublicSettings } from "@/lib/queries";
 import { formatUsPhone } from "@/lib/us";
 import i18n from "@/lib/i18n";
@@ -48,7 +48,7 @@ function RequestAccessPage() {
     if (!form.email.trim()) return setError(t("auth.errors.emailRequired"));
     setSubmitting(true);
     try {
-      await supabase.functions.invoke("submit-access-request", { body: form });
+      await invokeFn("submit-access-request", { body: form });
     } catch (caught) {
       // Same neutral confirmation even on a transport failure: a visible
       // difference here leaks exactly what the endpoint refuses to.

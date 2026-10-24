@@ -23,7 +23,7 @@ import { StatusBadge } from "@/components/rentio/status-badge";
 import { isActive, leaseContexts, leaseLabel } from "@/lib/portfolio";
 import { formatMoney } from "@/lib/format";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -119,7 +119,7 @@ function ParkingPage() {
 
   const create = useToastMutation({
     mutationFn: async (values: typeof form) => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("parking_spaces")
         .insert({
           property_id: values.property_id,
@@ -152,7 +152,7 @@ function ParkingPage() {
         monthly_fee: values.monthly_fee === "" ? 0 : values.monthly_fee,
         status: "disponible",
       }));
-      const { error: caught } = await supabase.from("parking_spaces").insert(rows);
+      const { error: caught } = await db.from("parking_spaces").insert(rows);
       if (caught) throw caught;
       await logActivity(actorId, "parking_space", null, "bulk_create", {
         count,
@@ -167,7 +167,7 @@ function ParkingPage() {
 
   const assign = useToastMutation({
     mutationFn: async ({ space, leaseId }: { space: Space; leaseId: string }) => {
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("parking_spaces")
         .update({ lease_id: leaseId, status: "asignado" })
         .eq("id", space.id);
@@ -187,7 +187,7 @@ function ParkingPage() {
 
   const release = useToastMutation({
     mutationFn: async (space: Space) => {
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("parking_spaces")
         .update({ lease_id: null, status: "disponible" })
         .eq("id", space.id);

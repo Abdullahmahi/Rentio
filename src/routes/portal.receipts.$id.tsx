@@ -12,7 +12,7 @@ import { InvoiceStatusBadge, effectiveInvoiceStatus } from "@/components/rentio/
 import { formatPeriod } from "@/components/rentio/month-selector";
 import { formatMoney, formatDate } from "@/lib/format";
 import { useMyPortal } from "@/lib/queries";
-import { describeError, supabase } from "@/lib/supabase";
+import { db, describeError, invokeFn } from "@/lib/db";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 
@@ -36,7 +36,7 @@ function PortalReceiptDetail() {
   const lines = useQuery({
     queryKey: ["portal-invoice-lines", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("invoice_lines")
         .select("*")
         .eq("invoice_id", id)
@@ -51,7 +51,7 @@ function PortalReceiptDetail() {
   const downloadPdf = () => {
     void toast.promise(
       (async () => {
-        const { data, error } = await supabase.functions.invoke("generate-invoice-pdf", {
+        const { data, error } = await invokeFn("generate-invoice-pdf", {
           body: { invoice_id: id },
         });
         if (error) throw error;

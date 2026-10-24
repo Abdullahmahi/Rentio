@@ -21,6 +21,7 @@ export type Database = {
           reviewed_at: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -36,6 +37,7 @@ export type Database = {
           reviewed_at?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -51,6 +53,7 @@ export type Database = {
           reviewed_at?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -64,6 +67,7 @@ export type Database = {
           meta: Json;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -74,6 +78,7 @@ export type Database = {
           meta?: Json;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -84,6 +89,7 @@ export type Database = {
           meta?: Json;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -97,6 +103,7 @@ export type Database = {
           uploaded_by: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -107,6 +114,7 @@ export type Database = {
           uploaded_by?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -117,6 +125,7 @@ export type Database = {
           uploaded_by?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -131,6 +140,7 @@ export type Database = {
           created_by: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -142,6 +152,7 @@ export type Database = {
           created_by?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -153,6 +164,7 @@ export type Database = {
           created_by?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -166,6 +178,7 @@ export type Database = {
           amount: number;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -176,6 +189,7 @@ export type Database = {
           amount?: number;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -186,6 +200,7 @@ export type Database = {
           amount?: number;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -202,6 +217,7 @@ export type Database = {
           cancel_reason: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -215,6 +231,7 @@ export type Database = {
           cancel_reason?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -228,6 +245,7 @@ export type Database = {
           cancel_reason?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -244,6 +262,7 @@ export type Database = {
           created_by: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -257,6 +276,7 @@ export type Database = {
           created_by?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -270,6 +290,7 @@ export type Database = {
           created_by?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -281,6 +302,7 @@ export type Database = {
           role: Database["public"]["Enums"]["lease_tenant_role"];
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -289,6 +311,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["lease_tenant_role"];
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -297,6 +320,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["lease_tenant_role"];
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -330,6 +354,7 @@ export type Database = {
           deposit_settled_at: string | null;
           deposit_itemization: Json;
           move_out_notes: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -360,6 +385,7 @@ export type Database = {
           deposit_settled_at?: string | null;
           deposit_itemization?: Json;
           move_out_notes?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -390,6 +416,43 @@ export type Database = {
           deposit_settled_at?: string | null;
           deposit_itemization?: Json;
           move_out_notes?: string | null;
+          org_id?: string;
+        };
+        Relationships: [];
+      };
+      organizations: {
+        Row: {
+          id: string;
+          clerk_org_id: string | null;
+          name: string;
+          slug: string;
+          plan: string;
+          doors_limit: number | null;
+          status: string;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          clerk_org_id?: string | null;
+          name: string;
+          slug: string;
+          plan?: string;
+          doors_limit?: number | null;
+          status?: string;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          clerk_org_id?: string | null;
+          name?: string;
+          slug?: string;
+          plan?: string;
+          doors_limit?: number | null;
+          status?: string;
+          created_at?: string;
+          updated_at?: string | null;
         };
         Relationships: [];
       };
@@ -404,6 +467,7 @@ export type Database = {
           lease_id: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -415,6 +479,7 @@ export type Database = {
           lease_id?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -426,6 +491,7 @@ export type Database = {
           lease_id?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -437,6 +503,7 @@ export type Database = {
           amount: number;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -445,6 +512,7 @@ export type Database = {
           amount: number;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -453,6 +521,7 @@ export type Database = {
           amount?: number;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -474,6 +543,7 @@ export type Database = {
           notes: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -492,6 +562,7 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -510,6 +581,7 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -524,9 +596,12 @@ export type Database = {
           avatar_url: string | null;
           created_at: string;
           updated_at: string | null;
+          clerk_user_id: string | null;
+          email: string | null;
+          org_id: string | null;
         };
         Insert: {
-          id: string;
+          id?: string;
           full_name?: string | null;
           phone?: string | null;
           role?: Database["public"]["Enums"]["user_role"];
@@ -535,6 +610,9 @@ export type Database = {
           avatar_url?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          clerk_user_id?: string | null;
+          email?: string | null;
+          org_id?: string | null;
         };
         Update: {
           id?: string;
@@ -546,6 +624,9 @@ export type Database = {
           avatar_url?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          clerk_user_id?: string | null;
+          email?: string | null;
+          org_id?: string | null;
         };
         Relationships: [];
       };
@@ -562,6 +643,7 @@ export type Database = {
           created_at: string;
           updated_at: string | null;
           units_in_structure: number | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -575,6 +657,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
           units_in_structure?: number | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -588,13 +671,13 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
           units_in_structure?: number | null;
+          org_id?: string;
         };
         Relationships: [];
       };
       settings: {
         Row: {
           id: string;
-          singleton: boolean;
           company_name: string;
           logo_url: string | null;
           invoice_prefix: string;
@@ -616,10 +699,10 @@ export type Database = {
           payment_notes: string | null;
           nsf_fee: number;
           default_late_fee_percent: number;
+          org_id: string;
         };
         Insert: {
           id?: string;
-          singleton?: boolean;
           company_name?: string;
           logo_url?: string | null;
           invoice_prefix?: string;
@@ -641,10 +724,10 @@ export type Database = {
           payment_notes?: string | null;
           nsf_fee?: number;
           default_late_fee_percent?: number;
+          org_id?: string;
         };
         Update: {
           id?: string;
-          singleton?: boolean;
           company_name?: string;
           logo_url?: string | null;
           invoice_prefix?: string;
@@ -666,6 +749,7 @@ export type Database = {
           payment_notes?: string | null;
           nsf_fee?: number;
           default_late_fee_percent?: number;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -680,6 +764,7 @@ export type Database = {
           notes: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -691,6 +776,7 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -702,6 +788,7 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -719,6 +806,7 @@ export type Database = {
           notes: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -733,6 +821,7 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -747,6 +836,7 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -763,6 +853,7 @@ export type Database = {
           status: Database["public"]["Enums"]["unit_status"];
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -776,6 +867,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["unit_status"];
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -789,6 +881,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["unit_status"];
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -805,6 +898,7 @@ export type Database = {
           notes: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -818,6 +912,7 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -831,6 +926,7 @@ export type Database = {
           notes?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -843,6 +939,7 @@ export type Database = {
           is_internal: boolean;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -852,6 +949,7 @@ export type Database = {
           is_internal?: boolean;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -861,6 +959,7 @@ export type Database = {
           is_internal?: boolean;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -872,6 +971,7 @@ export type Database = {
           uploaded_by: string | null;
           created_at: string;
           updated_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -880,6 +980,7 @@ export type Database = {
           uploaded_by?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -888,6 +989,7 @@ export type Database = {
           uploaded_by?: string | null;
           created_at?: string;
           updated_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -912,6 +1014,7 @@ export type Database = {
           updated_at: string | null;
           affects_health_safety: boolean;
           written_notice_at: string | null;
+          org_id: string;
         };
         Insert: {
           id?: string;
@@ -933,6 +1036,7 @@ export type Database = {
           updated_at?: string | null;
           affects_health_safety?: boolean;
           written_notice_at?: string | null;
+          org_id?: string;
         };
         Update: {
           id?: string;
@@ -954,6 +1058,7 @@ export type Database = {
           updated_at?: string | null;
           affects_health_safety?: boolean;
           written_notice_at?: string | null;
+          org_id?: string;
         };
         Relationships: [];
       };
@@ -1063,7 +1168,7 @@ export type Database = {
       payment_method: "ach" | "zelle" | "check" | "money_order" | "cash" | "card" | "other";
       payment_status: "pendiente" | "confirmado" | "cancelado";
       unit_status: "vacante" | "ocupada" | "mantenimiento" | "reservada";
-      user_role: "admin" | "manager" | "tenant";
+      user_role: "admin" | "manager" | "tenant" | "super_admin";
       utility_status: "pendiente" | "facturado";
       utility_type: "agua" | "luz" | "gas" | "cuota_mantenimiento" | "otro";
       wo_category:

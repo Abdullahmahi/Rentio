@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LogOut, Moon, Sun } from "lucide-react";
+import { useClerk } from "@clerk/tanstack-react-start";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { useAuth } from "@/lib/auth";
 import { PORTAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
 import { useLanguagePreference, useMyTenant, useToastMutation } from "@/lib/queries";
-import { describeError, supabase } from "@/lib/supabase";
+import { db, describeError } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -24,7 +25,6 @@ export const Route = createFileRoute("/portal/profile")({
 });
 
 const THEME_STORAGE_KEY = "rentio-theme";
-const MIN_PASSWORD = 8;
 
 function PortalProfile() {
   const { t, i18n: i18nInstance } = useTranslation();
@@ -38,9 +38,8 @@ function PortalProfile() {
     emergency_contact_name: "",
     emergency_contact_phone: "",
   });
-  const [password, setPassword] = useState({ next: "", confirm: "" });
   const [error, setError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const clerk = useClerk();
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
@@ -64,7 +63,7 @@ function PortalProfile() {
   const save = useToastMutation({
     mutationFn: async () => {
       if (!tenant.data) throw new Error("no-tenant");
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("tenants")
         .update({
           phone: form.phone.trim() || null,
@@ -77,15 +76,6 @@ function PortalProfile() {
     },
     successKey: "portal.profileSaved",
     invalidate: [["my-tenant"]],
-  });
-
-  const changePassword = useToastMutation({
-    mutationFn: async () => {
-      const { error: caught } = await supabase.auth.updateUser({ password: password.next });
-      if (caught) throw caught;
-    },
-    successKey: "auth.passwordUpdated",
-    onSuccess: () => setPassword({ next: "", confirm: "" }),
   });
 
   const { setLanguage } = useLanguagePreference(PORTAL_DEFAULT_LANGUAGE);
@@ -179,58 +169,18 @@ function PortalProfile() {
           </Button>
         </form>
 
-        <form
-          className="space-y-4 rounded-lg border border-border bg-surface p-5"
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            setPasswordError(null);
-            if (password.next.length < MIN_PASSWORD) {
-              return setPasswordError(t("auth.errors.passwordTooShort", { min: MIN_PASSWORD }));
-            }
-            if (password.next !== password.confirm)
-              return setPasswordError(t("auth.errors.passwordMismatch"));
-            changePassword.mutate(undefined);
-          }}
-        >
+        {/* Password, email and Google sign-in all live in Clerk's own panel. */}
+        <section className="space-y-4 rounded-lg border border-border bg-surface p-5">
           <h2 className="text-base font-semibold">{t("portal.changePassword")}</h2>
-          <Field label={t("auth.newPassword")} htmlFor="profile-password">
-            <Input
-              id="profile-password"
-              type="password"
-              autoComplete="new-password"
-              className="h-12"
-              value={password.next}
-              onChange={(event) => setPassword({ ...password, next: event.target.value })}
-            />
-          </Field>
-          <Field label={t("auth.confirmPassword")} htmlFor="profile-confirm">
-            <Input
-              id="profile-confirm"
-              type="password"
-              autoComplete="new-password"
-              className="h-12"
-              value={password.confirm}
-              onChange={(event) => setPassword({ ...password, confirm: event.target.value })}
-            />
-          </Field>
-          {passwordError ? (
-            <p
-              role="alert"
-              className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
-            >
-              {passwordError}
-            </p>
-          ) : null}
           <Button
-            type="submit"
+            type="button"
             variant="outline"
             className="h-12 w-full"
-            disabled={changePassword.isPending}
+            onClick={() => clerk.openUserProfile()}
           >
-            {t("auth.savePassword")}
+            {t("auth.manageLogin")}
           </Button>
-        </form>
+        </section>
 
         <section className="space-y-4 rounded-lg border border-border bg-surface p-5">
           <h2 className="text-base font-semibold">{t("portal.preferences")}</h2>

@@ -13,7 +13,7 @@ import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/renti
 import { CATEGORY_ICONS } from "@/lib/maintenance";
 import { formatDate } from "@/lib/format";
 import { useMyPortal, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { uploadFile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums } from "@/lib/database.types";
@@ -55,7 +55,7 @@ function PortalMaintenance() {
       if (!lease || !form.category) throw new Error("incomplete");
 
       // RLS only accepts source = 'portal' from a tenant.
-      const { data: order, error: caught } = await supabase
+      const { data: order, error: caught } = await db
         .from("work_orders")
         .insert({
           unit_id: lease.unit_id,
@@ -73,7 +73,7 @@ function PortalMaintenance() {
 
       for (const photo of form.photos) {
         const path = await uploadFile("work-order-photos", order.id, photo);
-        await supabase.from("work_order_photos").insert({ work_order_id: order.id, url: path });
+        await db.from("work_order_photos").insert({ work_order_id: order.id, url: path });
       }
     },
     successKey: "portal.requestSent",

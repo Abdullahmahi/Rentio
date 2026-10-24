@@ -2,7 +2,7 @@ import { useCallback, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { describeError, supabase } from "@/lib/supabase";
+import { db, describeError } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import { LANGUAGE_STORAGE_KEY, resolveLanguage, type AppLanguage } from "@/lib/i18n";
 import type { Tables, Views } from "@/lib/database.types";
@@ -49,36 +49,36 @@ export function usePortfolio() {
     queryFn: async (): Promise<Portfolio> => {
       const [properties, units, parking, leases, leaseTenants, tenants, balances] =
         await Promise.all([
-          supabase
+          db
             .from("properties")
             .select("*")
             .order("name")
             .then(unwrap<Tables<"properties">[]>),
-          supabase
+          db
             .from("units")
             .select("*")
             .order("unit_number")
             .then(unwrap<Tables<"units">[]>),
-          supabase
+          db
             .from("parking_spaces")
             .select("*")
             .order("label")
             .then(unwrap<Tables<"parking_spaces">[]>),
-          supabase
+          db
             .from("leases")
             .select("*")
             .order("created_at")
             .then(unwrap<Tables<"leases">[]>),
-          supabase
+          db
             .from("lease_tenants")
             .select("*")
             .then(unwrap<Tables<"lease_tenants">[]>),
-          supabase
+          db
             .from("tenants")
             .select("*")
             .order("full_name")
             .then(unwrap<Tables<"tenants">[]>),
-          supabase
+          db
             .from("lease_balances")
             .select("*")
             .then(unwrap<Views<"lease_balances">[]>),
@@ -92,7 +92,7 @@ export function useSettings() {
   return useQuery({
     queryKey: qk.settings,
     queryFn: async () => {
-      const { data, error } = await supabase.from("settings").select("*").limit(1).maybeSingle();
+      const { data, error } = await db.from("settings").select("*").limit(1).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -104,11 +104,7 @@ export function usePublicSettings() {
   return useQuery({
     queryKey: ["public-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("public_settings")
-        .select("*")
-        .limit(1)
-        .maybeSingle();
+      const { data, error } = await db.from("public_settings").select("*").limit(1).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -123,7 +119,7 @@ export async function logActivity(
   action: string,
   meta: Record<string, unknown> = {},
 ) {
-  const { error } = await supabase.from("activity_log").insert({
+  const { error } = await db.from("activity_log").insert({
     actor_id: actorId,
     entity_type: entityType,
     entity_id: entityId,
@@ -203,8 +199,8 @@ export function useInvoices({ leaseId, period }: { leaseId?: string; period?: st
   return useQuery({
     queryKey: ["invoices", leaseId ?? "all", period ?? "all"],
     queryFn: async (): Promise<InvoiceWithPaid[]> => {
-      let invoiceQuery = supabase.from("invoices").select("*");
-      let balanceQuery = supabase.from("invoice_balances").select("*");
+      let invoiceQuery = db.from("invoices").select("*");
+      let balanceQuery = db.from("invoice_balances").select("*");
       if (leaseId) {
         invoiceQuery = invoiceQuery.eq("lease_id", leaseId);
         balanceQuery = balanceQuery.eq("lease_id", leaseId);
@@ -227,8 +223,8 @@ export function useInvoices({ leaseId, period }: { leaseId?: string; period?: st
 
 /** The signed-in staff member's profile id, for recorded_by / actor_id columns. */
 export function useActorId() {
-  const { user } = useAuth();
-  return user?.id ?? null;
+  const { profile } = useAuth();
+  return profile?.id ?? null;
 }
 
 export interface MyPortal {
@@ -253,7 +249,7 @@ export function useMyPortal() {
   return useQuery({
     queryKey: ["my-portal"],
     queryFn: async (): Promise<MyPortal> => {
-      const leases = await supabase
+      const leases = await db
         .from("leases")
         .select("*")
         .order("start_date", { ascending: false })
@@ -277,39 +273,39 @@ export function useMyPortal() {
 
       const [details, parking, balances, invoices, invoiceBalances, payments, workOrders] =
         await Promise.all([
-          supabase
+          db
             .from("my_lease_details")
             .select("*")
             .eq("lease_id", lease.id)
             .then(unwrap<Views<"my_lease_details">[]>),
-          supabase
+          db
             .from("parking_spaces")
             .select("*")
             .eq("lease_id", lease.id)
             .then(unwrap<Tables<"parking_spaces">[]>),
-          supabase
+          db
             .from("lease_balances")
             .select("*")
             .eq("lease_id", lease.id)
             .then(unwrap<Views<"lease_balances">[]>),
-          supabase
+          db
             .from("invoices")
             .select("*")
             .eq("lease_id", lease.id)
             .order("period_month", { ascending: false })
             .then(unwrap<Tables<"invoices">[]>),
-          supabase
+          db
             .from("invoice_balances")
             .select("*")
             .eq("lease_id", lease.id)
             .then(unwrap<Views<"invoice_balances">[]>),
-          supabase
+          db
             .from("payments")
             .select("*")
             .eq("lease_id", lease.id)
             .order("paid_at", { ascending: false })
             .then(unwrap<Tables<"payments">[]>),
-          supabase
+          db
             .from("work_orders")
             .select("*")
             .eq("lease_id", lease.id)
@@ -342,7 +338,7 @@ export function useMyTenant() {
   return useQuery({
     queryKey: ["my-tenant"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tenants").select("*").limit(1).maybeSingle();
+      const { data, error } = await db.from("tenants").select("*").limit(1).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -385,7 +381,7 @@ export function useLanguagePreference(fallback: AppLanguage) {
       apply(language);
       window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
       if (!profile?.id) return;
-      void supabase
+      void db
         .from("profiles")
         .update({ locale: language })
         .eq("id", profile.id)

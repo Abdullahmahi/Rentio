@@ -36,7 +36,7 @@ import {
   useToastMutation,
   useSettings,
 } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { uploadFile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Tables } from "@/lib/database.types";
@@ -197,7 +197,7 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
 
   const createTenant = useToastMutation({
     mutationFn: async (values: typeof inlineTenant) => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("tenants")
         .insert({
           full_name: values.full_name.trim(),
@@ -226,7 +226,7 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
     mutationFn: async () => {
       if (!unitId || !primary) throw new Error("incomplete");
 
-      const { data: lease, error: leaseError } = await supabase
+      const { data: lease, error: leaseError } = await db
         .from("leases")
         .insert({
           unit_id: unitId,
@@ -259,20 +259,20 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
           role: "guarantor" as const,
         })),
       ];
-      const { error: linkError } = await supabase.from("lease_tenants").insert(links);
+      const { error: linkError } = await db.from("lease_tenants").insert(links);
       if (linkError) throw linkError;
 
       // §92.156 starts a 7-day rekey clock the moment the tenant takes
       // possession, so the checklist exists from the lease's first second.
-      const { error: checklistError } = await supabase
+      const { error: checklistError } = await db
         .from("unit_turnover_checklist")
         .insert(turnoverRowsFor(unitId, lease.id));
       if (checklistError) throw checklistError;
 
       if (contractFile) {
         const path = await uploadFile("contracts", lease.id, contractFile);
-        await supabase.from("leases").update({ contract_url: path }).eq("id", lease.id);
-        await supabase.from("documents").insert({
+        await db.from("leases").update({ contract_url: path }).eq("id", lease.id);
+        await db.from("documents").insert({
           owner_type: "lease",
           owner_id: lease.id,
           name: contractFile.name,
@@ -281,7 +281,7 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
         });
       }
 
-      const { error: unitError } = await supabase
+      const { error: unitError } = await db
         .from("units")
         .update({ status: "ocupada" })
         .eq("id", unitId);

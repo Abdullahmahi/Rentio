@@ -27,7 +27,7 @@ import { formatDate, formatMoney, todayIso } from "@/lib/format";
 import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
 import { unitContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -73,7 +73,7 @@ function ExpensesPage() {
   const expenses = useQuery({
     queryKey: qk.expenses(period),
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("expenses")
         .select("*")
         .gte("spent_at", period)
@@ -142,8 +142,8 @@ function ExpensesPage() {
         notes: values.notes.trim() || null,
       };
       const { data, error: caught } = values.id
-        ? await supabase.from("expenses").update(record).eq("id", values.id).select("id").single()
-        : await supabase
+        ? await db.from("expenses").update(record).eq("id", values.id).select("id").single()
+        : await db
             .from("expenses")
             .insert({ ...record, created_by: actorId })
             .select("id")
@@ -164,7 +164,7 @@ function ExpensesPage() {
 
   const remove = useToastMutation({
     mutationFn: async (row: ExpenseRow) => {
-      const { error: caught } = await supabase.from("expenses").delete().eq("id", row.id);
+      const { error: caught } = await db.from("expenses").delete().eq("id", row.id);
       if (caught) throw caught;
       await logActivity(actorId, "expense", row.id, "delete", {
         unit: row.unit_id,

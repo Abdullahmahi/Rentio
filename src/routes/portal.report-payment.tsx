@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { formatMoney, todayIso } from "@/lib/format";
 import { useMyPortal, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { uploadFile } from "@/lib/storage";
 import type { Enums } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
@@ -54,7 +54,7 @@ function ReportPaymentPage() {
       if (!lease) throw new Error("no-lease");
 
       // RLS allows exactly this shape from a tenant: pendiente + reported_by_tenant.
-      const { data: payment, error: caught } = await supabase
+      const { data: payment, error: caught } = await db
         .from("payments")
         .insert({
           lease_id: lease.id,
@@ -72,7 +72,7 @@ function ReportPaymentPage() {
 
       if (form.receipt) {
         const path = await uploadFile("payment-receipts", lease.id, form.receipt);
-        await supabase.from("payments").update({ receipt_url: path }).eq("id", payment.id);
+        await db.from("payments").update({ receipt_url: path }).eq("id", payment.id);
       }
     },
     successKey: "portal.reportSent",

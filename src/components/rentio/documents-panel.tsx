@@ -9,7 +9,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { AdminOnly } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
 import { logActivity, qk, useActorId, useToastMutation } from "@/lib/queries";
-import { describeError, supabase } from "@/lib/supabase";
+import { db, describeError } from "@/lib/db";
 import { openSigned, uploadFile, type Bucket } from "@/lib/storage";
 
 interface DocumentsPanelProps {
@@ -35,7 +35,7 @@ export function DocumentsPanel({
   const documents = useQuery({
     queryKey: qk.documents(ownerType, ownerId),
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("documents")
         .select("*")
         .eq("owner_type", ownerType)
@@ -48,7 +48,7 @@ export function DocumentsPanel({
 
   const remove = useToastMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("documents").delete().eq("id", id);
+      const { error } = await db.from("documents").delete().eq("id", id);
       if (error) throw error;
       await logActivity(actorId, "document", id, "delete", { ownerType, ownerId });
     },
@@ -61,7 +61,7 @@ export function DocumentsPanel({
     setUploading(true);
     try {
       const path = await uploadFile(bucket, storageOwnerId ?? ownerId, file);
-      const { error } = await supabase.from("documents").insert({
+      const { error } = await db.from("documents").insert({
         owner_type: ownerType,
         owner_id: ownerId,
         name: file.name,

@@ -34,7 +34,7 @@ import { daysUntilEnd, isActive, isExpiringSoon, leaseContexts, occupancy } from
 import { depositClock } from "@/lib/deposit";
 import { REKEY_ITEM_KEY, rekeyClock, repairClock } from "@/lib/texas";
 import { qk, usePortfolio } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import type { Enums } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -219,11 +219,11 @@ function DashboardPage() {
     queryKey: ["dashboard-trend", firstMonth],
     queryFn: async () => {
       const [{ data: invoices, error }, { data: balances }] = await Promise.all([
-        supabase
+        db
           .from("invoices")
           .select("id, period_month, total, status")
           .gte("period_month", firstMonth),
-        supabase.from("invoice_balances").select("invoice_id, paid"),
+        db.from("invoice_balances").select("invoice_id, paid"),
       ]);
       if (error) throw error;
       const paidById = new Map(
@@ -242,7 +242,7 @@ function DashboardPage() {
   const pendingPayments = useQuery({
     queryKey: [...qk.payments, "pending-count"],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { count, error } = await db
         .from("payments")
         .select("id", { count: "exact", head: true })
         .eq("status", "pendiente");
@@ -254,7 +254,7 @@ function DashboardPage() {
   const recentPayments = useQuery({
     queryKey: [...qk.payments, "recent"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("payments")
         .select("*")
         .eq("status", "confirmado")
@@ -268,7 +268,7 @@ function DashboardPage() {
   const recentOrders = useQuery({
     queryKey: [...qk.workOrders, "recent"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("work_orders")
         .select("*")
         .order("created_at", { ascending: false })
@@ -281,7 +281,7 @@ function DashboardPage() {
   const turnoverOverdue = useQuery({
     queryKey: ["turnover", "overdue"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("unit_turnover_checklist")
         .select("id, item_key, completed, leases!inner(start_date, status)")
         .eq("completed", false);
@@ -299,7 +299,7 @@ function DashboardPage() {
   const pendingRequests = useQuery({
     queryKey: ["access-requests", "pending-count"],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { count, error } = await db
         .from("access_requests")
         .select("id", { count: "exact", head: true })
         .eq("status", "pending");
@@ -311,7 +311,7 @@ function DashboardPage() {
   const openOrderCounts = useQuery({
     queryKey: [...qk.workOrders, "open-counts"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("work_orders")
         .select("status, priority, affects_health_safety, written_notice_at, resolved_at");
       if (error) throw error;

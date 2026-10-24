@@ -1,28 +1,27 @@
 /**
- * Creates the demo logins through the Supabase Admin API.
- *
- * Why not SQL: hand-inserting into `auth.users` produces rows GoTrue cannot
- * scan ("Database error querying schema" on every sign-in, and the Admin API
- * cannot even delete them because it loads the user first). GoTrue owns that
- * table's shape across versions — let it write the rows.
+ * Creates the demo logins in Clerk and links each one to its profile.
  *
  *   bun run db:demo-logins
  *
- * Reads VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from .env.local.
- * Idempotent: an existing account has its password and profile reset.
+ * Reads CLERK_SECRET_KEY, POSTGREST_URL and POSTGREST_JWT_SECRET from
+ * .env.local. POSTGREST_URL must reach PostgREST from this machine: the
+ * local stack, or production through an SSH tunnel. Use a Clerk
+ * DEVELOPMENT instance; never point this at production logins.
+ * Idempotent: an existing login has its password reset and its profile
+ * re-linked.
  */
-import { createClient } from "@supabase/supabase-js";
+import { clerkClient } from "@clerk/tanstack-react-start/server";
+import { serviceDb } from "../src/lib/server/session";
 
-const url = process.env["VITE_SUPABASE_URL"];
-const serviceKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
 const password = process.env["DEMO_PASSWORD"] ?? "Rentio2026!";
 
-if (!url || !serviceKey) {
-  console.error("Set VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (see .env.local).");
+if (!process.env["CLERK_SECRET_KEY"] || !process.env["POSTGREST_JWT_SECRET"]) {
+  console.error("Set CLERK_SECRET_KEY, POSTGREST_URL and POSTGREST_JWT_SECRET (see .env.example).");
   process.exit(1);
 }
 
-const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
+const clerk = clerkClient();
+const admin = serviceDb();
 
 interface DemoUser {
   email: string;
@@ -33,11 +32,12 @@ interface DemoUser {
 
 async function listAllUsers() {
   const all: { id: string; email?: string | undefined }[] = [];
-  for (let page = 1; page <= 20; page += 1) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
-    if (error) throw error;
-    all.push(...data.users);
-    if (data.users.length < 200) break;
+  for (let offset = 0; offset < 4000; offset += 500) {
+    const { data } = await clerk.users.getUserList({ limit: 500, offset });
+    all.push(
+      ...data.map((user) => ({ id: user.id, email: user.primaryEmailAddress?.emailAddress })),
+    );
+    if (data.length < 500) break;
   }
   return all;
 }
@@ -57,6 +57,16 @@ const DEMO_TENANT_IDS = [
 ];
 
 async function main() {
+  // The demo data is the first organization's.
+  const { data: org, error: orgError } = await admin
+    .from("organizations")
+    .select("id")
+    .order("created_at")
+    .limit(1)
+    .single();
+  if (orgError) throw orgError;
+  const orgId = org.id;
+
   const { data: pinned, error: tenantError } = await admin
     .from("tenants")
     .select("id, full_name, email")
@@ -131,56 +141,47 @@ async function main() {
     const found = existing.get(user.email.toLowerCase());
     let id = found;
 
-    if (found) {
-      const { error } = await admin.auth.admin.updateUserById(found, {
-        password,
-        email_confirm: true,
-      });
-      if (error) {
-        console.error(`  ${user.email.padEnd(30)} could not update: ${error.message}`);
-        console.error("     A row GoTrue cannot load must be removed in SQL first — see SETUP.md.");
-        continue;
+    try {
+      if (found) {
+        await clerk.users.updateUser(found, { password, skipPasswordChecks: true });
+      } else {
+        const created = await clerk.users.createUser({
+          emailAddress: [user.email],
+          password,
+          firstName: user.fullName,
+          skipPasswordChecks: true,
+        });
+        id = created.id;
       }
-    } else {
-      const { data, error } = await admin.auth.admin.createUser({
-        email: user.email,
-        password,
-        email_confirm: true,
-        user_metadata: { full_name: user.fullName },
-      });
-      if (error) {
-        console.error(`  ${user.email.padEnd(30)} could not create: ${error.message}`);
-        continue;
-      }
-      id = data.user.id;
+    } catch (caught) {
+      console.error(`  ${user.email.padEnd(30)} could not create or update: ${String(caught)}`);
+      continue;
     }
-
     if (!id) continue;
-    const { error: profileError } = await admin.from("profiles").upsert({
-      id,
+
+    // Link directly instead of waiting for the first sign-in to do it.
+    const fields = {
       full_name: user.fullName,
       role: user.role,
       tenant_id: user.tenantId,
+      email: user.email.toLowerCase(),
+      clerk_user_id: id,
+      org_id: orgId,
       // locale stays NULL — "never chosen", so each portal's default applies:
-      // English for staff, Spanish for tenants. Forcing it here put every
-      // staff account into Spanish regardless.
+      // English for staff, Spanish for tenants.
       locale: null,
-    });
-    if (profileError) {
-      console.error(`  ${user.email.padEnd(30)} profile failed: ${profileError.message}`);
-      continue;
-    }
-
-    // Prove it: a row that exists is not the same as a login that works.
-    const probe = createClient(url!, process.env["VITE_SUPABASE_ANON_KEY"] ?? "", {
-      auth: { persistSession: false },
-    });
-    const { error: signInError } = await probe.auth.signInWithPassword({
-      email: user.email,
-      password,
-    });
+    };
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("id")
+      .or(`email.eq."${user.email.toLowerCase()}",clerk_user_id.eq."${id}"`)
+      .limit(1)
+      .maybeSingle();
+    const { error: profileError } = profile
+      ? await admin.from("profiles").update(fields).eq("id", profile.id)
+      : await admin.from("profiles").insert(fields);
     console.log(
-      `  ${user.email.padEnd(30)} ${user.role.padEnd(8)} ${signInError ? `SIGN-IN FAILED: ${signInError.message}` : "sign-in OK"}`,
+      `  ${user.email.padEnd(30)} ${user.role.padEnd(8)} ${profileError ? `profile failed: ${profileError.message}` : "ok"}`,
     );
   }
 
@@ -188,7 +189,7 @@ async function main() {
   //
   // Reseeding changes which tenants exist, and their emails with them. The
   // seed's TRUNCATE cascades away the profile rows but cannot touch
-  // auth.users, so every earlier demo account survives as a login with no
+  // Clerk, so every earlier demo account survives as a login with no
   // profile — it signs in fine and then lands in the app with no role.
   // Whoever is demoing hits a blank portal and has no idea why.
   const wanted = new Set(demo.map((user) => user.email.toLowerCase()));
@@ -200,10 +201,11 @@ async function main() {
   });
 
   for (const user of stale) {
-    const { error } = await admin.auth.admin.deleteUser(user.id);
-    console.log(
-      `  ${(user.email ?? user.id).padEnd(30)} ${"stale".padEnd(8)} ${error ? `could not remove: ${error.message}` : "removed"}`,
+    const outcome = await clerk.users.deleteUser(user.id).then(
+      () => "removed",
+      (caught: unknown) => `could not remove: ${String(caught)}`,
     );
+    console.log(`  ${(user.email ?? user.id).padEnd(30)} ${"stale".padEnd(8)} ${outcome}`);
   }
 
   // Reseeding changes which tenants exist, so the tenant logins change with

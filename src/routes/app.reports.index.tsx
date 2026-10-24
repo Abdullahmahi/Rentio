@@ -27,7 +27,7 @@ import { CHART, compactMoney } from "@/lib/chart";
 import { formatMoney } from "@/lib/format";
 import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
 import { usePortfolio } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -71,7 +71,7 @@ function ReportsPage() {
   const payments = useQuery({
     queryKey: ["report-income", firstMonth],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("payments")
         .select("lease_id, amount, paid_at")
         .eq("status", "confirmado")
@@ -84,7 +84,7 @@ function ReportsPage() {
   const expenses = useQuery({
     queryKey: ["report-expenses", firstMonth],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("expenses")
         .select("unit_id, amount, spent_at")
         .gte("spent_at", firstMonth);

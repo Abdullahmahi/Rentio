@@ -195,6 +195,7 @@
     "newPassword": "Nueva contraseña",
     "confirmPassword": "Confirmar contraseña",
     "savePassword": "Guardar contraseña",
+    "manageLogin": "Administrar contraseña y acceso",
     "passwordUpdated": "Tu contraseña se actualizó correctamente.",
     "passwordHint": "Mínimo {{min}} caracteres.",
     "brandHeadline": "La administración de tus rentas, en un solo lugar.",

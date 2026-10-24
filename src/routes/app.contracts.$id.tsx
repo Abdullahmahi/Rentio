@@ -74,7 +74,7 @@ import {
   useToastMutation,
   type InvoiceWithPaid,
 } from "@/lib/queries";
-import { describeError, supabase } from "@/lib/supabase";
+import { db, describeError, invokeFn } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -157,7 +157,7 @@ function ContractDetailPage() {
   const payments = useQuery({
     queryKey: [...qk.payments, "lease", id],
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("payments")
         .select("*")
         .eq("lease_id", id)
@@ -169,7 +169,7 @@ function ContractDetailPage() {
 
   const updateRent = useToastMutation({
     mutationFn: async (amount: number) => {
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("leases")
         .update({ rent_amount: amount })
         .eq("id", id);
@@ -193,7 +193,7 @@ function ContractDetailPage() {
     mutationFn: async (values: typeof moveOutForm) => {
       if (!lease) throw new Error("missing-lease");
 
-      const { error: leaseError } = await supabase
+      const { error: leaseError } = await db
         .from("leases")
         .update({
           status: "terminado",
@@ -204,14 +204,14 @@ function ContractDetailPage() {
         .eq("id", id);
       if (leaseError) throw leaseError;
 
-      const { error: unitError } = await supabase
+      const { error: unitError } = await db
         .from("units")
         .update({ status: "vacante" })
         .eq("id", lease.unit_id);
       if (unitError) throw unitError;
 
       // Parking follows the lease out — otherwise it keeps getting billed.
-      const { error: parkingError } = await supabase
+      const { error: parkingError } = await db
         .from("parking_spaces")
         .update({ lease_id: null, status: "disponible" })
         .eq("lease_id", id);
@@ -229,7 +229,7 @@ function ContractDetailPage() {
   /** Stage 2 — the forwarding address. This starts the statutory clock. */
   const recordForwarding = useToastMutation({
     mutationFn: async (values: typeof forwardingForm) => {
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("leases")
         .update({
           forwarding_address: values.forwarding_address.trim(),
@@ -255,7 +255,7 @@ function ContractDetailPage() {
       const refunded = refundDue(held, itemization);
       const settledAt = todayIso();
 
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("leases")
         .update({
           deposit_itemization: itemization as unknown as never,
@@ -285,7 +285,7 @@ function ContractDetailPage() {
   const turnover = useQuery({
     queryKey: ["turnover", id],
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("unit_turnover_checklist")
         .select("*")
         .eq("lease_id", id)
@@ -299,7 +299,7 @@ function ContractDetailPage() {
   const notices = useQuery({
     queryKey: ["lease-notices", id],
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("lease_notices")
         .select("*")
         .eq("lease_id", id)
@@ -313,7 +313,7 @@ function ContractDetailPage() {
   const createChecklist = useToastMutation({
     mutationFn: async () => {
       if (!lease) throw new Error("missing-lease");
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("unit_turnover_checklist")
         .upsert(turnoverRowsFor(lease.unit_id, lease.id), { onConflict: "lease_id,item_key" });
       if (caught) throw caught;
@@ -327,7 +327,7 @@ function ContractDetailPage() {
 
   const toggleTurnover = useToastMutation({
     mutationFn: async ({ id: itemId, completed }: { id: string; completed: boolean }) => {
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("unit_turnover_checklist")
         .update({ completed, completed_by: completed ? actorId : null })
         .eq("id", itemId);
@@ -342,7 +342,7 @@ function ContractDetailPage() {
 
   const createNotice = useToastMutation({
     mutationFn: async (values: typeof noticeForm) => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("lease_notices")
         .insert({
           lease_id: id,
@@ -374,7 +374,7 @@ function ContractDetailPage() {
 
   const downloadNotice = async (noticeId: string) => {
     try {
-      const { data, error: caught } = await supabase.functions.invoke("generate-notice-to-vacate", {
+      const { data, error: caught } = await invokeFn("generate-notice-to-vacate", {
         body: { notice_id: noticeId },
       });
       if (caught) throw caught;
@@ -388,10 +388,9 @@ function ContractDetailPage() {
 
   const downloadDisposition = async () => {
     try {
-      const { data, error: caught } = await supabase.functions.invoke(
-        "generate-deposit-disposition",
-        { body: { lease_id: id } },
-      );
+      const { data, error: caught } = await invokeFn("generate-deposit-disposition", {
+        body: { lease_id: id },
+      });
       if (caught) throw caught;
       const url = (data as { url?: string } | null)?.url;
       if (!url) throw new Error("no-url");

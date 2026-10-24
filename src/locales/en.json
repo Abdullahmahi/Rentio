@@ -195,6 +195,7 @@
     "newPassword": "New password",
     "confirmPassword": "Confirm password",
     "savePassword": "Save password",
+    "manageLogin": "Manage password and sign-in",
     "passwordUpdated": "Your password was updated.",
     "passwordHint": "At least {{min}} characters.",
     "brandHeadline": "Your rental operation, in one place.",

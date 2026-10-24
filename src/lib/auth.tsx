@@ -4,126 +4,122 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { useAuth as useClerkAuth, useUser } from "@clerk/tanstack-react-start";
+import { apiFetch } from "@/lib/db";
 import type { Tables, Enums } from "@/lib/database.types";
 
 type Profile = Tables<"profiles">;
 type Role = Enums<"user_role">;
 
 interface AuthValue {
-  user: User | null;
-  session: Session | null;
+  /** The Clerk login. Signed in is not the same as having access: see `profile`. */
+  user: { id: string; email: string | null } | null;
   profile: Profile | null;
   role: Role | null;
-  /** True until the session AND the profile have resolved. Guards must wait
+  /** True until the login AND the profile have resolved. Guards must wait
    *  on this or an authenticated user briefly sees the login page. */
   loading: boolean;
+  /** Signed in, but no profile was found or linked for this login. */
+  noAccess: boolean;
   isAdmin: boolean;
   isManager: boolean;
   isStaff: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
 
+/** Clerk's sign-in and sign-up cards in the app's own colors and type. */
+export const clerkAppearance = {
+  variables: {
+    colorPrimary: "#1B4D3E",
+    fontFamily: "Inter Variable, Inter, system-ui, sans-serif",
+    borderRadius: "0.625rem",
+  },
+  elements: { rootBox: "w-full", cardBox: "w-full shadow-none" },
+};
+
 /** Where a role belongs when it lands on the wrong shell. */
 export function homeFor(role: Role | null) {
   return role === "tenant" ? "/portal" : "/app";
 }
 
+/**
+ * Clerk says who is signed in; /api/me says what they may do. The profile
+ * is fetched from the server rather than read from the database directly
+ * because the first request is also what links a new login to the profile
+ * staff invited (see src/lib/server/session.ts).
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const { isLoaded, userId, signOut: clerkSignOut } = useClerkAuth();
+  const { user: clerkUser } = useUser();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  // Which user the current `profile` was actually fetched for. Without this
-  // there is a window where the session has changed but the profile still
-  // belongs to the previous user (or is null), and a consumer cannot tell
-  // "no profile yet" from "no profile exists".
-  const loadedFor = useRef<string | null>(null);
+  const [noAccess, setNoAccess] = useState(false);
+  // Which login the current `profile` was actually fetched for. Without this
+  // there is a window where the login has changed but the profile still
+  // belongs to the previous user, and a consumer cannot tell "no profile
+  // yet" from "no profile exists".
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
 
-  const loadProfile = useCallback(async (userId: string | undefined) => {
-    if (!userId) {
+  const loadProfile = useCallback(async () => {
+    const response = await apiFetch("/api/me");
+    if (response.ok) {
+      const body = (await response.json()) as { profile: Profile };
+      setProfile(body.profile);
+      setNoAccess(false);
+    } else {
       setProfile(null);
-      loadedFor.current = null;
-      return;
+      setNoAccess(response.status === 403);
     }
-    const { data } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
-    setProfile(data ?? null);
-    loadedFor.current = userId;
   }, []);
 
   useEffect(() => {
+    if (!isLoaded) return;
+    if (!userId) {
+      setProfile(null);
+      setNoAccess(false);
+      setLoadedFor(null);
+      return;
+    }
     let active = true;
-
-    void (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!active) return;
-      setSession(data.session);
-      await loadProfile(data.session?.user.id);
-      if (active) setLoading(false);
-    })();
-
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (!active) return;
-      const nextUserId = nextSession?.user.id ?? null;
-      // A different user means the profile we hold is stale. Go back to
-      // loading so guards wait rather than acting on it — signing in used to
-      // surface one render as "authenticated with no profile", which reads
-      // exactly like an account that does not exist. A token refresh keeps
-      // the same id and must not flicker.
-      if (nextUserId !== loadedFor.current) setLoading(true);
-      setSession(nextSession);
-      // Deferred: calling back into supabase inside this callback can deadlock.
-      setTimeout(() => {
-        void loadProfile(nextUserId ?? undefined).finally(() => {
-          if (active) setLoading(false);
-        });
-      }, 0);
-    });
-
+    void loadProfile()
+      .catch((error: unknown) => console.error("profile load failed", error))
+      .finally(() => {
+        if (active) setLoadedFor(userId);
+      });
     return () => {
       active = false;
-      subscription.subscription.unsubscribe();
     };
-  }, [loadProfile]);
-
-  const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-  }, []);
+  }, [isLoaded, userId, loadProfile]);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    await clerkSignOut();
     setProfile(null);
-  }, []);
+  }, [clerkSignOut]);
 
-  const refreshProfile = useCallback(async () => {
-    await loadProfile(session?.user.id);
-  }, [loadProfile, session]);
+  const loading = !isLoaded || (Boolean(userId) && loadedFor !== userId);
 
   const value = useMemo<AuthValue>(() => {
     const role = profile?.role ?? null;
     return {
-      user: session?.user ?? null,
-      session,
+      user: userId
+        ? { id: userId, email: clerkUser?.primaryEmailAddress?.emailAddress ?? null }
+        : null,
       profile,
       role,
       loading,
-      isAdmin: role === "admin",
+      noAccess,
+      isAdmin: role === "admin" || role === "super_admin",
       isManager: role === "manager",
-      isStaff: role === "admin" || role === "manager",
-      signIn,
+      isStaff: role === "admin" || role === "manager" || role === "super_admin",
       signOut,
-      refreshProfile,
+      refreshProfile: loadProfile,
     };
-  }, [session, profile, loading, signIn, signOut, refreshProfile]);
+  }, [userId, clerkUser, profile, loading, noAccess, signOut, loadProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

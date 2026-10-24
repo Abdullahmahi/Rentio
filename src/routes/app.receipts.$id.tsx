@@ -38,7 +38,7 @@ import {
   useSettings,
   useToastMutation,
 } from "@/lib/queries";
-import { describeError, supabase } from "@/lib/supabase";
+import { db, describeError, invokeFn } from "@/lib/db";
 import type { Enums, Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -94,9 +94,9 @@ function ReceiptDetailPage() {
         { data: lines, error: linesError },
         { data: balance },
       ] = await Promise.all([
-        supabase.from("invoices").select("*").eq("id", id).maybeSingle(),
-        supabase.from("invoice_lines").select("*").eq("invoice_id", id).order("created_at"),
-        supabase.from("invoice_balances").select("*").eq("invoice_id", id).maybeSingle(),
+        db.from("invoices").select("*").eq("id", id).maybeSingle(),
+        db.from("invoice_lines").select("*").eq("invoice_id", id).order("created_at"),
+        db.from("invoice_balances").select("*").eq("invoice_id", id).maybeSingle(),
       ]);
       if (headError) throw headError;
       if (linesError) throw linesError;
@@ -116,7 +116,7 @@ function ReceiptDetailPage() {
     queryKey: [...qk.payments, "invoice", id],
     enabled: Boolean(head),
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("payment_allocations")
         .select("id, amount, payment_id, payments(paid_at, method, reference, status)")
         .eq("invoice_id", id);
@@ -156,20 +156,17 @@ function ReceiptDetailPage() {
 
   /** Totals always come from the lines — never edited independently. */
   const syncTotal = async () => {
-    const { data } = await supabase
-      .from("invoice_lines")
-      .select("amount, quantity")
-      .eq("invoice_id", id);
+    const { data } = await db.from("invoice_lines").select("amount, quantity").eq("invoice_id", id);
     const total = (data ?? []).reduce(
       (sum, row) => sum + Number(row.amount) * Number(row.quantity),
       0,
     );
-    await supabase.from("invoices").update({ total }).eq("id", id);
+    await db.from("invoices").update({ total }).eq("id", id);
   };
 
   const addLine = useToastMutation({
     mutationFn: async (values: typeof line) => {
-      const { error: caught } = await supabase.from("invoice_lines").insert({
+      const { error: caught } = await db.from("invoice_lines").insert({
         invoice_id: id,
         description: values.description.trim(),
         category: values.category,
@@ -190,7 +187,7 @@ function ReceiptDetailPage() {
 
   const removeLine = useToastMutation({
     mutationFn: async (lineId: string) => {
-      const { error: caught } = await supabase.from("invoice_lines").delete().eq("id", lineId);
+      const { error: caught } = await db.from("invoice_lines").delete().eq("id", lineId);
       if (caught) throw caught;
       await syncTotal();
     },
@@ -208,7 +205,7 @@ function ReceiptDetailPage() {
 
       // One late fee per invoice. Read the lines again rather than trusting
       // the render — two tabs open is enough to double-charge otherwise.
-      const { data: existing, error: readError } = await supabase
+      const { data: existing, error: readError } = await db
         .from("invoice_lines")
         .select("id")
         .eq("invoice_id", id)
@@ -217,7 +214,7 @@ function ReceiptDetailPage() {
       if ((existing ?? []).length > 0) throw new Error("late-fee-already-applied");
 
       const amount = lateFeeDue;
-      const { error: caught } = await supabase.from("invoice_lines").insert({
+      const { error: caught } = await db.from("invoice_lines").insert({
         invoice_id: id,
         description: t("receipts.lines.lateFee"),
         category: "recargo",
@@ -246,7 +243,7 @@ function ReceiptDetailPage() {
       // the operator's workflow must not be blocked on the mail provider.
       let emailed = false;
       try {
-        const { error: functionError } = await supabase.functions.invoke("send-invoice-email", {
+        const { error: functionError } = await invokeFn("send-invoice-email", {
           body: { invoice_id: id },
         });
         emailed = !functionError;
@@ -255,7 +252,7 @@ function ReceiptDetailPage() {
         console.warn("send-invoice-email", caught);
       }
 
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("invoices")
         .update({ status: "enviado" })
         .eq("id", id);
@@ -273,7 +270,7 @@ function ReceiptDetailPage() {
   // Cancelling never deletes — the folio has to stay auditable.
   const cancel = useToastMutation({
     mutationFn: async (reason: string) => {
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("invoices")
         .update({ status: "cancelado", cancel_reason: reason })
         .eq("id", id);
@@ -293,7 +290,7 @@ function ReceiptDetailPage() {
   const downloadPdf = () => {
     void toast.promise(
       (async () => {
-        const { data, error } = await supabase.functions.invoke("generate-invoice-pdf", {
+        const { data, error } = await invokeFn("generate-invoice-pdf", {
           body: { invoice_id: id },
         });
         if (error) throw error;

@@ -30,7 +30,7 @@ import {
   useToastMutation,
   type InvoiceWithPaid,
 } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -126,10 +126,10 @@ function ReceiptsPage() {
       let created = 0;
 
       for (const planned of plan.toCreate) {
-        const { data: folio, error: folioError } = await supabase.rpc("next_invoice_number");
+        const { data: folio, error: folioError } = await db.rpc("next_invoice_number");
         if (folioError) throw folioError;
 
-        const { data: invoice, error: invoiceError } = await supabase
+        const { data: invoice, error: invoiceError } = await db
           .from("invoices")
           .insert({
             lease_id: planned.leaseId,
@@ -150,7 +150,7 @@ function ReceiptsPage() {
           throw invoiceError;
         }
 
-        const { error: linesError } = await supabase.from("invoice_lines").insert(
+        const { error: linesError } = await db.from("invoice_lines").insert(
           planned.lines.map((line) => ({
             invoice_id: invoice.id,
             description: line.description,
@@ -181,7 +181,7 @@ function ReceiptsPage() {
 
   const sendSelected = useToastMutation({
     mutationFn: async (ids: string[]) => {
-      const { error } = await supabase.from("invoices").update({ status: "enviado" }).in("id", ids);
+      const { error } = await db.from("invoices").update({ status: "enviado" }).in("id", ids);
       if (error) throw error;
       await logActivity(actorId, "invoice", null, "send_bulk", { count: ids.length, period });
     },

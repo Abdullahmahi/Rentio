@@ -22,7 +22,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { StatusBadge } from "@/components/rentio/status-badge";
 import { formatDate } from "@/lib/format";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db, invokeFn } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -61,7 +61,7 @@ function RequestsPage() {
   const requests = useQuery({
     queryKey: ["access-requests"],
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("access_requests")
         .select("*")
         .order("created_at", { ascending: false });
@@ -101,7 +101,7 @@ function RequestsPage() {
       const match = (portfolio.data?.tenants ?? []).find((row) => row.id === tenant);
       // Reuses the staff invite path rather than a second implementation of
       // "create an account and email a link".
-      const { data, error: caught } = await supabase.functions.invoke("send-tenant-invite", {
+      const { data, error: caught } = await invokeFn("send-tenant-invite", {
         body: {
           tenant_id: tenant,
           email: match?.email ?? request.email,
@@ -113,7 +113,7 @@ function RequestsPage() {
         toast.warning(t("tenants.invitedWithoutEmail"));
       }
 
-      const { error: updateError } = await supabase
+      const { error: updateError } = await db
         .from("access_requests")
         .update({
           status: "approved",
@@ -137,7 +137,7 @@ function RequestsPage() {
 
   const decline = useToastMutation({
     mutationFn: async (request: Request) => {
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("access_requests")
         .update({
           status: "declined",

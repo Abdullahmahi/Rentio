@@ -1,0 +1,12 @@
+node_modules
+.output
+.nitro
+.tanstack
+.wrangler
+.storage
+.env
+.env.*
+!.env.example
+*.local
+docs
+supabase/.temp

@@ -27,7 +27,7 @@ import { formatMoney } from "@/lib/format";
 import { currentPeriod } from "@/lib/invoicing";
 import { unitContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import type { Enums, Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -80,7 +80,7 @@ function ServicesPage() {
   const charges = useQuery({
     queryKey: qk.utilities(period),
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("utility_charges")
         .select("*")
         .eq("period_month", period)
@@ -95,7 +95,7 @@ function ServicesPage() {
       ];
       const folios = new Map<string, string | null>();
       if (invoiceIds.length > 0) {
-        const { data: invoices } = await supabase
+        const { data: invoices } = await db
           .from("invoices")
           .select("id, invoice_number")
           .in("id", invoiceIds);
@@ -180,7 +180,7 @@ function ServicesPage() {
     mutationFn: async (values: typeof form) => {
       if (!values.unit_id) throw new Error("no-unit");
       const context = units.find((row) => row.unit.id === values.unit_id);
-      const { error: caught } = await supabase.from("utility_charges").insert({
+      const { error: caught } = await db.from("utility_charges").insert({
         unit_id: values.unit_id,
         lease_id: context?.activeLease?.id ?? null,
         type: values.type,
@@ -223,7 +223,7 @@ function ServicesPage() {
         }));
 
       if (inserts.length === 0) throw new Error("nothing-to-save");
-      const { error: caught } = await supabase.from("utility_charges").insert(inserts);
+      const { error: caught } = await db.from("utility_charges").insert(inserts);
       if (caught) throw caught;
       await logActivity(actorId, "utility_charge", null, "bulk_create", {
         count: inserts.length,
@@ -243,7 +243,7 @@ function ServicesPage() {
 
   const remove = useToastMutation({
     mutationFn: async (charge: ChargeRow) => {
-      const { error: caught } = await supabase.from("utility_charges").delete().eq("id", charge.id);
+      const { error: caught } = await db.from("utility_charges").delete().eq("id", charge.id);
       if (caught) throw caught;
     },
     successKey: "services.deleted",

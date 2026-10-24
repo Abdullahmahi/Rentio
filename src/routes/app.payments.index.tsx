@@ -43,7 +43,7 @@ import { downloadCsv } from "@/lib/csv";
 import { allocateOldestFirst, type OpenInvoice } from "@/lib/invoicing";
 import { balanceOf, isActive, leaseContexts, leaseLabel } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { describeError, supabase } from "@/lib/supabase";
+import { db, describeError } from "@/lib/db";
 import { openSigned, signedUrl, uploadFile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums, Tables } from "@/lib/database.types";
@@ -127,7 +127,7 @@ function PaymentsPage() {
   const payments = useQuery({
     queryKey: qk.payments,
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("payments")
         .select("*")
         .order("paid_at", { ascending: false });
@@ -140,7 +140,7 @@ function PaymentsPage() {
   const openInvoices = useQuery({
     queryKey: ["open-invoices"],
     queryFn: async () => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("invoice_balances")
         .select("*")
         .gt("balance", 0);
@@ -149,7 +149,7 @@ function PaymentsPage() {
         .map((row) => row.invoice_id)
         .filter((value): value is string => Boolean(value));
       if (ids.length === 0) return [] as (OpenInvoice & { leaseId: string })[];
-      const { data: heads, error: headError } = await supabase
+      const { data: heads, error: headError } = await db
         .from("invoices")
         .select("id, lease_id, invoice_number, due_date, status")
         .in("id", ids);
@@ -175,7 +175,7 @@ function PaymentsPage() {
   const profiles = useQuery({
     queryKey: ["staff-profiles"],
     queryFn: async () => {
-      const { data, error: caught } = await supabase.from("profiles").select("id, full_name");
+      const { data, error: caught } = await db.from("profiles").select("id, full_name");
       if (caught) throw caught;
       return data;
     },
@@ -337,7 +337,7 @@ function PaymentsPage() {
     rows: { invoiceId: string; amount: number }[],
   ) => {
     if (rows.length === 0) return;
-    const { error: caught } = await supabase.from("payment_allocations").insert(
+    const { error: caught } = await db.from("payment_allocations").insert(
       rows.map((row) => ({
         payment_id: paymentId,
         invoice_id: row.invoiceId,
@@ -350,17 +350,14 @@ function PaymentsPage() {
   /** Keep invoice.status honest after money moves. */
   const refreshInvoiceStatuses = async (invoiceIds: string[]) => {
     if (invoiceIds.length === 0) return;
-    const { data } = await supabase
-      .from("invoice_balances")
-      .select("*")
-      .in("invoice_id", invoiceIds);
+    const { data } = await db.from("invoice_balances").select("*").in("invoice_id", invoiceIds);
     for (const row of data ?? []) {
       if (!row.invoice_id) continue;
       const paid = Number(row.paid ?? 0);
       const total = Number(row.total ?? 0);
       const status: Enums<"invoice_status"> =
         paid >= total - 0.005 ? "pagado" : paid > 0 ? "pagado_parcial" : "enviado";
-      await supabase
+      await db
         .from("invoices")
         .update({ status })
         .eq("id", row.invoice_id)
@@ -376,7 +373,7 @@ function PaymentsPage() {
       );
       const { allocations } = allocateOldestFirst(Number(payment.amount), open);
 
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("payments")
         .update({
           status: "confirmado",
@@ -399,7 +396,7 @@ function PaymentsPage() {
 
   const reject = useToastMutation({
     mutationFn: async ({ payment, why }: { payment: PaymentRow; why: string }) => {
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("payments")
         .update({ status: "cancelado", void_reason: why })
         .eq("id", payment.id);
@@ -417,19 +414,19 @@ function PaymentsPage() {
   // Voiding never deletes the row — it drops the allocations and keeps history.
   const voidPayment = useToastMutation({
     mutationFn: async ({ payment, why }: { payment: PaymentRow; why: string }) => {
-      const { data: existing } = await supabase
+      const { data: existing } = await db
         .from("payment_allocations")
         .select("invoice_id")
         .eq("payment_id", payment.id);
       const touched = (existing ?? []).map((row) => row.invoice_id);
 
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await db
         .from("payment_allocations")
         .delete()
         .eq("payment_id", payment.id);
       if (deleteError) throw deleteError;
 
-      const { error: caught } = await supabase
+      const { error: caught } = await db
         .from("payments")
         .update({ status: "cancelado", void_reason: why })
         .eq("id", payment.id);
@@ -453,7 +450,7 @@ function PaymentsPage() {
     mutationFn: async () => {
       if (!form.lease_id) throw new Error("no-lease");
 
-      const { data: payment, error: caught } = await supabase
+      const { data: payment, error: caught } = await db
         .from("payments")
         .insert({
           lease_id: form.lease_id,
@@ -473,7 +470,7 @@ function PaymentsPage() {
 
       if (form.receipt) {
         const path = await uploadFile("payment-receipts", form.lease_id, form.receipt);
-        await supabase.from("payments").update({ receipt_url: path }).eq("id", payment.id);
+        await db.from("payments").update({ receipt_url: path }).eq("id", payment.id);
       }
 
       await insertAllocations(payment.id, effectiveAllocations);

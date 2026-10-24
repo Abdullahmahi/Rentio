@@ -19,7 +19,7 @@ import { CardsSkeleton, QueryState } from "@/components/rentio/query-state";
 import { occupancy } from "@/lib/portfolio";
 import { DEFAULT_CITY, DEFAULT_STATE, US_STATES, formatCityStateZip } from "@/lib/us";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 
@@ -63,7 +63,7 @@ function PropertiesPage() {
 
   const create = useToastMutation({
     mutationFn: async (values: typeof EMPTY_FORM) => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("properties")
         .insert({
           ...values,

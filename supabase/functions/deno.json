@@ -1,5 +1,0 @@
-{
-  "//": "Local `deno check` only. The Supabase bundler does NOT read this file, so every import in these functions must stay a fully-qualified npm:/jsr: specifier.",
-  "nodeModulesDir": "none",
-  "lint": { "rules": { "tags": ["recommended"] } }
-}

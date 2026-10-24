@@ -26,7 +26,7 @@ import {
   type ValidationContext,
 } from "@/lib/import";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -151,7 +151,7 @@ function Importer({ kind }: { kind: ImportKind }) {
             base_rent: Number(value["base_rent"] ?? 0),
           };
           // The (property_id, unit_number) unique index makes this idempotent.
-          const { error } = await supabase
+          const { error } = await db
             .from("units")
             .upsert(payload, { onConflict: "property_id,unit_number" });
           if (error) throw error;
@@ -176,8 +176,8 @@ function Importer({ kind }: { kind: ImportKind }) {
             notes: (value["notes"] as string | null) || null,
           };
           const { error } = existing
-            ? await supabase.from("tenants").update(payload).eq("id", existing.id)
-            : await supabase.from("tenants").insert(payload);
+            ? await db.from("tenants").update(payload).eq("id", existing.id)
+            : await db.from("tenants").insert(payload);
           if (error) throw error;
         }
 
@@ -217,19 +217,19 @@ function Importer({ kind }: { kind: ImportKind }) {
           };
 
           if (existing) {
-            const { error } = await supabase.from("leases").update(payload).eq("id", existing.id);
+            const { error } = await db.from("leases").update(payload).eq("id", existing.id);
             if (error) throw error;
           } else {
-            const { data: lease, error } = await supabase
+            const { data: lease, error } = await db
               .from("leases")
               .insert(payload)
               .select("id")
               .single();
             if (error) throw error;
-            await supabase
+            await db
               .from("lease_tenants")
               .insert({ lease_id: lease.id, tenant_id: tenant.id, role: "primary" });
-            await supabase.from("units").update({ status: "ocupada" }).eq("id", unit.id);
+            await db.from("units").update({ status: "ocupada" }).eq("id", unit.id);
           }
         }
 

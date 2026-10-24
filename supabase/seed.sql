@@ -10,6 +10,16 @@
 
 begin;
 
+-- The demo company is the first organization. Acting as it means every
+-- insert below takes its org_id, and every delete touches only its rows:
+-- a reseed on a database with other organizations leaves theirs alone.
+do $$
+begin
+  perform set_config('request.jwt.claim.org_id',
+    (select id::text from public.organizations order by created_at limit 1), true);
+end;
+$$;
+
 -- DELETE, not TRUNCATE ... CASCADE, and the difference matters.
 --
 -- `profiles.tenant_id` is declared `on delete set null`. DELETE honours that:
@@ -21,28 +31,39 @@ begin;
 -- authenticated fine and landed with no role at all.
 --
 -- These are listed children-first so the foreign keys are satisfied.
-delete from public.activity_log;
-delete from public.documents;
-delete from public.work_order_photos;
-delete from public.work_order_notes;
-delete from public.work_orders;
-delete from public.utility_charges;
-delete from public.expenses;
-delete from public.payment_allocations;
-delete from public.payments;
-delete from public.invoice_lines;
-delete from public.invoices;
-delete from public.lease_notices;
-delete from public.unit_turnover_checklist;
-delete from public.lease_tenants;
-delete from public.parking_spaces;
-delete from public.leases;
-delete from public.units;
-delete from public.tenants;
-delete from public.properties;
+delete from public.activity_log where org_id = public.current_org_id();
+delete from public.documents where org_id = public.current_org_id();
+delete from public.work_order_photos where org_id = public.current_org_id();
+delete from public.work_order_notes where org_id = public.current_org_id();
+delete from public.work_orders where org_id = public.current_org_id();
+delete from public.utility_charges where org_id = public.current_org_id();
+delete from public.expenses where org_id = public.current_org_id();
+delete from public.payment_allocations where org_id = public.current_org_id();
+delete from public.payments where org_id = public.current_org_id();
+delete from public.invoice_lines where org_id = public.current_org_id();
+delete from public.invoices where org_id = public.current_org_id();
+delete from public.lease_notices where org_id = public.current_org_id();
+delete from public.unit_turnover_checklist where org_id = public.current_org_id();
+delete from public.lease_tenants where org_id = public.current_org_id();
+delete from public.parking_spaces where org_id = public.current_org_id();
+delete from public.leases where org_id = public.current_org_id();
+delete from public.units where org_id = public.current_org_id();
+delete from public.tenants where org_id = public.current_org_id();
+delete from public.properties where org_id = public.current_org_id();
 
-alter sequence public.invoice_number_seq restart with 1;
-alter sequence public.work_order_folio_seq restart with 1;
+-- The counters are shared by every organization; only restart them when
+-- the demo company is the only one, or another org could reissue a number.
+do $$
+begin
+  if (select count(*) from public.organizations) = 1 then
+    alter sequence public.invoice_number_seq restart with 1;
+    alter sequence public.work_order_folio_seq restart with 1;
+  end if;
+end;
+$$;
+
+insert into public.settings (org_id) select public.current_org_id()
+where not exists (select 1 from public.settings where org_id = public.current_org_id());
 
 update public.settings set
   company_name   = 'Sun City Property Management',
@@ -64,7 +85,8 @@ update public.settings set
   check_mailing_address = E'Sun City Property Management LLC\n4141 Pinnacle St, Suite 210\nEl Paso, TX 79902',
   dropoff_address = E'4141 Pinnacle St, Suite 210\nEl Paso, TX 79902',
   office_hours = 'Mon–Fri 9:00 AM – 5:00 PM',
-  payment_notes = 'Include your unit number on the memo line so we can match your payment.';
+  payment_notes = 'Include your unit number on the memo line so we can match your payment.'
+where org_id = public.current_org_id();
 
 -- ------------------------------------------------------------ properties
 -- Westside, Northeast and the Lower Valley. `units_in_structure` is set by
@@ -637,9 +659,9 @@ where exists (select 1 from public.leases l where l.unit_id = u.id and l.status 
 -- role carries the access.
 update public.profiles p
 set tenant_id = t.id
-from auth.users u
-join public.tenants t on lower(t.email) = lower(u.email)
-where p.id = u.id
+from public.tenants t
+where lower(t.email) = lower(p.email)
+  and t.org_id = p.org_id
   and p.role = 'tenant'
   and p.tenant_id is distinct from t.id;
 

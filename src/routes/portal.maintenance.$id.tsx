@@ -9,7 +9,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/rentio/status";
 import { formatDate } from "@/lib/format";
 import { useMyPortal } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { signedUrl } from "@/lib/storage";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -39,7 +39,7 @@ function PortalRequestDetail() {
   const notes = useQuery({
     queryKey: ["portal-wo-notes", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("work_order_notes")
         .select("*")
         .eq("work_order_id", id)
@@ -52,7 +52,7 @@ function PortalRequestDetail() {
   const photos = useQuery({
     queryKey: ["portal-wo-photos", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("work_order_photos")
         .select("*")
         .eq("work_order_id", id);

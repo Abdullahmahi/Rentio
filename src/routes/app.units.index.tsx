@@ -21,7 +21,7 @@ import { CardsSkeleton, QueryState } from "@/components/rentio/query-state";
 import { UnitStatusBadge } from "@/components/rentio/status";
 import { unitContexts, type UnitContext } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -84,7 +84,7 @@ function UnitsPage() {
 
   const create = useToastMutation({
     mutationFn: async (values: UnitForm) => {
-      const { data, error: caught } = await supabase
+      const { data, error: caught } = await db
         .from("units")
         .insert({
           property_id: values.property_id,

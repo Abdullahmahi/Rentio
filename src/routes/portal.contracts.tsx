@@ -10,7 +10,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { LeaseStatusBadge } from "@/components/rentio/status";
 import { formatDate } from "@/lib/format";
 import { useMyPortal } from "@/lib/queries";
-import { describeError } from "@/lib/supabase";
+import { describeError } from "@/lib/db";
 import { openSigned } from "@/lib/storage";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";

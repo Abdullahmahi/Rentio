@@ -20,7 +20,7 @@ import {
 import { formatDate } from "@/lib/format";
 import { leaseContexts, type LeaseContext } from "@/lib/portfolio";
 import { qk, usePortfolio } from "@/lib/queries";
-import { supabase } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -69,7 +69,7 @@ function UnitDetailPage() {
   const workOrders = useQuery({
     queryKey: [...qk.workOrders, "unit", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("work_orders")
         .select("*")
         .eq("unit_id", id)
