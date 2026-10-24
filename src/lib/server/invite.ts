@@ -23,6 +23,8 @@ export async function invite(
 ) {
   const db = session.db;
   const address = email.trim().toLowerCase();
+  // super_admin has no org; a profile invited by them would belong to none.
+  if (!session.profile.org_id) throw new Error("Invites must come from someone inside a company");
 
   // Written through the caller's client: RLS keeps it in their org, and the
   // profiles trigger refuses a non-admin minting anything but a tenant.
