@@ -91,3 +91,28 @@ Not run: anything needing a real Clerk instance (sign-in, first-login linking, i
 **Security:** closes S-001, S-002, S-005, S-010.
 
 **Next (owner):** create the Clerk app; deploy PostgREST + app in Coolify per `SETUP.md` §5; run the two migrations on `rentio-db`; then the spec §6 cutover (sign in as each role, then the cross-org test against production).
+
+## 2026-10-27 · QA pass, super_admin acting-in-company, demo data wipe
+
+Owner reported "New property" failing. Root causes: a super_admin has no org (org_id NULL on insert) and blank ZIP sent as "" (check constraint). Ran a 3-agent QA (two reviewers, one verifier; `docs/qa/`), a design review (`../suggestions.md`) and wrote `../plan.md`.
+
+**Changed** (commits 8e8be01, 47a5461)
+- `20261027001500_super_admin_acts_in_org.sql`: read/write RLS split per table (platform view read-only), `is_super_admin()` requires `org_id IS NULL`, role trigger refuses `super_admin`/org moves below platform staff (A-01), settings row per new org (A-08), `my_lease_details` tenant branch pinned to org (A-22).
+- `/api/org` + `ACTING_ORG_COOKIE` in `session.ts`, `org-switcher.tsx`, acting bar in `app-shell.tsx`.
+- `blankToNull` in property and settings forms; `describeError` by Postgres code; session cache not storing null profiles and dropped on profile PATCH; invite no longer demotes staff; `?org=` on request-access; safe receipt file names; Origin/derivedKey fail closed.
+- Frontend: `currentLeaseFor`/`currentLeaseByTenant` (A-06/B-04); renew start date; move-out vacancy guard; sign-in pending/suspended/failed states and the `?redirect=/sign-in` loop; language toggle via i18n singleton + `patchProfile`; invite-pending badge + resend; dashboard links; keyboard rows; a11y; H&S badge; import parsing and status; El Paso dates in `texas.ts` and the disposition route.
+- Production: migration applied (snapshot `/root/rentio_before_20261027.sql`), demo + "Testing" data removed (snapshot `/root/rentio_before_wipe_20261027.sql`), today's real entries kept (5 properties, 8 units, 8 tenants, 10 leases, 3 profiles).
+
+**Checks**
+
+| Check | Result |
+|---|---|
+| G1 | 55 pass (+3: lease ranking, import comma/date) |
+| G2 | clean |
+| G3 | 0 errors / 13 warnings |
+| G4 | built; deployed twice, `/sign-in` 200 |
+| G5 | 70 assertions pass on the migrated local DB and on a fresh `setup.sql` DB. On production the suite stops at `admin reads properties = 3` (it assumes seed data); migration verified structurally there (88 org policies, `is_super_admin` fixed, settings trigger present) |
+
+Not run: anything needing a live Clerk session (browser was signed out), so the super_admin switcher, the sign-in states and the ES/EN toggle are verified by code and tests only.
+
+**Open:** D1–D14 in `../plan.md`. Still-untouched QA items: nightly job (A-02/03/04/18), move-out SQL function (A-13), collected definition (A-16), WO cost → expenses (A-17), guarantor portal (A-15), missing edit/delete (B-16), Spanish-only PDFs/CSV (B-17), expenses per unit (B-34), board property name (B-25), empty-state buttons (B-31), payment error clearing (B-28), grid search (B-27), `my_lease_details` seed-data suite on prod.
