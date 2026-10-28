@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +23,10 @@ export function MoneyInput({
   ...rest
 }: MoneyInputProps) {
   const fallbackId = useId();
-  const display = value === "" ? "" : String(value);
+  // Keep what was typed: String(Number("125.")) is "125", which ate the
+  // decimal point mid-typing and turned 125.50 into 12550.
+  const [text, setText] = useState(value === "" ? "" : String(value));
+  const display = text !== "" && Number(text) === value ? text : value === "" ? "" : String(value);
 
   return (
     <div className={cn("relative", className)}>
@@ -40,6 +43,7 @@ export function MoneyInput({
         aria-invalid={rest["aria-invalid"]}
         onChange={(event) => {
           const raw = event.target.value.replace(/[^\d.]/g, "");
+          setText(raw);
           if (raw === "") return onChange("");
           const parsed = Number(raw);
           onChange(Number.isFinite(parsed) ? parsed : "");
