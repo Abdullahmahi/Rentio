@@ -21,9 +21,9 @@ export const Route = createFileRoute("/api/org")({
         if (body.org_id && !orgId) return json({ error: "invalid org_id" }, 400);
 
         const secure = process.env["NODE_ENV"] === "production" ? "; Secure" : "";
-        const cookie = orgId
-          ? `${ACTING_ORG_COOKIE}=${orgId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${secure}`
-          : `${ACTING_ORG_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
+        // "all" is stored explicitly: with no cookie the session would fall
+        // back to the only company again.
+        const cookie = `${ACTING_ORG_COOKIE}=${orgId ?? "all"}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${secure}`;
         return new Response(JSON.stringify({ org_id: orgId }), {
           headers: { "content-type": "application/json", "set-cookie": cookie },
         });
