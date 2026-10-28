@@ -125,6 +125,8 @@ export async function mayAccess(
 ) {
   if (session.isStaff) return Boolean(session.profile.org_id);
   const owner = objectPath.split("/")[0] ?? "";
+  // The company bucket also holds unit and property documents; tenants get the logo only (S-004).
+  if (bucket === "company") return mode === "read" && owner === "logo";
   if (!UUID.test(owner)) return false;
 
   const visible = async (table: "leases" | "work_orders") => {
@@ -137,7 +139,6 @@ export async function mayAccess(
     if (bucket === "work-order-photos") return visible("work_orders");
     return false;
   }
-  if (bucket === "company") return true;
   if (bucket === "contracts" || bucket === "payment-receipts") return visible("leases");
   if (bucket === "tenant-docs") return owner === session.profile.tenant_id;
   if (bucket === "work-order-photos") return visible("work_orders");
