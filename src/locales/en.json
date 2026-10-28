@@ -9,8 +9,8 @@
     "units": "Units",
     "parking": "Parking",
     "tenants": "Tenants",
-    "contracts": "Contracts",
-    "receipts": "Receipts",
+    "contracts": "Leases",
+    "receipts": "Invoices",
     "payments": "Payments",
     "services": "Services",
     "maintenance": "Maintenance",
@@ -50,12 +50,12 @@
       "description": "Keep tenant information organized."
     },
     "contracts": {
-      "title": "Contracts",
-      "description": "Review active, expiring, and historical contracts."
+      "title": "Leases",
+      "description": "Review active, expiring, and past leases."
     },
     "receipts": {
-      "title": "Receipts",
-      "description": "Review and manage rent receipts."
+      "title": "Invoices",
+      "description": "Review and manage rent invoices."
     },
     "payments": {
       "title": "Payments",

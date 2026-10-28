@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Menu, Moon, Search, Sun, X } from "lucide-react";
+import { Languages, Moon, Search, Settings, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,24 +19,73 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { INTERNAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useLanguagePreference } from "@/lib/queries";
 import { CommandPalette } from "@/components/rentio/command-palette";
 import { OrgSwitcher } from "@/components/rentio/org-switcher";
 import { RentioMark } from "@/components/rentio/rentio-mark";
-import { dashboardItem, navGroups, navItems } from "@/components/rentio/nav-items";
-import { cn } from "@/lib/utils";
+import { dashboardItem, navGroups, type NavItem } from "@/components/rentio/nav-items";
 
 const THEME_STORAGE_KEY = "rentio-theme";
+
+/** /app/units and /app/units/<id> both light up Units; /app lights up only itself. */
+function isActive(pathname: string, path: string) {
+  return path === "/app"
+    ? pathname === "/app"
+    : pathname === path || pathname.startsWith(`${path}/`);
+}
+
+function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
+  const { t } = useTranslation();
+  const { setOpenMobile } = useSidebar();
+  const [key, path, Icon] = item;
+  const active = isActive(pathname, path);
+  return (
+    <SidebarMenuItem>
+      {/* Quiet active state: a muted fill and a primary icon, not a solid slab. */}
+      <SidebarMenuButton
+        asChild
+        isActive={active}
+        tooltip={t(`nav.${key}`)}
+        className="data-[active=true]:bg-sidebar-accent data-[active=true]:font-semibold [&[data-active=true]>svg]:text-primary"
+      >
+        <Link
+          to={path}
+          aria-current={active ? "page" : undefined}
+          onClick={() => setOpenMobile(false)}
+        >
+          <Icon />
+          <span>{t(`nav.${key}`)}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
 
 export function AppShell() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { profile, role, signOut, isSuperAdmin } = useAuth();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [dark, setDark] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -41,6 +97,7 @@ export function AppShell() {
   }, []);
 
   const { setLanguage } = useLanguagePreference(INTERNAL_DEFAULT_LANGUAGE);
+  const toggleLanguage = () => setLanguage(i18n.language === "en" ? "es-MX" : "en");
 
   const toggleTheme = () => {
     setDark((current) => {
@@ -63,122 +120,83 @@ export function AppShell() {
     void navigate({ to: "/sign-in", replace: true });
   };
 
-  // The first segment under /app is the page key, so /app/units/$id titles the
-  // header "Units", and pages kept out of the nav (receipts, settings) still
-  // get their own title.
-  const segment = pathname.split("/")[2];
-  const currentKey = segment && i18n.exists(`pages.${segment}.title`) ? segment : "dashboard";
-
-  const navLink = ([key, path, Icon]: (typeof navItems)[number]) => {
-    const active = pathname === path;
-    return (
-      <Link
-        key={path}
-        to={path}
-        title={collapsed ? t(`nav.${key}`) : undefined}
-        onClick={() => setMobileOpen(false)}
-        className={cn(
-          "flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
-          active
-            ? "bg-sidebar-primary text-sidebar-primary-foreground"
-            : "text-sidebar-foreground hover:bg-sidebar-accent",
-          collapsed && "justify-center px-0",
-        )}
-      >
-        <Icon className="size-4 shrink-0" />
-        {collapsed ? null : <span className="truncate">{t(`nav.${key}`)}</span>}
-      </Link>
-    );
-  };
-
-  const sidebar = (
-    <aside
-      className={cn(
-        "flex h-full flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200",
-        collapsed ? "w-16" : "w-60",
-      )}
-    >
-      <div className="flex h-16 items-center border-b border-sidebar-border px-3">
-        <RentioMark compact={collapsed} />
-      </div>
-      <nav className="flex-1 overflow-y-auto p-2">
-        {navLink(dashboardItem)}
-        {navGroups.map((group) => (
-          <div key={group.label} className={cn(collapsed ? "mt-2 space-y-1" : "mt-4 space-y-1")}>
-            {collapsed ? (
-              <div className="mx-2 mb-2 border-t border-sidebar-border" />
-            ) : (
-              <div className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {t(`nav.groups.${group.label}`)}
-              </div>
-            )}
-            {group.items.map(navLink)}
-          </div>
-        ))}
-      </nav>
-      <div className="border-t border-sidebar-border p-2">
-        <Button
-          variant="ghost"
-          className={cn("w-full", collapsed ? "px-0" : "justify-start")}
-          onClick={() => setCollapsed((value) => !value)}
-          aria-label={t(collapsed ? "actions.expand" : "actions.collapse")}
-          title={t(collapsed ? "actions.expand" : "actions.collapse")}
-        >
-          {collapsed ? (
-            <ChevronRight />
-          ) : (
-            <>
-              <ChevronLeft />
-              <span>{t("actions.collapse")}</span>
-            </>
-          )}
-        </Button>
-      </div>
-    </aside>
-  );
+  // The breadcrumb names the section; the page's own h1 is the only title.
+  // On a detail page (/app/units/<id>) the section links back to its list.
+  const [, , segment, detail] = pathname.split("/");
+  const sectionKey = segment && i18n.exists(`pages.${segment}.title`) ? segment : "dashboard";
+  const sectionPath = segment ? `/app/${segment}` : "/app";
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">{sidebar}</div>
-      {mobileOpen ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            className="absolute inset-0 bg-overlay"
-            onClick={() => setMobileOpen(false)}
-            aria-label={t("actions.collapse")}
-          />
-          <div className="relative h-full w-60">
-            {sidebar}
-            <Button
-              size="icon"
-              variant="ghost"
-              className="absolute right-2 top-3"
-              onClick={() => setMobileOpen(false)}
-              aria-label={t("actions.close")}
-            >
-              <X />
-            </Button>
+    <SidebarProvider>
+      <Sidebar collapsible="icon">
+        <SidebarHeader className="gap-3 border-b border-sidebar-border">
+          <div className="flex h-10 items-center px-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+            <RentioMark />
           </div>
-        </div>
-      ) : null}
-      <div className={cn("transition-[padding] duration-200", collapsed ? "lg:pl-16" : "lg:pl-60")}>
-        <header className="sticky top-0 z-30 grid h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b md:grid-cols-[minmax(0,1fr)_auto_auto] border-border bg-surface px-4 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="shrink-0 lg:hidden"
-              onClick={() => setMobileOpen(true)}
-              aria-label={t("actions.expand")}
-            >
-              <Menu />
-            </Button>
-            <h2 className="truncate text-base font-semibold">{t(`pages.${currentKey}.title`)}</h2>
-          </div>
+          {isSuperAdmin ? (
+            <div className="space-y-1 group-data-[collapsible=icon]:hidden">
+              <span className="px-1 text-xs font-medium text-muted-foreground">
+                {t("orgSwitcher.label")}
+              </span>
+              <OrgSwitcher className="h-8 w-full" />
+            </div>
+          ) : null}
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <NavLink item={dashboardItem} pathname={pathname} />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          {navGroups.map((group) => (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel>{t(`nav.groups.${group.label}`)}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => (
+                    <NavLink key={item[1]} item={item} pathname={pathname} />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
+        </SidebarContent>
+        <SidebarFooter className="border-t border-sidebar-border">
+          <SidebarMenu>
+            <NavLink item={["settings", "/app/settings", Settings]} pathname={pathname} />
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+
+      <SidebarInset className="min-w-0 bg-background">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-surface/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/80 sm:px-6">
+          <SidebarTrigger className="-ml-1" aria-label={t("actions.expand")} />
+          <Separator orientation="vertical" className="mr-1 h-4" />
+          <Breadcrumb className="min-w-0 flex-1">
+            <BreadcrumbList>
+              <BreadcrumbItem className="min-w-0">
+                {detail ? (
+                  <BreadcrumbLink asChild>
+                    <Link to={sectionPath} className="truncate">
+                      {t(`pages.${sectionKey}.title`)}
+                    </Link>
+                  </BreadcrumbLink>
+                ) : (
+                  <BreadcrumbPage className="truncate">
+                    {t(`pages.${sectionKey}.title`)}
+                  </BreadcrumbPage>
+                )}
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="hidden h-9 min-w-56 items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm text-muted-foreground transition-colors hover:bg-muted md:flex"
+            className="hidden h-8 min-w-56 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm text-muted-foreground transition-colors hover:bg-muted md:flex"
           >
             <Search className="size-4 shrink-0" />
             <span className="truncate">{t("palette.trigger")}</span>
@@ -186,90 +204,89 @@ export function AppShell() {
               {t("palette.shortcut")}
             </kbd>
           </button>
-          <div className="flex shrink-0 items-center gap-1">
-            <div
-              role="group"
-              className="flex rounded-lg border border-border p-0.5"
-              aria-label={t("actions.changeLanguage")}
-            >
-              {(["es-MX", "en"] as const).map((language) => (
-                <button
-                  key={language}
-                  className={cn(
-                    "h-7 rounded-md px-2 text-xs font-semibold",
-                    i18n.language === language
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted",
-                  )}
-                  aria-pressed={i18n.language === language}
-                  onClick={() => setLanguage(language)}
-                >
-                  {t(`language.${language}`)}
-                </button>
-              ))}
-            </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={toggleTheme}
-              aria-label={t("actions.changeTheme")}
-              title={t(dark ? "theme.light" : "theme.dark")}
-            >
-              {dark ? <Sun /> : <Moon />}
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" aria-label={t("actions.openUserMenu")}>
-                  <Avatar className="size-8">
-                    <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="truncate">{displayName}</div>
-                  {role ? (
-                    <span className="mt-1 inline-flex h-5 items-center rounded-full border border-border bg-muted px-2 text-[11px] font-medium text-muted-foreground">
-                      {t(`roles.${role}`)}
-                    </span>
-                  ) : null}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/app/settings">{t("user.myProfile")}</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={() => {
-                    void handleSignOut();
-                  }}
-                >
-                  {t("actions.signOut")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="md:hidden"
+            onClick={() => setPaletteOpen(true)}
+            aria-label={t("palette.trigger")}
+          >
+            <Search />
+          </Button>
+          {/* A visible language pill on phones, where the avatar menu is one tap too deep. */}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 px-2 text-xs font-semibold md:hidden"
+            onClick={toggleLanguage}
+            aria-label={t("actions.changeLanguage")}
+          >
+            {t(`language.${i18n.language === "en" ? "es-MX" : "en"}`)}
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="ghost" aria-label={t("actions.openUserMenu")}>
+                <Avatar className="size-8">
+                  <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+              <DropdownMenuLabel>
+                <div className="truncate">{displayName}</div>
+                {role ? (
+                  <div className="mt-0.5 text-xs font-normal text-muted-foreground">
+                    {t(`roles.${role}`)}
+                  </div>
+                ) : null}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={toggleLanguage}>
+                <Languages />
+                {t("actions.changeLanguage")}
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {t(`language.${i18n.language === "en" ? "en" : "es-MX"}`)}
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={toggleTheme}>
+                {dark ? <Sun /> : <Moon />}
+                {t(dark ? "theme.light" : "theme.dark")}
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/app/settings">
+                  <Settings />
+                  {t("nav.settings")}
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => {
+                  void handleSignOut();
+                }}
+              >
+                {t("actions.signOut")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </header>
-        {isSuperAdmin ? (
-          <div className="flex flex-wrap items-center gap-3 border-b border-border bg-muted/40 px-4 py-2 text-sm sm:px-6">
-            <span className="text-muted-foreground">{t("orgSwitcher.label")}</span>
-            <OrgSwitcher className="h-8 w-60" />
-            {!profile?.org_id ? (
-              <span className="text-muted-foreground">{t("orgSwitcher.hint")}</span>
-            ) : null}
+        {isSuperAdmin && !profile?.org_id ? (
+          <div className="border-b border-border bg-muted/40 px-4 py-2 text-sm text-muted-foreground sm:px-6">
+            {t("orgSwitcher.hint")}
           </div>
         ) : null}
-        <main className="mx-auto max-w-[1600px] p-4 sm:p-6">
+        <main className="mx-auto w-full max-w-[1600px] p-4 sm:p-6">
           <Outlet />
         </main>
-      </div>
+      </SidebarInset>
       <CommandPalette
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
         onToggleTheme={toggleTheme}
-        onToggleLanguage={() => setLanguage(i18n.language === "en" ? "es-MX" : "en")}
+        onToggleLanguage={toggleLanguage}
       />
-    </div>
+    </SidebarProvider>
   );
 }

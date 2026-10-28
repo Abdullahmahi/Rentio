@@ -1,16 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  CarFront,
-  Download,
-  FileText,
-  Pencil,
-  Plus,
-  RefreshCw,
-  Trash2,
-} from "lucide-react";
+import { CarFront, Download, FileText, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -485,14 +476,6 @@ function ContractDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        to="/app/contracts"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" />
-        {t("contracts.backToList")}
-      </Link>
-
       <QueryState
         isLoading={portfolio.isLoading}
         error={portfolio.error}

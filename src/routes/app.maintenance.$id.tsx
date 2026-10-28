@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Eye, Lock, Send, ShieldAlert, Wrench } from "lucide-react";
+import { Eye, Lock, Send, ShieldAlert, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -227,14 +227,6 @@ function WorkOrderDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        to="/app/maintenance"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" />
-        {t("maintenance.backToList")}
-      </Link>
-
       <QueryState
         isLoading={order.isLoading || portfolio.isLoading}
         error={order.error ?? portfolio.error}

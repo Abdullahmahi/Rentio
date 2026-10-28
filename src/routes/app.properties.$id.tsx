@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Building2, CarFront, Pencil } from "lucide-react";
+import { Building2, CarFront, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,14 +155,6 @@ function PropertyDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        to="/app/properties"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" />
-        {t("properties.backToList")}
-      </Link>
-
       <QueryState
         isLoading={portfolio.isLoading}
         error={portfolio.error}

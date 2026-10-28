@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Car,
   Building2,
   DoorClosed,
   FileText,
@@ -8,14 +9,16 @@ import {
   Users,
   WalletCards,
   Wrench,
+  type LucideIcon,
 } from "lucide-react";
+
+export type NavItem = readonly [key: string, path: string, icon: LucideIcon];
 
 export const dashboardItem = ["dashboard", "/app", LayoutDashboard] as const;
 
 /**
- * Only what the owner asked for. Receipts, parking, services, access
- * requests, import and settings keep their routes: receipts open from Pagos,
- * settings from the user menu, the rest by URL.
+ * The owner's nav (D11). Settings sits in the sidebar footer; receipts open
+ * from Payments; services, access requests and import keep their routes.
  */
 export const navGroups = [
   {
@@ -37,7 +40,10 @@ export const navGroups = [
   },
   {
     label: "operations",
-    items: [["maintenance", "/app/maintenance", Wrench]],
+    items: [
+      ["maintenance", "/app/maintenance", Wrench],
+      ["parking", "/app/parking", Car],
+    ],
   },
 ] as const;
 
@@ -46,4 +52,4 @@ export const navItems = [
   ...navGroups[0].items,
   ...navGroups[1].items,
   ...navGroups[2].items,
-];
+] satisfies NavItem[];

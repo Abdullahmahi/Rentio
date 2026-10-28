@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Download, Plus, ReceiptText, Send, Trash2 } from "lucide-react";
+import { Download, Plus, ReceiptText, Send, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -308,14 +308,6 @@ function ReceiptDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        to="/app/receipts"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" />
-        {t("receipts.backToList")}
-      </Link>
-
       <QueryState
         isLoading={invoice.isLoading || portfolio.isLoading}
         error={invoice.error ?? portfolio.error}

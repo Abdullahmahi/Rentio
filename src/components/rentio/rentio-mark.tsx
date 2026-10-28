@@ -19,11 +19,12 @@ export function RentioMark({
   const { t } = useTranslation();
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
+      <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground group-data-[collapsible=icon]:size-8">
         R
       </div>
       {compact ? null : (
-        <div className="min-w-0">
+        // Hidden when the app sidebar collapses to icons; no effect elsewhere.
+        <div className="min-w-0 group-data-[collapsible=icon]:hidden">
           <div className="truncate text-base font-semibold">{BRAND_NAME}</div>
           {subtitle === null ? null : (
             <div className="truncate text-xs text-muted-foreground">

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, CarFront, FileText, Wrench } from "lucide-react";
+import { CarFront, FileText, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -148,14 +148,6 @@ function UnitDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        to="/app/units"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" />
-        {t("units.backToList")}
-      </Link>
-
       <QueryState
         isLoading={portfolio.isLoading}
         error={portfolio.error}
