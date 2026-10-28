@@ -117,13 +117,14 @@ export const Route = createFileRoute("/api/fn/generate-deposit-disposition")({
             .in("id", tenantIds);
           const tenantName = tenants?.[0]?.full_name ?? "-";
 
-          // The tenant's own language, so the document they receive is readable.
+          // The tenant's own language, so the document they receive is readable;
+          // English when they have no portal login yet (a Texas legal notice).
           const { data: profile } = await caller
             .from("profiles")
             .select("locale")
             .in("tenant_id", tenantIds)
             .maybeSingle();
-          const lang: Lang = profile?.locale === "en" ? "en" : "es-MX";
+          const lang: Lang = profile?.locale === "es-MX" ? "es-MX" : "en";
           const c = COPY[lang];
 
           const deductions: Deduction[] = Array.isArray(lease.deposit_itemization)
