@@ -94,7 +94,7 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
 
   if (logoHeight > 0) y -= logoHeight - 4;
   text(company, left, 16, bold, BRAND);
-  rightText("RECIBO DE RENTA", right, 14, bold);
+  rightText("RENT RECEIPT · RECIBO DE RENTA", right, 14, bold);
   y -= 18;
   rightText(invoice.invoice_number ?? "", right, 10, regular, MUTED);
   y -= 28;
@@ -104,7 +104,7 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
 
   // ------------------------------------------------------ parties block
   const detailY = y;
-  text("Arrendador", left, 9, bold, MUTED);
+  text("Landlord · Arrendador", left, 9, bold, MUTED);
   y -= 14;
   text(company, left, 10, bold);
   for (const row of [
@@ -119,11 +119,11 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
 
   y = detailY;
   const column = left + 280;
-  text("Inquilino", column, 9, bold, MUTED);
+  text("Tenant · Inquilino", column, 9, bold, MUTED);
   y -= 14;
   text(tenantName, column, 10, bold);
   y -= 13;
-  text(`Unidad ${details?.unit_number ?? "-"}`, column, 9, regular, MUTED);
+  text(`Unit · Unidad ${details?.unit_number ?? "-"}`, column, 9, regular, MUTED);
   if (details?.property_name) {
     y -= 13;
     text(details.property_name, column, 9, regular, MUTED);
@@ -131,12 +131,12 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
 
   y -= 30;
   for (const [label, value] of [
-    ["Periodo", formatPeriod(invoice.period_month)],
-    ["Fecha de emisión", formatDate(invoice.issue_date)],
-    ["Fecha de vencimiento", formatDate(invoice.due_date)],
+    ["Period · Periodo", formatPeriod(invoice.period_month)],
+    ["Issued · Fecha de emisión", formatDate(invoice.issue_date)],
+    ["Due · Fecha de vencimiento", formatDate(invoice.due_date)],
   ] as const) {
     text(label, left, 9, regular, MUTED);
-    text(value, left + 120, 9, bold);
+    text(value, left + 160, 9, bold);
     y -= 14;
   }
 
@@ -150,9 +150,9 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
     color: rgb(0.957, 0.941, 0.925),
   });
   y += 2;
-  text("Concepto", left + 8, 9, bold, MUTED);
-  rightText("Cant.", left + 380, 9, bold, MUTED);
-  rightText("Importe", right - 8, 9, bold, MUTED);
+  text("Item · Concepto", left + 8, 9, bold, MUTED);
+  rightText("Qty · Cant.", left + 380, 9, bold, MUTED);
+  rightText("Amount · Importe", right - 8, 9, bold, MUTED);
   y -= 22;
 
   let subtotal = 0;
@@ -172,8 +172,8 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
   y -= 6;
   for (const [label, value, strong] of [
     ["Total", subtotal, true],
-    ["Pagado", paid, false],
-    ["Saldo", subtotal - paid, true],
+    ["Paid · Pagado", paid, false],
+    ["Balance · Saldo", subtotal - paid, true],
   ] as const) {
     rightText(label, right - 130, 10, strong ? bold : regular, strong ? INK : MUTED);
     rightText(formatMoney(value), right - 8, 10, strong ? bold : regular);
@@ -185,10 +185,10 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
   // number is stored, so none can be printed here.
   const payRows = [
     ["Zelle", settings?.["zelle_handle"]],
-    ["Cheque a nombre de", settings?.["check_payable_to"]],
-    ["Enviar cheque a", settings?.["check_mailing_address"]],
-    ["Entregar en", settings?.["dropoff_address"]],
-    ["Horario", settings?.["office_hours"]],
+    ["Check payable to · Cheque a nombre de", settings?.["check_payable_to"]],
+    ["Mail checks to · Enviar cheque a", settings?.["check_mailing_address"]],
+    ["Drop off at · Entregar en", settings?.["dropoff_address"]],
+    ["Hours · Horario", settings?.["office_hours"]],
   ].filter(([, value]) => Boolean(value)) as [string, string][];
 
   if (payRows.length > 0) {
@@ -199,9 +199,9 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
       thickness: 1,
       color: LINE,
     });
-    text("Cómo pagar", left, 9, bold, MUTED);
+    text("How to pay · Cómo pagar", left, 9, bold, MUTED);
     y -= 14;
-    text(`Referencia: unidad ${details?.unit_number ?? "-"}`, left, 9, bold);
+    text(`Reference · Referencia: unit ${details?.unit_number ?? "-"}`, left, 9, bold);
     for (const [label, value] of payRows) {
       y -= 13;
       text(`${label}: ${String(value).replace(/\s*\n\s*/g, " · ")}`.slice(0, 96), left, 9);
@@ -220,7 +220,9 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
     }
   }
 
-  y = 48;
+  y = 58;
+  text("Generated for internal records; not legal advice.", left, 8, regular, MUTED);
+  y -= 11;
   text(
     "Documento generado para control interno. No constituye asesoría legal.",
     left,
