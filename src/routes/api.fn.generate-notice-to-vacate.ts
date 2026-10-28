@@ -127,7 +127,7 @@ export const Route = createFileRoute("/api/fn/generate-notice-to-vacate")({
             .select("locale")
             .in("tenant_id", tenantIds)
             .maybeSingle();
-          const lang: Lang = profile?.locale === "en" ? "en" : "es-MX";
+          const lang: Lang = profile?.locale === "es-MX" ? "es-MX" : "en"; // English without a portal login
           const c = COPY[lang];
 
           const pdf = await PDFDocument.create();
