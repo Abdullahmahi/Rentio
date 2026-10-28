@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { POSTGREST_URL, requireSession } from "@/lib/server/session";
+import { POSTGREST_URL, forgetProfile, requireSession } from "@/lib/server/session";
 
 // What supabase-js / postgrest-js send and read. Nothing else crosses.
 const REQUEST_HEADERS = ["accept", "content-type", "prefer", "range", "range-unit"];
@@ -31,6 +31,12 @@ export const Route = createFileRoute("/rest/v1/$")({
             ...(hasBody ? { body: await request.arrayBuffer() } : {}),
           },
         );
+
+        // A profile edit (locale, name) must show up on the next /api/me, not
+        // in a minute.
+        if (upstream.ok && request.method === "PATCH" && params._splat?.startsWith("profiles")) {
+          forgetProfile(session.profile.clerk_user_id);
+        }
 
         const out = new Headers();
         for (const name of RESPONSE_HEADERS) {

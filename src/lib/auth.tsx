@@ -27,6 +27,8 @@ interface AuthValue {
   isAdmin: boolean;
   isManager: boolean;
   isStaff: boolean;
+  /** PortfolioAI staff. `profile.org_id` is the company they are acting in, if any. */
+  isSuperAdmin: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -116,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin: role === "admin" || role === "super_admin",
       isManager: role === "manager",
       isStaff: role === "admin" || role === "manager" || role === "super_admin",
+      isSuperAdmin: role === "super_admin",
       signOut,
       refreshProfile: loadProfile,
     };

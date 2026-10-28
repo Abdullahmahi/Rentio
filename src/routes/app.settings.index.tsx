@@ -32,7 +32,7 @@ import {
 } from "@/lib/queries";
 import { db, invokeFn } from "@/lib/db";
 import { uploadFile } from "@/lib/storage";
-import { cn } from "@/lib/utils";
+import { blankToNull, cn } from "@/lib/utils";
 import type { Enums } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -144,9 +144,16 @@ function SettingsPage() {
   const save = useToastMutation({
     mutationFn: async (patch: Record<string, unknown>) => {
       if (!settings.data) throw new Error("no-settings");
+      // The ZIP and state checks reject "", so blank text fields go in as NULL.
+      const cleaned = Object.fromEntries(
+        Object.entries(patch).map(([key, value]) => [
+          key,
+          typeof value === "string" ? blankToNull(value) : value,
+        ]),
+      );
       const { error: caught } = await db
         .from("settings")
-        .update(patch as never)
+        .update(cleaned as never)
         .eq("id", settings.data.id);
       if (caught) throw caught;
       await logActivity(actorId, "settings", settings.data.id, "update", {

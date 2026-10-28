@@ -256,12 +256,20 @@
       }
     }
   },
+  "orgSwitcher": {
+      "label": "Actuando como",
+      "all": "Todas las empresas (solo lectura)",
+      "hint": "Elige una empresa para agregar o cambiar algo."
+  },
   "roles": {
     "admin": "Administrador",
     "manager": "Gerente de propiedades",
-    "tenant": "Inquilino"
+    "tenant": "Inquilino",
+    "super_admin": "Equipo PortfolioAI"
   },
   "errors": {
+    "noCompany": "Elige una empresa en la barra superior primero. Estás viendo todas las empresas.",
+    "invalid": "Algún campo tiene un valor inválido. Revisa el código postal, el estado y los montos.",
     "generic": "Ocurrió un error. Inténtalo de nuevo.",
     "network": "No pudimos conectar con el servidor. Revisa tu conexión.",
     "forbidden": "No tienes permiso para realizar esta acción.",

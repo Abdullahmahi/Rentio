@@ -13,6 +13,10 @@ import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/request-access")({
+  // Each company's link carries its slug (/request-access?org=acme), or the
+  // request cannot be filed once a second company exists.
+  validateSearch: (search: Record<string, unknown>): { org?: string } =>
+    typeof search["org"] === "string" ? { org: search["org"] } : {},
   head: () => ({ meta: [{ title: pageTitle(i18n.t("auth.requestAccessTitle")) }] }),
   component: RequestAccessPage,
 });
@@ -34,6 +38,7 @@ const EMPTY = { full_name: "", property_hint: "", unit_hint: "", email: "", phon
 function RequestAccessPage() {
   const { t } = useTranslation();
   const settings = usePublicSettings();
+  const { org } = Route.useSearch();
   const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -48,7 +53,7 @@ function RequestAccessPage() {
     if (!form.email.trim()) return setError(t("auth.errors.emailRequired"));
     setSubmitting(true);
     try {
-      await invokeFn("submit-access-request", { body: form });
+      await invokeFn("submit-access-request", { body: { ...form, org } });
     } catch (caught) {
       // Same neutral confirmation even on a transport failure: a visible
       // difference here leaks exactly what the endpoint refuses to.

@@ -17,6 +17,15 @@ export const POSTGREST_URL = process.env["POSTGREST_URL"] ?? "http://127.0.0.1:3
 
 const JWT_SECRET = process.env["POSTGREST_JWT_SECRET"] ?? "";
 
+/** Which company a super_admin is acting in. Set by /api/org. */
+export const ACTING_ORG_COOKIE = "rentio_org";
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function readCookie(request: Request, name: string) {
+  const match = request.headers.get("cookie")?.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]!) : null;
+}
+
 export type Db = PostgrestClient<Database>;
 export type Profile = Tables<"profiles">;
 
@@ -42,6 +51,8 @@ export function signJwt(claims: Record<string, unknown>, ttlSeconds = 60) {
 
 /** Same key, separate purpose, so a storage signature can never pass as a JWT. */
 export function derivedKey(purpose: string) {
+  if (JWT_SECRET.length < 32)
+    throw new Error("POSTGREST_JWT_SECRET must be at least 32 characters");
   return createHmac("sha256", JWT_SECRET).update(purpose).digest();
 }
 
@@ -175,8 +186,13 @@ export async function requireSession(request: Request): Promise<Session | Respon
   // token; refuse a cross-site write either way.
   const origin = request.headers.get("origin");
   if (request.method !== "GET" && request.method !== "HEAD" && origin) {
-    if (new URL(origin).host !== new URL(request.url).host)
-      return json({ error: "forbidden" }, 403);
+    let sameOrigin = false;
+    try {
+      sameOrigin = new URL(origin).host === new URL(request.url).host;
+    } catch {
+      sameOrigin = false; // "null" and other non-URL origins
+    }
+    if (!sameOrigin) return json({ error: "forbidden" }, 403);
   }
 
   const { userId } = await auth();
@@ -187,11 +203,20 @@ export async function requireSession(request: Request): Promise<Session | Respon
     const profile = await findOrLinkProfile(userId);
     const suspended = profile ? !(await organizationIsActive(profile.org_id)) : false;
     entry = { profile, suspended, at: Date.now() };
-    cache.set(userId, entry);
+    // A login that has no profile yet (signed up before being invited) is
+    // retried on every request rather than remembered for a minute.
+    if (profile) cache.set(userId, entry);
   }
-  const profile = entry.profile;
-  if (!profile) return json({ error: "no_profile" }, 403);
+  if (!entry.profile) return json({ error: "no_profile" }, 403);
   if (entry.suspended) return json({ error: "organization_suspended" }, 403);
+
+  // A super_admin has no company of their own. With one picked (cookie from
+  // /api/org) they act exactly like that company's admin; with none picked
+  // they keep the read-everything platform view and can write nothing.
+  const acting =
+    entry.profile.role === "super_admin" ? readCookie(request, ACTING_ORG_COOKIE) : null;
+  const profile =
+    acting && UUID.test(acting) ? { ...entry.profile, org_id: acting } : entry.profile;
 
   const token = signJwt({ role: "authenticated", sub: profile.id, org_id: profile.org_id });
   return {

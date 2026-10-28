@@ -230,7 +230,9 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
   );
 
   const bytes = await pdf.save();
-  const path = `${invoice.lease_id}/recibo-${invoice.invoice_number ?? invoiceId}.pdf`;
+  // The prefix is free text in Settings; the file name must stay a safe path segment.
+  const safeNumber = (invoice.invoice_number ?? invoiceId).replace(/[^\w.-]+/g, "_");
+  const path = `${invoice.lease_id}/recibo-${safeNumber}.pdf`;
   await putObject(orgId, "contracts", path, bytes);
   return { invoice, bytes, path };
 }

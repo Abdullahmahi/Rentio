@@ -89,9 +89,13 @@ export function usePortfolio() {
 }
 
 export function useSettings() {
+  const { profile, isSuperAdmin } = useAuth();
+  const platformView = isSuperAdmin && !profile?.org_id;
   return useQuery({
-    queryKey: qk.settings,
+    queryKey: [...qk.settings, platformView ? "platform" : (profile?.org_id ?? "")],
     queryFn: async () => {
+      // Across all companies there is no "the" settings row.
+      if (platformView) return null;
       const { data, error } = await db.from("settings").select("*").limit(1).maybeSingle();
       if (error) throw error;
       return data;

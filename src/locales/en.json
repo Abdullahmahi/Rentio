@@ -256,12 +256,20 @@
       }
     }
   },
+  "orgSwitcher": {
+      "label": "Acting as",
+      "all": "All companies (view only)",
+      "hint": "Pick a company to add or change anything."
+  },
   "roles": {
     "admin": "Administrator",
     "manager": "Property manager",
-    "tenant": "Tenant"
+    "tenant": "Tenant",
+    "super_admin": "PortfolioAI staff"
   },
   "errors": {
+    "noCompany": "Pick a company in the top bar first. You're viewing all companies.",
+    "invalid": "Some fields have an invalid value. Check the ZIP code, state and amounts.",
     "generic": "Something went wrong. Please try again.",
     "network": "We couldn't reach the server. Check your connection.",
     "forbidden": "You don't have permission to do that.",

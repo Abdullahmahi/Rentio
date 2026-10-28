@@ -294,6 +294,28 @@ begin
     perform pg_temp.check('manager cannot create an admin', true);
   end;
 
+  -- QA A-01: an admin must not be able to reach the platform role.
+  perform pg_temp.act_as(admin_id);
+  begin
+    update public.profiles set role = 'super_admin' where id = admin_id;
+    perform pg_temp.check('admin cannot promote themselves to super_admin', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('admin cannot promote themselves to super_admin', true);
+  end;
+  begin
+    update public.profiles set org_id = null where id = admin_id;
+    perform pg_temp.check('admin cannot leave their organization', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('admin cannot leave their organization', true);
+  end;
+  begin
+    insert into public.profiles (full_name, role, org_id)
+    values ('Planted platform', 'super_admin', (select org_id from public.profiles where id = admin_id));
+    perform pg_temp.check('admin cannot create a super_admin', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('admin cannot create a super_admin', true);
+  end;
+
   reset role;
 end;
 $$;
@@ -316,7 +338,8 @@ begin
   perform set_config('request.jwt.claim.sub', '', true);
   perform set_config('request.jwt.claim.org_id', '', true);
   insert into public.organizations (name, slug) values ('Other Co', 'other-co') returning id into org_b;
-  insert into public.settings (org_id, company_name, invoice_prefix) values (org_b, 'Other Co', 'OTH');
+  perform pg_temp.check('a new organization gets its settings row', (select count(*) from public.settings where org_id = org_b) = 1);
+  update public.settings set invoice_prefix = 'OTH' where org_id = org_b;
   insert into public.properties (org_id, name) values (org_b, 'B Tower') returning id into prop_b;
   -- descendants take org_id from their parent
   insert into public.units (property_id, unit_number) values (prop_b, 'B1') returning id into unit_b;
@@ -415,6 +438,60 @@ begin
   perform pg_temp.check('super_admin sees every organization', n >= 2);
   select count(*) into n from public.properties;
   perform pg_temp.check('super_admin reads across organizations', n >= 5);
+  begin
+    insert into public.properties (name) values ('nowhere');
+    perform pg_temp.check('super_admin with no company picked cannot insert', false);
+  exception when not_null_violation or insufficient_privilege then
+    perform pg_temp.check('super_admin with no company picked cannot insert', true);
+  end;
+
+  begin
+    update public.properties set name = 'renamed by platform' where id = prop_b;
+    get diagnostics n = row_count;
+    perform pg_temp.check('platform view cannot update rows', n = 0);
+  exception when insufficient_privilege then
+    perform pg_temp.check('platform view cannot update rows', true);
+  end;
+  begin
+    delete from public.properties where id = prop_b;
+    get diagnostics n = row_count;
+    perform pg_temp.check('platform view cannot delete rows', n = 0);
+  exception when insufficient_privilege then
+    perform pg_temp.check('platform view cannot delete rows', true);
+  end;
+  update public.profiles set full_name = 'PortfolioAI (renamed)' where id = super_id;
+  get diagnostics n = row_count;
+  perform pg_temp.check('super_admin can still edit their own profile', n = 1);
+
+  -- a super_admin row that somehow carries an org is NOT platform staff
+  -- (the owner edits below run with no caller identity, like the service connection)
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  update public.profiles set org_id = org_b where id = super_id;
+  set local role authenticated;
+  perform pg_temp.act_as(super_id);
+  select count(*) into n from public.properties where org_id = org_a;
+  perform pg_temp.check('super_admin with an org_id gets no cross-org read', n = 0);
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  update public.profiles set org_id = null where id = super_id;
+  set local role authenticated;
+  perform pg_temp.act_as(super_id);
+
+  -- ...and acting inside a company, scoped exactly like its admin
+  perform set_config('request.jwt.claim.org_id', org_b::text, true);
+  select count(*) into n from public.properties;
+  perform pg_temp.check('super_admin acting in org B sees only org B', n = 1);
+  select count(*) into n from public.organizations;
+  perform pg_temp.check('super_admin acting in org B still lists every organization', n >= 2);
+  insert into public.properties (name) values ('B by super') returning id into prop_b;
+  perform pg_temp.check('super_admin acting in org B inserts into org B',
+    (select org_id from public.properties where id = prop_b) = org_b);
+  select count(*) into n from public.my_lease_details where lease_id = lease_b;
+  perform pg_temp.check('super_admin acting in org B reads org B lease details', n = 1);
+  perform set_config('request.jwt.claim.org_id', org_a::text, true);
+  select count(*) into n from public.properties where id = prop_b;
+  perform pg_temp.check('super_admin acting in org A cannot see org B property', n = 0);
 
   reset role;
   raise notice '--- all RLS assertions passed ---';

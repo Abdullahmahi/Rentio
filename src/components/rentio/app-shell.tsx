@@ -16,6 +16,7 @@ import { INTERNAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useLanguagePreference } from "@/lib/queries";
 import { CommandPalette } from "@/components/rentio/command-palette";
+import { OrgSwitcher } from "@/components/rentio/org-switcher";
 import { RentioMark } from "@/components/rentio/rentio-mark";
 import { dashboardItem, navGroups, navItems } from "@/components/rentio/nav-items";
 import { cn } from "@/lib/utils";
@@ -25,7 +26,7 @@ const THEME_STORAGE_KEY = "rentio-theme";
 export function AppShell() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { profile, role, signOut } = useAuth();
+  const { profile, role, signOut, isSuperAdmin } = useAuth();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -247,6 +248,15 @@ export function AppShell() {
             </DropdownMenu>
           </div>
         </header>
+        {isSuperAdmin ? (
+          <div className="flex flex-wrap items-center gap-3 border-b border-border bg-muted/40 px-4 py-2 text-sm sm:px-6">
+            <span className="text-muted-foreground">{t("orgSwitcher.label")}</span>
+            <OrgSwitcher className="h-8 w-60" />
+            {!profile?.org_id ? (
+              <span className="text-muted-foreground">{t("orgSwitcher.hint")}</span>
+            ) : null}
+          </div>
+        ) : null}
         <main className="mx-auto max-w-[1600px] p-4 sm:p-6">
           <Outlet />
         </main>

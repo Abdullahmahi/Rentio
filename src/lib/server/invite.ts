@@ -8,7 +8,7 @@
  * profile in this org is updated, and the email simply goes out again.
  */
 import { button, emailLayout, escapeHtml, sendEmail, siteUrl } from "@/lib/server/email";
-import { ilikeLiteral, type Session } from "@/lib/server/session";
+import { forgetProfile, ilikeLiteral, type Session } from "@/lib/server/session";
 
 type InviteRole = "admin" | "manager" | "tenant";
 
@@ -30,17 +30,22 @@ export async function invite(
   // profiles trigger refuses a non-admin minting anything but a tenant.
   const { data: existing, error: findError } = await db
     .from("profiles")
-    .select("id")
+    .select("id, role, clerk_user_id")
     .ilike("email", ilikeLiteral(address))
     .maybeSingle();
   if (findError) throw findError;
 
+  // Re-inviting an admin or manager as a tenant must not demote them (B-002).
+  if (existing && existing.role !== "tenant" && role === "tenant") {
+    throw new Error("This email belongs to a staff member; change their role in Settings instead");
+  }
   const fields = { full_name: fullName, role, tenant_id: tenantId };
   const { error } = existing
     ? await db.from("profiles").update(fields).eq("id", existing.id)
     : await db
         .from("profiles")
         .insert({ ...fields, email: address, org_id: session.profile.org_id });
+  if (!error) forgetProfile(existing?.clerk_user_id);
   if (error) {
     // The unique email index, hit by a profile in another organization.
     if (/duplicate key/i.test(error.message))

@@ -22,6 +22,7 @@ import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/l
 import { db } from "@/lib/db";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
+import { blankToNull } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/properties/")({
   head: () => ({
@@ -67,6 +68,12 @@ function PropertiesPage() {
         .from("properties")
         .insert({
           ...values,
+          street: blankToNull(values.street),
+          address_line_2: blankToNull(values.address_line_2),
+          city: blankToNull(values.city),
+          state: blankToNull(values.state),
+          postal_code: blankToNull(values.postal_code),
+          notes: blankToNull(values.notes),
           units_in_structure: values.units_in_structure ? Number(values.units_in_structure) : null,
         })
         .select("id")

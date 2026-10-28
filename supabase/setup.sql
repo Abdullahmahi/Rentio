@@ -21,7 +21,7 @@
 
 
 -- ============================================================================
--- 1/16  20260919000100_schema
+-- 1/17  20260919000100_schema
 -- ============================================================================
 -- Rentio — core schema
 -- All money is numeric(12,2). Never float.
@@ -436,7 +436,7 @@ insert into public.settings (company_name, invoice_prefix) values ('Rentio', 'RE
 
 
 -- ============================================================================
--- 2/16  20260919000200_rls
+-- 2/17  20260919000200_rls
 -- ============================================================================
 -- Rentio — row level security. Deny by default, everywhere.
 --
@@ -834,7 +834,7 @@ create policy storage_tenant_write on storage.objects
 
 
 -- ============================================================================
--- 3/16  20260919000300_portal_views
+-- 3/17  20260919000300_portal_views
 -- ============================================================================
 -- The tenant portal needs the tenant's OWN unit number and building address:
 -- it is the payment reference on the Inicio screen and the whole of the
@@ -869,7 +869,7 @@ grant select on public.my_lease_details to authenticated;
 
 
 -- ============================================================================
--- 4/16  20260919000400_public_settings_address
+-- 4/17  20260919000400_public_settings_address
 -- ============================================================================
 -- The recibo PDF prints the landlord's letterhead — company name, address and
 -- bank details — and a tenant must be able to render their own receipt. The
@@ -905,7 +905,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 5/16  20260920000500_us_localization
+-- 5/17  20260920000500_us_localization
 -- ============================================================================
 -- Prompt 15 — the properties are in El Paso, Texas, not Mexico.
 -- Addresses become US addresses. No business logic changes here.
@@ -995,7 +995,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 6/16  20260920000501_drop_rfc
+-- 6/17  20260920000501_drop_rfc
 -- ============================================================================
 -- Prompt 20's cleanup, pulled forward: `rfc` was captured for Mexican tax
 -- invoicing (CFDI) that will never happen for a Texas landlord. Removing it
@@ -1025,7 +1025,7 @@ $$;
 
 
 -- ============================================================================
--- 7/16  20260920000600_us_payment_methods
+-- 7/17  20260920000600_us_payment_methods
 -- ============================================================================
 -- Prompt 16 — US payment rails.
 --
@@ -1110,7 +1110,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 8/16  20260920000700_texas_late_fees
+-- 8/17  20260920000700_texas_late_fees
 -- ============================================================================
 -- Prompt 17 — Texas Property Code §92.019 constrains residential late fees.
 --
@@ -1185,7 +1185,7 @@ alter table public.settings
 
 
 -- ============================================================================
--- 9/16  20260920000800_deposit_clock
+-- 9/17  20260920000800_deposit_clock
 -- ============================================================================
 -- Prompt 18 — Texas Property Code §92.103–92.109, security deposit returns.
 --
@@ -1253,7 +1253,7 @@ grant select on public.deposit_obligations to authenticated;
 
 
 -- ============================================================================
--- 10/16  20260920000900_texas_repairs_notices_turnover
+-- 10/17  20260920000900_texas_repairs_notices_turnover
 -- ============================================================================
 -- Prompt 19 — three smaller Texas Property Code obligations.
 
@@ -1403,7 +1403,7 @@ create policy turnover_admin_delete on public.unit_turnover_checklist
 
 
 -- ============================================================================
--- 11/16  20260920001000_late_fee_guard
+-- 11/17  20260920001000_late_fee_guard
 -- ============================================================================
 -- Prompt 17 said "do not let a manager bypass the 2-day rule anywhere in the
 -- UI". The gated "Apply late fee" button honoured it; "Add line" did not.
@@ -1476,7 +1476,7 @@ create trigger invoice_lines_enforce_late_fee_rules
 
 
 -- ============================================================================
--- 12/16  20260922001100_access_requests
+-- 12/17  20260922001100_access_requests
 -- ============================================================================
 -- A tenant with no invite needs somewhere to go.
 --
@@ -1540,7 +1540,7 @@ create policy access_requests_admin_delete on public.access_requests
 
 
 -- ============================================================================
--- 13/16  20260925001200_expenses
+-- 13/17  20260925001200_expenses
 -- ============================================================================
 -- Gastos: landlord expenses, entered by hand, one row per unit.
 -- The property is reached through units.property_id, like utility_charges.
@@ -1583,7 +1583,7 @@ create policy expenses_admin_delete on public.expenses
 
 
 -- ============================================================================
--- 14/16  20261024001300_super_admin_role
+-- 14/17  20261024001300_super_admin_role
 -- ============================================================================
 -- PortfolioAI staff: a role that spans every organization.
 --
@@ -1594,7 +1594,7 @@ alter type public.user_role add value if not exists 'super_admin';
 
 
 -- ============================================================================
--- 15/16  20261024001400_self_hosted_multi_tenant
+-- 15/17  20261024001400_self_hosted_multi_tenant
 -- ============================================================================
 -- Off Supabase, onto self-hosted Postgres + PostgREST, and multi-tenant.
 --
@@ -2131,7 +2131,79 @@ grant select on public.my_lease_details, public.public_settings to authenticated
 
 
 -- ============================================================================
--- 16/16  DEMO DATA
+-- 16/17  20261027001500_super_admin_acts_in_org
+-- ============================================================================
+-- A super_admin has no organization of their own, so every INSERT they made
+-- failed on org_id NOT NULL ("Something went wrong" on New property).
+--
+-- Now the app server lets a super_admin pick a company (a cookie), and puts
+-- it in the JWT as org_id. With a company picked they are scoped exactly like
+-- that company's admin: see only it, write into it. With none picked they
+-- keep the platform view: read everything, write nothing.
+
+do $$
+declare
+  t text;
+begin
+  foreach t in array array[
+    'properties','tenants','settings','access_requests','activity_log','documents',
+    'units','parking_spaces','leases','lease_tenants','lease_notices','invoices',
+    'invoice_lines','payments','payment_allocations','expenses','utility_charges',
+    'work_orders','work_order_notes','work_order_photos','unit_turnover_checklist'
+  ]
+  loop
+    execute format('drop policy if exists org_isolation on public.%I', t);
+    execute format(
+      'create policy org_isolation on public.%I as restrictive for all to authenticated
+         using (org_id = (select public.current_org_id())
+                or ((select public.is_super_admin()) and (select public.current_org_id()) is null))
+         with check (org_id = (select public.current_org_id())
+                or ((select public.is_super_admin()) and (select public.current_org_id()) is null))',
+      t);
+  end loop;
+end;
+$$;
+
+drop policy if exists org_isolation on public.profiles;
+create policy org_isolation on public.profiles as restrictive for all to authenticated
+  using (
+    org_id = (select public.current_org_id())
+    or id = (select public.current_user_id())
+    or ((select public.is_super_admin()) and (select public.current_org_id()) is null)
+  )
+  with check (
+    org_id = (select public.current_org_id())
+    or ((select public.is_super_admin()) and (select public.current_org_id()) is null)
+  );
+
+create or replace view public.my_lease_details
+with (security_invoker = false)
+as
+select
+  l.id            as lease_id,
+  u.id            as unit_id,
+  u.unit_number,
+  u.floor,
+  u.bedrooms,
+  u.bathrooms,
+  u.sqm,
+  p.name          as property_name,
+  p.street,
+  p.address_line_2,
+  p.city,
+  p.state,
+  p.postal_code
+from public.leases l
+join public.units u      on u.id = l.unit_id
+join public.properties p on p.id = u.property_id
+where (public.is_staff()
+       and (l.org_id = public.current_org_id()
+            or (public.is_super_admin() and public.current_org_id() is null)))
+   or l.id in (select public.my_lease_ids());
+
+
+-- ============================================================================
+-- 17/17  DEMO DATA
 -- ============================================================================
 -- Rentio — demo data (El Paso, Texas).
 -- Safe to re-run: it clears the demo tables first.

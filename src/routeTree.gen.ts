@@ -20,6 +20,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ApiMeRouteImport } from './routes/api.me'
+import { Route as ApiOrgRouteImport } from './routes/api.org'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
@@ -113,6 +114,11 @@ const SignupRoute = SignupRouteImport.update({
 const ApiMeRoute = ApiMeRouteImport.update({
   id: '/api/me',
   path: '/api/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOrgRoute = ApiOrgRouteImport.update({
+  id: '/api/org',
+  path: '/api/org',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -326,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/signup': typeof SignupRoute
   '/api/me': typeof ApiMeRoute
+  '/api/org': typeof ApiOrgRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -376,6 +383,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/signup': typeof SignupRoute
   '/api/me': typeof ApiMeRoute
+  '/api/org': typeof ApiOrgRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -429,6 +437,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/signup': typeof SignupRoute
   '/api/me': typeof ApiMeRoute
+  '/api/org': typeof ApiOrgRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -483,6 +492,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/signup'
     | '/api/me'
+    | '/api/org'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -533,6 +543,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/signup'
     | '/api/me'
+    | '/api/org'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -585,6 +596,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/signup'
     | '/api/me'
+    | '/api/org'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -638,6 +650,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   SignupRoute: typeof SignupRoute
   ApiMeRoute: typeof ApiMeRoute
+  ApiOrgRoute: typeof ApiOrgRoute
   ApiFilesSplatRoute: typeof ApiFilesSplatRoute
   ApiFnGenerateDepositDispositionRoute: typeof ApiFnGenerateDepositDispositionRoute
   ApiFnGenerateInvoicePdfRoute: typeof ApiFnGenerateInvoicePdfRoute
@@ -727,6 +740,13 @@ declare module '@tanstack/react-router' {
       path: '/api/me'
       fullPath: '/api/me'
       preLoaderRoute: typeof ApiMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/org': {
+      id: '/api/org'
+      path: '/api/org'
+      fullPath: '/api/org'
+      preLoaderRoute: typeof ApiOrgRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -1092,6 +1112,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   SignupRoute: SignupRoute,
   ApiMeRoute: ApiMeRoute,
+  ApiOrgRoute: ApiOrgRoute,
   ApiFilesSplatRoute: ApiFilesSplatRoute,
   ApiFnGenerateDepositDispositionRoute: ApiFnGenerateDepositDispositionRoute,
   ApiFnGenerateInvoicePdfRoute: ApiFnGenerateInvoicePdfRoute,

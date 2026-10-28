@@ -50,11 +50,18 @@ export async function invokeFn<T = unknown>(name: string, { body }: { body?: unk
 
 /** Raw API errors are not actionable. Map them to something an operator can act on. */
 export function describeError(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error ?? "");
+  // postgrest-js errors carry the Postgres message; read it off any object.
+  const message =
+    typeof error === "object" && error && "message" in error
+      ? String((error as { message: unknown }).message)
+      : String(error ?? "");
   if (/duplicate key|already exists|already has an account/i.test(message))
     return "errors.duplicate";
   if (/row-level security|permission denied|insufficient|forbidden|42501/i.test(message))
     return "errors.forbidden";
+  if (/null value in column "org_id"/i.test(message)) return "errors.noCompany";
+  if (/violates check constraint|violates not-null constraint|invalid input syntax/i.test(message))
+    return "errors.invalid";
   if (/Failed to fetch|NetworkError|fetch failed/i.test(message)) return "errors.network";
   return "errors.generic";
 }
