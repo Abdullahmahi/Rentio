@@ -962,11 +962,12 @@ function ContractDetailPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => {
+                        // A notice for non-payment makes no sense on a paid-up lease.
+                        const type = balance > 0 ? "non_payment" : "end_of_term";
                         setNoticeForm({
-                          // A notice for non-payment makes no sense on a paid-up lease.
-                          type: balance > 0 ? "non_payment" : "end_of_term",
+                          type,
                           reason: "",
-                          vacate_date: defaultVacateDate(),
+                          vacate_date: defaultVacateDate(type, lease.end_date),
                           delivery: "in_person",
                           delivered_at: todayIso(),
                         });
@@ -1298,7 +1299,11 @@ function ContractDetailPage() {
                 <Select
                   value={noticeForm.type}
                   onValueChange={(value) =>
-                    setNoticeForm({ ...noticeForm, type: value as NoticeType })
+                    setNoticeForm({
+                      ...noticeForm,
+                      type: value as NoticeType,
+                      vacate_date: defaultVacateDate(value as NoticeType, lease.end_date),
+                    })
                   }
                 >
                   <SelectTrigger>
@@ -1317,7 +1322,11 @@ function ContractDetailPage() {
                 <Field
                   label={t("notices.fields.vacateDate")}
                   htmlFor="notice-vacate"
-                  hint={t("notices.fields.vacateDateHint")}
+                  hint={t(
+                    noticeForm.type === "end_of_term"
+                      ? "notices.fields.vacateDateHintEndOfTerm"
+                      : "notices.fields.vacateDateHint",
+                  )}
                 >
                   <Input
                     id="notice-vacate"

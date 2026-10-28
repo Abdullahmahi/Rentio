@@ -1311,6 +1311,7 @@
       "type": "Notice type",
       "vacateDate": "Vacate by",
       "vacateDateHint": "Three days is the statutory default absent a longer period in the lease.",
+      "vacateDateHintEndOfTerm": "The lease end date, or at least one month's notice once the lease is month-to-month (§91.001).",
       "deliveredAt": "Delivered on",
       "delivery": "Delivery method",
       "reason": "Reason"

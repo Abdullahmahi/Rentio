@@ -108,7 +108,20 @@ export type NoticeDelivery = Enums<"notice_delivery">;
 export const NOTICE_TYPES: NoticeType[] = ["non_payment", "lease_violation", "end_of_term"];
 export const NOTICE_DELIVERY: NoticeDelivery[] = ["in_person", "mail", "affixed_to_door"];
 
-/** The default vacate date offered on the form. */
-export function defaultVacateDate(today = todayIso()) {
-  return addDays(today, DEFAULT_VACATE_NOTICE_DAYS);
+/** §91.001: a month-to-month tenancy ends on at least one month's notice. */
+export const END_OF_TERM_NOTICE_DAYS = 30;
+
+/**
+ * The default vacate date offered on the form. Three days (§24.005) is for
+ * non-payment and violations; ending a tenancy runs to the lease end, or a
+ * month's notice once it has rolled to month-to-month.
+ */
+export function defaultVacateDate(
+  type: NoticeType = "non_payment",
+  leaseEnd: string | null = null,
+  today = todayIso(),
+) {
+  if (type !== "end_of_term") return addDays(today, DEFAULT_VACATE_NOTICE_DAYS);
+  const month = addDays(today, END_OF_TERM_NOTICE_DAYS);
+  return leaseEnd && leaseEnd > month ? leaseEnd : month;
 }

@@ -43,6 +43,12 @@ test("the rekey deadline is the 7th day of possession", () => {
 });
 
 test("the vacate date defaults to the §24.005 three days", () => {
-  expect(defaultVacateDate("2026-09-01")).toBe("2026-09-04");
-  expect(defaultVacateDate("2026-10-30")).toBe("2026-11-02"); // across the DST change
+  expect(defaultVacateDate("non_payment", null, "2026-09-01")).toBe("2026-09-04");
+  expect(defaultVacateDate("lease_violation", null, "2026-10-30")).toBe("2026-11-02"); // across the DST change
+});
+
+test("an end-of-term notice runs to the lease end, or a month on month-to-month", () => {
+  expect(defaultVacateDate("end_of_term", "2027-06-30", "2026-10-27")).toBe("2027-06-30");
+  expect(defaultVacateDate("end_of_term", "2026-10-31", "2026-10-27")).toBe("2026-11-26");
+  expect(defaultVacateDate("end_of_term", null, "2026-10-27")).toBe("2026-11-26");
 });

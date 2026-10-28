@@ -1311,6 +1311,7 @@
       "type": "Tipo de aviso",
       "vacateDate": "Desocupar antes del",
       "vacateDateHint": "Tres días es el plazo legal por defecto si el contrato no fija uno mayor.",
+      "vacateDateHintEndOfTerm": "La fecha de fin del contrato, o al menos un mes de aviso si ya es mes a mes (§91.001).",
       "deliveredAt": "Entregado el",
       "delivery": "Forma de entrega",
       "reason": "Motivo"
