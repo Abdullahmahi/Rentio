@@ -222,6 +222,14 @@ export function DataTable<T>({
                   <TableRow
                     key={getRowId(row)}
                     onClick={() => onRowClick?.(row)}
+                    tabIndex={onRowClick ? 0 : undefined}
+                    onKeyDown={(event) => {
+                      if (!onRowClick || event.target !== event.currentTarget) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onRowClick(row);
+                      }
+                    }}
                     data-state={selected.has(getRowId(row)) ? "selected" : undefined}
                     className={cn(
                       "h-10 last:border-b-0",

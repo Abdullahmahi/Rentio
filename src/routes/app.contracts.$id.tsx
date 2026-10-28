@@ -204,11 +204,17 @@ function ContractDetailPage() {
         .eq("id", id);
       if (leaseError) throw leaseError;
 
-      const { error: unitError } = await db
-        .from("units")
-        .update({ status: "vacante" })
-        .eq("id", lease.unit_id);
-      if (unitError) throw unitError;
+      // Another active lease on the unit (a renewal) keeps it occupied.
+      const otherActive = (portfolio.data?.leases ?? []).some(
+        (row) => row.unit_id === lease.unit_id && row.id !== id && isActive(row),
+      );
+      if (!otherActive) {
+        const { error: unitError } = await db
+          .from("units")
+          .update({ status: "vacante" })
+          .eq("id", lease.unit_id);
+        if (unitError) throw unitError;
+      }
 
       // Parking follows the lease out — otherwise it keeps getting billed.
       const { error: parkingError } = await db
@@ -595,19 +601,21 @@ function ContractDetailPage() {
                         <span className="inline-flex items-center gap-2">
                           <MoneyText value={Number(lease.rent_amount)} />
                           {/* Changing the rent is an admin decision, not a manager one. */}
-                          <AdminOnly>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              aria-label={t("contracts.editRent")}
-                              onClick={() => {
-                                setRentAmount(Number(lease.rent_amount));
-                                setRentOpen(true);
-                              }}
-                            >
-                              <Pencil className="size-3.5" />
-                            </Button>
-                          </AdminOnly>
+                          {isActive(lease) ? (
+                            <AdminOnly>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                aria-label={t("contracts.editRent")}
+                                onClick={() => {
+                                  setRentAmount(Number(lease.rent_amount));
+                                  setRentOpen(true);
+                                }}
+                              >
+                                <Pencil className="size-3.5" />
+                              </Button>
+                            </AdminOnly>
+                          ) : null}
                         </span>
                       </Row>
                       <Row label={t("contracts.fields.dueDay")}>{lease.rent_due_day}</Row>
@@ -941,7 +949,8 @@ function ContractDetailPage() {
                       variant="outline"
                       onClick={() => {
                         setNoticeForm({
-                          type: "non_payment",
+                          // A notice for non-payment makes no sense on a paid-up lease.
+                          type: balance > 0 ? "non_payment" : "end_of_term",
                           reason: "",
                           vacate_date: defaultVacateDate(),
                           delivery: "in_person",
@@ -1251,11 +1260,13 @@ function ContractDetailPage() {
                 </div>
               ) : null}
 
+              {/* The PDF is the §92.104 record and prints what was SAVED, so it
+                  only makes sense once the settlement is on file (A-12). */}
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => downloadDisposition()}
-                disabled={!lease.forwarding_address_received_at}
+                disabled={!lease.forwarding_address_received_at || !lease.deposit_settled_at}
               >
                 <Download className="size-4" />
                 {t("contracts.downloadDisposition")}

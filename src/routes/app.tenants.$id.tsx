@@ -18,7 +18,7 @@ import {
   WorkOrderStatusBadge,
 } from "@/components/rentio/status";
 import { formatDate } from "@/lib/format";
-import { isActive, leaseContexts } from "@/lib/portfolio";
+import { currentLeaseFor, isActive, leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { db, invokeFn } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
@@ -64,7 +64,7 @@ function TenantDetailPage() {
     return leaseContexts(portfolio.data).filter((context) => mine.has(context.lease.id));
   }, [portfolio.data, id]);
 
-  const currentLease = leases.find((context) => isActive(context.lease));
+  const currentLease = currentLeaseFor(leases, id);
   const leaseIds = leases.map((context) => context.lease.id);
 
   /** Has this tenant already been given portal access? */
@@ -73,7 +73,7 @@ function TenantDetailPage() {
     queryFn: async () => {
       const { data, error } = await db
         .from("profiles")
-        .select("id, created_at, role")
+        .select("id, created_at, role, clerk_user_id")
         .eq("tenant_id", id)
         .maybeSingle();
       if (error) throw error;
@@ -223,13 +223,29 @@ function TenantDetailPage() {
               title={tenant.full_name}
               description={[tenant.email, tenant.phone].filter(Boolean).join(" · ")}
               actions={
-                portalProfile.data ? (
+                portalProfile.data?.clerk_user_id ? (
                   <span className="inline-flex items-center gap-2 rounded-lg border border-success/25 bg-success/10 px-3 py-2 text-sm font-medium text-success">
                     <CheckCircle2 className="size-4" />
                     {t("tenants.portalActiveSince", {
                       date: formatDate(portalProfile.data.created_at),
                     })}
                   </span>
+                ) : portalProfile.data ? (
+                  // Invited, but they have not signed in yet. Same mutation resends.
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm font-medium text-warning">
+                      {t("tenants.portalInvitedPending", {
+                        date: formatDate(portalProfile.data.created_at),
+                      })}
+                    </span>
+                    <Button
+                      variant="outline"
+                      onClick={() => invite.mutate(undefined)}
+                      disabled={invite.isPending || !tenant.email}
+                    >
+                      {t("tenants.resendInvite")}
+                    </Button>
+                  </div>
                 ) : (
                   <div className="text-right">
                     <Button

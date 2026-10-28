@@ -84,6 +84,35 @@ export function unitContexts(portfolio: Portfolio): UnitContext[] {
   });
 }
 
+/**
+ * The lease a person actually lives under: their active lease as primary
+ * tenant first, then as co-tenant. A guarantor's lease is never their
+ * residence, so it is never their balance either (QA A-06 / B-04).
+ */
+export function currentLeaseFor(contexts: LeaseContext[], tenantId: string) {
+  const active = contexts.filter((context) => isActive(context.lease));
+  return (
+    active.find((context) => context.primaryTenant?.id === tenantId) ??
+    active.find((context) => context.coTenants.some((person) => person.id === tenantId))
+  );
+}
+
+/** One current lease per tenant, ranked the same way as currentLeaseFor. */
+export function currentLeaseByTenant(contexts: LeaseContext[]) {
+  const byTenant = new Map<string, LeaseContext>();
+  const active = contexts.filter((context) => isActive(context.lease));
+  for (const context of active) {
+    if (context.primaryTenant && !byTenant.has(context.primaryTenant.id))
+      byTenant.set(context.primaryTenant.id, context);
+  }
+  for (const context of active) {
+    for (const person of context.coTenants) {
+      if (!byTenant.has(person.id)) byTenant.set(person.id, context);
+    }
+  }
+  return byTenant;
+}
+
 export function isActive(lease: Tables<"leases">) {
   return ACTIVE.includes(lease.status);
 }

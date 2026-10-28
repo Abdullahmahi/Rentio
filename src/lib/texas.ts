@@ -36,8 +36,10 @@ export function repairClock(
   today = todayIso(),
   resolvedAt: string | null = null,
 ): RepairClock {
-  const from = writtenNoticeAt.slice(0, 10);
-  const to = (resolvedAt ?? today).slice(0, 10);
+  // A timestamp is converted to its El Paso calendar day; a bare date is kept.
+  const toDay = (value: string) => (value.length > 10 ? todayIso(new Date(value)) : value);
+  const from = toDay(writtenNoticeAt);
+  const to = resolvedAt ? toDay(resolvedAt) : today;
   const day = daysBetween(from, to) + 1;
   const overdue = day > REPAIR_WINDOW_DAYS;
   return {

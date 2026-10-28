@@ -254,12 +254,13 @@
         "title": "Solicitudes de mantenimiento",
         "body": "Reporta un problema con fotos y dale seguimiento hasta que se resuelva."
       }
-    }
+    },
+    "suspended": "La cuenta de esta empresa est\\u00e1 suspendida. Contacta a PortfolioAI para restaurar el acceso."
   },
   "orgSwitcher": {
-      "label": "Actuando como",
-      "all": "Todas las empresas (solo lectura)",
-      "hint": "Elige una empresa para agregar o cambiar algo."
+    "label": "Actuando como",
+    "all": "Todas las empresas (solo lectura)",
+    "hint": "Elige una empresa para agregar o cambiar algo."
   },
   "roles": {
     "admin": "Administrador",
@@ -275,9 +276,10 @@
     "forbidden": "No tienes permiso para realizar esta acción.",
     "duplicate": "Ese registro ya existe.",
     "invalidCredentials": "Correo o contraseña incorrectos.",
-    "notConfigured": "Falta conectar Supabase. Agrega VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.",
     "loadFailed": "No pudimos cargar la información",
-    "notConfiguredTitle": "Falta conectar Supabase"
+    "inUse": "Todav\\u00eda est\\u00e1 en uso por otros registros (contratos, pagos, gastos). Elim\\u00ednalos primero.",
+    "sessionExpired": "Tu sesi\\u00f3n expir\\u00f3. Vuelve a iniciar sesi\\u00f3n.",
+    "suspended": "La cuenta de esta empresa est\\u00e1 suspendida. Contacta a PortfolioAI."
   },
   "unitStatus": {
     "vacante": "Vacante",
@@ -793,7 +795,9 @@
       "emailInvalid": "El correo electrónico no es válido.",
       "emailRequiredForInvite": "Agrega un correo electrónico antes de invitar al portal."
     },
-    "invitedWithoutEmail": "Cuenta creada, pero no se pudo entregar el correo de invitación. Revisa el dominio de envío en Resend."
+    "invitedWithoutEmail": "Cuenta creada, pero no se pudo entregar el correo de invitación. Revisa el dominio de envío en Resend.",
+    "portalInvitedPending": "Invitado el {{date}} \\u00b7 a\\u00fan no ha entrado",
+    "resendInvite": "Reenviar invitaci\\u00f3n"
   },
   "receipts": {
     "emptyTitle": "Sin recibos",
@@ -943,7 +947,8 @@
     "selectClaim": "Selecciona un pago para revisar",
     "queuePosition": "{{position}} de {{total}}",
     "openPdf": "Abrir el PDF",
-    "receiptUnavailable": "No se pudo cargar el comprobante"
+    "receiptUnavailable": "No se pudo cargar el comprobante",
+    "recordedByTenant": "Reportado por el inquilino"
   },
   "month": {
     "previous": "Mes anterior",
@@ -1324,7 +1329,8 @@
       "units": "Unidades",
       "tenants": "Inquilinos",
       "contracts": "Contratos",
-      "actions": "Acciones"
+      "actions": "Acciones",
+      "properties": "Propiedades"
     },
     "actions": {
       "generateReceipts": "Generar los recibos del mes",

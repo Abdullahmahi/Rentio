@@ -15,7 +15,7 @@ import { Combobox, type ComboboxOption } from "@/components/rentio/combobox";
 import { Field, FormDialog } from "@/components/rentio/form-dialog";
 import { MoneyInput } from "@/components/rentio/money-input";
 import { MoneyText } from "@/components/rentio/money-text";
-import { formatDate, formatMoney, parseIsoDate, todayIso } from "@/lib/format";
+import { addDays, formatDate, formatMoney, parseIsoDate, todayIso } from "@/lib/format";
 import {
   LARGE_STRUCTURE_CAP_PERCENT,
   MINIMUM_GRACE_DAYS,
@@ -53,6 +53,8 @@ export interface LeaseWizardSeed {
   lateFeePercent: number;
   lateFee: number;
   deposit: number;
+  /** For a renewal: the day after the current lease ends. */
+  startDate?: string;
 }
 
 interface LeaseWizardProps {
@@ -127,7 +129,7 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
     setPrimary(seed?.primaryTenantId ?? null);
     setCoTenants(seed?.coTenantIds ?? []);
     setGuarantors(seed?.guarantorIds ?? []);
-    const start = seed ? todayIso() : todayIso();
+    const start = seed?.startDate ?? todayIso();
     setTerms({
       start_date: start,
       end_date: addMonths(start, 12),
@@ -875,6 +877,7 @@ export function seedFromLease(
     lateFeePercent: Number(lease.late_fee_percent),
     lateFee: Number(lease.late_fee_amount),
     deposit: Number(lease.deposit_amount),
+    startDate: addDays(lease.end_date, 1),
   };
 }
 

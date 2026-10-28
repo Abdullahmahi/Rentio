@@ -151,12 +151,21 @@ function Kpi({
   bar,
   countTo,
   format,
+  to,
 }: {
   label: string;
   value: string;
   note?: string | undefined;
   tone?: string | undefined;
   bar?: number | undefined;
+  /** The list behind the number. */
+  to?:
+    | "/app/units"
+    | "/app/payments"
+    | "/app/receipts"
+    | "/app/maintenance"
+    | "/app/contracts"
+    | undefined;
   /** The raw number to count up from zero. */
   countTo?: number | undefined;
   /** Runs on every frame, so the currency symbol and tabular figures hold. */
@@ -165,8 +174,8 @@ function Kpi({
   const progress = useIntroProgress();
   const animating = countTo !== undefined && format !== undefined && progress < 1;
 
-  return (
-    <div className="rounded-lg border border-border bg-surface p-4 shadow-subtle">
+  const body = (
+    <>
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p className={`numeric mt-1 text-2xl font-semibold ${tone ?? ""}`}>
         {animating ? format(countTo * progress) : value}
@@ -180,7 +189,15 @@ function Kpi({
         </div>
       ) : null}
       {note ? <p className={`mt-1.5 text-xs ${tone ?? "text-muted-foreground"}`}>{note}</p> : null}
-    </div>
+    </>
+  );
+  const className = "block rounded-lg border border-border bg-surface p-4 shadow-subtle";
+  return to ? (
+    <Link to={to} className={`${className} transition-colors hover:border-primary/40`}>
+      {body}
+    </Link>
+  ) : (
+    <div className={className}>{body}</div>
   );
 }
 
@@ -454,7 +471,12 @@ function DashboardPage() {
       >
         {depositsOverdue.length > 0 ? (
           <Link
-            to="/app/reports"
+            {...(depositsOverdue.length === 1 && depositsOverdue[0]
+              ? {
+                  to: "/app/contracts/$id" as const,
+                  params: { id: depositsOverdue[0].context.lease.id },
+                }
+              : { to: "/app/contracts" as const })}
             className="mb-4 flex items-center gap-3 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm font-medium text-danger hover:bg-danger/15"
           >
             <AlertTriangle className="size-4 shrink-0" />
@@ -467,6 +489,7 @@ function DashboardPage() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
           <Kpi
+            to="/app/units"
             label={t("dashboard.kpi.occupancy")}
             value={t("dashboard.unitsOf", { occupied: stats.occupied, total: stats.total })}
             countTo={stats.occupied}
@@ -477,6 +500,7 @@ function DashboardPage() {
             bar={stats.rate}
           />
           <Kpi
+            to="/app/payments"
             label={t("dashboard.kpi.collected")}
             value={formatMoney(current.collected)}
             countTo={current.collected}
@@ -485,6 +509,7 @@ function DashboardPage() {
             bar={current.invoiced > 0 ? current.collected / current.invoiced : 0}
           />
           <Kpi
+            to="/app/receipts"
             label={t("dashboard.kpi.overdue")}
             value={formatMoney(overdue.reduce((sum, row) => sum + row.amount, 0))}
             countTo={overdue.reduce((sum, row) => sum + row.amount, 0)}
@@ -493,6 +518,7 @@ function DashboardPage() {
             tone="text-danger"
           />
           <Kpi
+            to="/app/maintenance"
             label={t("dashboard.kpi.healthSafetyOverdue")}
             value={String(openOrderCounts.data?.healthSafetyOverdue ?? 0)}
             countTo={openOrderCounts.data?.healthSafetyOverdue ?? 0}
@@ -501,6 +527,7 @@ function DashboardPage() {
             tone={(openOrderCounts.data?.healthSafetyOverdue ?? 0) > 0 ? "text-danger" : undefined}
           />
           <Kpi
+            to="/app/contracts"
             label={t("dashboard.kpi.turnoverOverdue")}
             value={String(turnoverOverdue.data ?? 0)}
             countTo={turnoverOverdue.data ?? 0}
@@ -509,6 +536,7 @@ function DashboardPage() {
             tone={(turnoverOverdue.data ?? 0) > 0 ? "text-danger" : undefined}
           />
           <Kpi
+            to="/app/maintenance"
             label={t("dashboard.kpi.openOrders")}
             value={String(openOrderCounts.data?.open ?? 0)}
             countTo={openOrderCounts.data?.open ?? 0}

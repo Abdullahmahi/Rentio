@@ -50,17 +50,38 @@ export async function invokeFn<T = unknown>(name: string, { body }: { body?: unk
 
 /** Raw API errors are not actionable. Map them to something an operator can act on. */
 export function describeError(error: unknown): string {
-  // postgrest-js errors carry the Postgres message; read it off any object.
-  const message =
-    typeof error === "object" && error && "message" in error
-      ? String((error as { message: unknown }).message)
-      : String(error ?? "");
-  if (/duplicate key|already exists|already has an account/i.test(message))
+  // postgrest-js errors are plain objects with the Postgres message and code.
+  const err = (typeof error === "object" && error ? error : {}) as {
+    message?: unknown;
+    code?: unknown;
+    error?: unknown;
+  };
+  const message = String(
+    err.message ?? err.error ?? (error instanceof Error ? error.message : (error ?? "")),
+  );
+  const code = String(err.code ?? "");
+  if (code === "23505" || /duplicate key|already exists|already has an account/i.test(message))
     return "errors.duplicate";
-  if (/row-level security|permission denied|insufficient|forbidden|42501/i.test(message))
-    return "errors.forbidden";
+  if (code === "23503" || /violates foreign key|still referenced/i.test(message))
+    return "errors.inUse";
+  if (code === "PGRST301" || /jwt expired|unauthenticated|HTTP 401/i.test(message))
+    return "errors.sessionExpired";
+  if (/organization_suspended/i.test(message)) return "errors.suspended";
   if (/null value in column "org_id"/i.test(message)) return "errors.noCompany";
-  if (/violates check constraint|violates not-null constraint|invalid input syntax/i.test(message))
+  // Our own triggers raise plain-language messages (late-fee guard, role guard):
+  // show them as they are.
+  if (code === "P0001" && message) return message;
+  if (
+    code === "42501" ||
+    /row-level security|permission denied|insufficient|forbidden/i.test(message)
+  )
+    return "errors.forbidden";
+  if (
+    code === "23514" ||
+    code === "23502" ||
+    code === "22P02" ||
+    /violates check constraint|violates not-null constraint|invalid input syntax/i.test(message)
+  )
     return "errors.invalid";
   if (/Failed to fetch|NetworkError|fetch failed/i.test(message)) return "errors.network";
   return "errors.generic";

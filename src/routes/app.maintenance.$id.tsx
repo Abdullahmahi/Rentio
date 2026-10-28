@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import type { Enums, TablesUpdate } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
+import { formatUsPhone } from "@/lib/us";
 
 export const Route = createFileRoute("/app/maintenance/$id")({
   head: () => ({
@@ -303,6 +304,11 @@ function WorkOrderDetailPage() {
               ) : null}
             </div>
 
+            {data.affects_health_safety && !data.written_notice_at ? (
+              <span className="inline-flex items-center rounded-full border border-danger/30 bg-danger/10 px-2.5 py-1 text-xs font-medium text-danger">
+                {t("maintenance.fields.healthSafety")}
+              </span>
+            ) : null}
             {/* §92.056 — the statutory repair window, counted from the
                 tenant's written notice. A portal order IS that notice. */}
             {data.affects_health_safety && data.written_notice_at ? (
@@ -529,7 +535,7 @@ function WorkOrderDetailPage() {
                         className="numeric"
                         value={vendor.vendor_phone}
                         onChange={(event) =>
-                          setVendor({ ...vendor, vendor_phone: event.target.value })
+                          setVendor({ ...vendor, vendor_phone: formatUsPhone(event.target.value) })
                         }
                       />
                     </Field>

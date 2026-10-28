@@ -24,6 +24,11 @@ const context = (over: Partial<ValidationContext> = {}): ValidationContext => ({
   ...over,
 });
 
+test("parseDate refuses a day that only exists by rolling over", () => {
+  expect(parseDate("02/31/2026")).toBeNull(); // JS would make this March 3
+  expect(parseDate("02/28/2026")).toBe("2026-02-28");
+});
+
 test("parseDate reads mm/dd/yyyy first, then ISO", () => {
   expect(parseDate("01/03/2026")).toBe("2026-01-03"); // 3 January, not 1 March
   expect(parseDate("12/31/2026")).toBe("2026-12-31");
@@ -191,4 +196,20 @@ test("CSV round-trips quoted fields, embedded commas and blank lines", () => {
     ["Roma, Norte", 'dice "hola"'],
     ["x", "y"],
   ]);
+});
+
+test("number cells read a thousands comma as a separator and a lone comma as a decimal", () => {
+  const schema = IMPORT_SCHEMAS.units;
+  const mapping = autoMapColumns(["property", "unit_number", "sqm", "base_rent"], schema);
+  const [big, small] = validateRows(
+    [
+      ["Mesa Hills Apartments", "201", "1,200", "950"],
+      ["Mesa Hills Apartments", "202", "1,5", "950"],
+    ],
+    mapping,
+    schema,
+    context(),
+  );
+  expect(big?.values["sqm"]).toBe(1200);
+  expect(small?.values["sqm"]).toBe(1.5);
 });

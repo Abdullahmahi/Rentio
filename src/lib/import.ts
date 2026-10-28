@@ -275,7 +275,9 @@ export function parseDate(raw: string): string | null {
     const [, month, day, year] = slash;
     if (Number(month) > 12 || Number(day) > 31) return null;
     const iso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    return Number.isNaN(new Date(`${iso}T00:00:00`).getTime()) ? null : iso;
+    // JS rolls 02/31 over to March 3; a date that does not round-trip is not a date.
+    const parsed = new Date(`${iso}T00:00:00`);
+    return Number.isNaN(parsed.getTime()) || parsed.getDate() !== Number(day) ? null : iso;
   }
 
   const isoMatch = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(value);
@@ -365,7 +367,11 @@ export function validateRows(
         }
         case "number":
         case "integer": {
-          const parsed = Number(cell.replace(/,/g, "."));
+          // "1,200" is a thousands separator; "1,5" is a decimal comma.
+          const normalised = /^\d{1,3}(,\d{3})+(\.\d+)?$/.test(cell)
+            ? cell.replace(/,/g, "")
+            : cell.replace(/,/g, ".");
+          const parsed = Number(normalised);
           if (!Number.isFinite(parsed)) {
             error ??= {
               key: "import.errors.notANumber",

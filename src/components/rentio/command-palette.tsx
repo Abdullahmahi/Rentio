@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
+  Building2,
   DoorClosed,
   FileText,
   Languages,
@@ -113,6 +114,16 @@ export function CommandPalette({
     }));
   }, [data, navigate]);
 
+  const propertyRows: Row[] = useMemo(() => {
+    if (!data) return [];
+    return data.properties.map((property) => ({
+      id: `property-${property.id}`,
+      label: property.name,
+      hint: property.street ?? "",
+      onSelect: () => void navigate({ to: "/app/properties/$id", params: { id: property.id } }),
+    }));
+  }, [data, navigate]);
+
   const tenantRows: Row[] = useMemo(() => {
     if (!data) return [];
     return data.tenants.map((tenant) => ({
@@ -161,6 +172,7 @@ export function CommandPalette({
 
   const groups = [
     { key: "navigation", icon: Search, rows: capRows(navigationRows, search) },
+    { key: "properties", icon: Building2, rows: capRows(propertyRows, search) },
     { key: "units", icon: DoorClosed, rows: capRows(unitRows, search) },
     { key: "tenants", icon: Users, rows: capRows(tenantRows, search) },
     { key: "contracts", icon: FileText, rows: capRows(contractRows, search) },

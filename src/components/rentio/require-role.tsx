@@ -49,7 +49,10 @@ export function RequireRole({
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      void navigate({ to: "/sign-in", search: { redirect: pathname }, replace: true });
+      // The effect fires once more while the router is already on /sign-in;
+      // that run must not send "/sign-in" as the place to come back to.
+      if (!pathname.startsWith("/sign-in"))
+        void navigate({ to: "/sign-in", search: { redirect: pathname }, replace: true });
       return;
     }
     // Signed in but the profile row is missing or still loading a role.

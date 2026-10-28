@@ -563,7 +563,10 @@ function PaymentsPage() {
       key: "recorded",
       header: t("payments.columns.recordedBy"),
       sortValue: (row) => row.recorded_by ?? "",
-      cell: (row) => nameOf(row.recorded_by),
+      cell: (row) =>
+        row.reported_by_tenant && !row.recorded_by
+          ? t("payments.recordedByTenant")
+          : nameOf(row.recorded_by),
     },
     {
       key: "actions",

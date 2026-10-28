@@ -254,12 +254,13 @@
         "title": "Maintenance requests",
         "body": "Report a problem with photos and follow it through to done."
       }
-    }
+    },
+    "suspended": "This company\\u2019s account is suspended. Contact PortfolioAI to restore access."
   },
   "orgSwitcher": {
-      "label": "Acting as",
-      "all": "All companies (view only)",
-      "hint": "Pick a company to add or change anything."
+    "label": "Acting as",
+    "all": "All companies (view only)",
+    "hint": "Pick a company to add or change anything."
   },
   "roles": {
     "admin": "Administrator",
@@ -275,9 +276,10 @@
     "forbidden": "You don't have permission to do that.",
     "duplicate": "That record already exists.",
     "invalidCredentials": "Incorrect email or password.",
-    "notConfigured": "Supabase isn't connected yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
     "loadFailed": "We couldn't load this information",
-    "notConfiguredTitle": "Supabase isn't connected"
+    "inUse": "This is still used by other records (leases, payments, expenses). Remove those first.",
+    "sessionExpired": "Your session expired. Sign in again.",
+    "suspended": "This company\\u2019s account is suspended. Contact PortfolioAI."
   },
   "unitStatus": {
     "vacante": "Vacant",
@@ -793,7 +795,9 @@
       "emailInvalid": "That email address isn't valid.",
       "emailRequiredForInvite": "Add an email address before inviting them to the portal."
     },
-    "invitedWithoutEmail": "Account created, but the invite email could not be delivered. Check the sending domain in Resend."
+    "invitedWithoutEmail": "Account created, but the invite email could not be delivered. Check the sending domain in Resend.",
+    "portalInvitedPending": "Invited {{date}} \\u00b7 not signed in yet",
+    "resendInvite": "Resend invite"
   },
   "receipts": {
     "emptyTitle": "No receipts",
@@ -943,7 +947,8 @@
     "selectClaim": "Select a payment to review",
     "queuePosition": "{{position}} of {{total}}",
     "openPdf": "Open the PDF",
-    "receiptUnavailable": "The proof could not be loaded"
+    "receiptUnavailable": "The proof could not be loaded",
+    "recordedByTenant": "Reported by tenant"
   },
   "month": {
     "previous": "Previous month",
@@ -1324,7 +1329,8 @@
       "units": "Units",
       "tenants": "Tenants",
       "contracts": "Contracts",
-      "actions": "Actions"
+      "actions": "Actions",
+      "properties": "Properties"
     },
     "actions": {
       "generateReceipts": "Generate this month's receipts",

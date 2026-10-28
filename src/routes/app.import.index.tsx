@@ -30,6 +30,7 @@ import { db } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
+import { todayIso } from "@/lib/format";
 
 export const Route = createFileRoute("/app/import/")({
   head: () => ({ meta: [{ title: pageTitle(i18n.t("import.title")) }] }),
@@ -213,16 +214,20 @@ function Importer({ kind }: { kind: ImportKind }) {
             rent_amount: Number(value["rent_amount"] ?? 0),
             rent_due_day: (value["rent_due_day"] as number | null) ?? 1,
             deposit_amount: Number(value["deposit_amount"] ?? 0),
-            status: "activo" as const,
           };
 
           if (existing) {
+            // Never touch status on re-import: a lease ended by move-out stays ended.
             const { error } = await db.from("leases").update(payload).eq("id", existing.id);
             if (error) throw error;
           } else {
             const { data: lease, error } = await db
               .from("leases")
-              .insert(payload)
+              .insert({
+                ...payload,
+                status:
+                  payload.end_date < todayIso() ? ("terminado" as const) : ("activo" as const),
+              })
               .select("id")
               .single();
             if (error) throw error;

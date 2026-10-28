@@ -24,6 +24,11 @@ interface AuthValue {
   loading: boolean;
   /** Signed in, but no profile was found or linked for this login. */
   noAccess: boolean;
+  /** Why the profile is missing: nobody invited this login, the company is
+   *  suspended, or the lookup itself failed (retry with refreshProfile). */
+  accessError: "no_profile" | "suspended" | "failed" | null;
+  /** Update the in-memory profile ahead of the server (locale, name). */
+  patchProfile: (partial: Partial<Profile>) => void;
   isAdmin: boolean;
   isManager: boolean;
   isStaff: boolean;
@@ -60,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { isLoaded, userId, signOut: clerkSignOut } = useClerkAuth();
   const { user: clerkUser } = useUser();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [noAccess, setNoAccess] = useState(false);
+  const [accessError, setAccessError] = useState<AuthValue["accessError"]>(null);
   // Which login the current `profile` was actually fetched for. Without this
   // there is a window where the login has changed but the profile still
   // belongs to the previous user, and a consumer cannot tell "no profile
@@ -68,31 +73,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
 
   const loadProfile = useCallback(async () => {
-    const response = await apiFetch("/api/me");
-    if (response.ok) {
-      const body = (await response.json()) as { profile: Profile };
-      setProfile(body.profile);
-      setNoAccess(false);
-    } else {
+    try {
+      const response = await apiFetch("/api/me");
+      if (response.ok) {
+        const body = (await response.json()) as { profile: Profile };
+        setProfile(body.profile);
+        setAccessError(null);
+        return;
+      }
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
       setProfile(null);
-      setNoAccess(response.status === 403);
+      setAccessError(
+        response.status === 403
+          ? body?.error === "organization_suspended"
+            ? "suspended"
+            : "no_profile"
+          : "failed",
+      );
+    } catch (error) {
+      console.error("profile load failed", error);
+      setProfile(null);
+      setAccessError("failed");
     }
+  }, []);
+
+  const patchProfile = useCallback((partial: Partial<Profile>) => {
+    setProfile((current) => (current ? { ...current, ...partial } : current));
   }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
     if (!userId) {
       setProfile(null);
-      setNoAccess(false);
+      setAccessError(null);
       setLoadedFor(null);
       return;
     }
     let active = true;
-    void loadProfile()
-      .catch((error: unknown) => console.error("profile load failed", error))
-      .finally(() => {
-        if (active) setLoadedFor(userId);
-      });
+    void loadProfile().finally(() => {
+      if (active) setLoadedFor(userId);
+    });
     return () => {
       active = false;
     };
@@ -114,7 +134,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       role,
       loading,
-      noAccess,
+      noAccess: accessError === "no_profile",
+      accessError,
+      patchProfile,
       isAdmin: role === "admin" || role === "super_admin",
       isManager: role === "manager",
       isStaff: role === "admin" || role === "manager" || role === "super_admin",
@@ -122,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       refreshProfile: loadProfile,
     };
-  }, [userId, clerkUser, profile, loading, noAccess, signOut, loadProfile]);
+  }, [userId, clerkUser, profile, loading, accessError, signOut, loadProfile, patchProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

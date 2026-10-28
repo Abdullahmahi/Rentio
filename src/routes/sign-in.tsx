@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SignIn } from "@clerk/tanstack-react-start";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { AuthLayout } from "@/components/rentio/auth-layout";
 import { clerkAppearance, homeFor, useAuth } from "@/lib/auth";
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/sign-in")({
 function SignInPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { signOut, loading, user, role, noAccess } = useAuth();
+  const { signOut, loading, user, role, noAccess, accessError, refreshProfile } = useAuth();
   const { redirect } = Route.useSearch();
   const [unrecognised, setUnrecognised] = useState(false);
 
@@ -45,7 +47,9 @@ function SignInPage() {
     // `redirect` is an arbitrary in-app path, so it cannot be a literal route
     // type. Only same-origin paths are honoured.
     const target =
-      redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : homeFor(role);
+      redirect?.startsWith("/") && !redirect.startsWith("//") && !redirect.startsWith("/sign-in")
+        ? redirect
+        : homeFor(role);
     void navigate({ to: target as "/app", replace: true });
   }, [loading, user, role, noAccess, redirect, navigate, signOut]);
 
@@ -76,13 +80,44 @@ function SignInPage() {
         </div>
       ) : null}
 
+      {accessError === "suspended" ? (
+        <p
+          role="alert"
+          className="mt-6 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning"
+        >
+          {t("auth.suspended")}
+        </p>
+      ) : null}
+      {accessError === "failed" ? (
+        <div
+          role="alert"
+          className="mt-6 flex items-center justify-between gap-3 rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+        >
+          <span>{t("errors.loadFailed")}</span>
+          <Button size="sm" variant="outline" onClick={() => void refreshProfile()}>
+            {t("actions.retry")}
+          </Button>
+        </div>
+      ) : null}
+
       <div className="mt-8">
-        <SignIn
-          routing="hash"
-          signUpUrl="/signup"
-          forceRedirectUrl={here}
-          appearance={clerkAppearance}
-        />
+        {user ? (
+          // Signed in with Clerk; now linking the login to its profile. Clerk's
+          // card renders nothing in this state, which read as a broken page.
+          !accessError ? (
+            <div role="status" className="flex items-center gap-3 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" />
+              {t("auth.checkingSession")}
+            </div>
+          ) : null
+        ) : (
+          <SignIn
+            routing="hash"
+            signUpUrl="/signup"
+            forceRedirectUrl={here}
+            appearance={clerkAppearance}
+          />
+        )}
       </div>
     </AuthLayout>
   );

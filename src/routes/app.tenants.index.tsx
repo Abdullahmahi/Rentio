@@ -19,7 +19,7 @@ import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { LeaseStatusBadge } from "@/components/rentio/status";
-import { isActive, leaseContexts } from "@/lib/portfolio";
+import { currentLeaseByTenant, isActive, leaseContexts } from "@/lib/portfolio";
 import { PHONE_HINT, formatUsPhone } from "@/lib/us";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { db } from "@/lib/db";
@@ -69,14 +69,8 @@ function TenantsPage() {
     if (!portfolio.data) return [];
     const contexts = leaseContexts(portfolio.data);
 
-    // Each tenant's current lease is the active one they are named on.
-    const activeByTenant = new Map<string, (typeof contexts)[number]>();
-    for (const context of contexts) {
-      if (!isActive(context.lease)) continue;
-      for (const person of [context.primaryTenant, ...context.coTenants, ...context.guarantors]) {
-        if (person && !activeByTenant.has(person.id)) activeByTenant.set(person.id, context);
-      }
-    }
+    // Each tenant's current lease: primary first, then co-tenant, never guarantor.
+    const activeByTenant = currentLeaseByTenant(contexts);
 
     return portfolio.data.tenants
       .map((tenant) => {

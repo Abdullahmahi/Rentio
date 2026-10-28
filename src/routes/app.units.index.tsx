@@ -304,7 +304,7 @@ function UnitsPage() {
                   {t("units.card.specs", {
                     bedrooms: row.unit.bedrooms ?? 0,
                     bathrooms: row.unit.bathrooms ?? 0,
-                    sqm: row.unit.sqm ?? 0,
+                    sqm: row.unit.sqm ?? "—",
                   })}
                 </p>
                 <div className="mt-3">

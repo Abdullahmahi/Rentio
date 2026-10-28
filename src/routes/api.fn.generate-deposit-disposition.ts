@@ -12,7 +12,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { formatDate, formatMoney } from "@/lib/format";
+import { formatDate, formatMoney, todayIso } from "@/lib/format";
 import { fail, requireSession } from "@/lib/server/session";
 import { putObject, signedUrl } from "@/lib/server/storage";
 
@@ -240,7 +240,7 @@ export const Route = createFileRoute("/api/fn/generate-deposit-disposition")({
 
           y -= 14;
           text(
-            `${c.issued}: ${formatDate(lease.deposit_settled_at ?? new Date().toISOString().slice(0, 10))}`,
+            `${c.issued}: ${formatDate(lease.deposit_settled_at ?? todayIso())}`,
             left,
             9,
             regular,

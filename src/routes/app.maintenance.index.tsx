@@ -306,11 +306,12 @@ function MaintenancePage() {
 
       for (const photo of form.photos) {
         const path = await uploadFile("work-order-photos", order.id, photo);
-        await db.from("work_order_photos").insert({
+        const { error: photoError } = await db.from("work_order_photos").insert({
           work_order_id: order.id,
           url: path,
           uploaded_by: actorId,
         });
+        if (photoError) throw photoError;
       }
 
       await logActivity(actorId, "work_order", order.id, "create", { title: form.title });

@@ -6,6 +6,8 @@
  */
 import { expect, test } from "bun:test";
 import {
+  currentLeaseByTenant,
+  currentLeaseFor,
   daysUntilEnd,
   isExpiringSoon,
   leaseContexts,
@@ -115,4 +117,22 @@ test("effectiveInvoiceStatus derives vencido from the due date, not the stored v
   expect(effectiveInvoiceStatus({ status: "enviado", due_date: past, total: 1000 }, 999.9999)).toBe(
     "pagado",
   );
+});
+
+test("a tenant's current lease is where they are primary, then co-tenant, never guarantor", () => {
+  const data = fixture();
+  // t1 is primary on l1 and also a guarantor on a second active lease l3
+  data.leases.push({ id: "l3", unit_id: "u3", status: "activo", end_date: "2027-01-31" } as never);
+  data.leaseTenants.push(
+    { id: "lt4", lease_id: "l3", tenant_id: "t3", role: "primary" } as never,
+    { id: "lt5", lease_id: "l3", tenant_id: "t1", role: "guarantor" } as never,
+    { id: "lt6", lease_id: "l3", tenant_id: "t2", role: "co_tenant" } as never,
+  );
+  const contexts = leaseContexts(data);
+  expect(currentLeaseFor(contexts, "t1")?.lease.id).toBe("l1");
+  expect(currentLeaseFor(contexts, "t2")?.lease.id).toBe("l1"); // co-tenant on both: first wins
+  expect(currentLeaseFor(contexts, "t3")?.lease.id).toBe("l3"); // guarantor on l1, primary on l3
+  const byTenant = currentLeaseByTenant(contexts);
+  expect(byTenant.get("t3")?.lease.id).toBe("l3");
+  expect(byTenant.get("t1")?.lease.id).toBe("l1");
 });

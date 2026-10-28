@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { db, describeError } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
-import { LANGUAGE_STORAGE_KEY, resolveLanguage, type AppLanguage } from "@/lib/i18n";
+import i18n, { LANGUAGE_STORAGE_KEY, resolveLanguage, type AppLanguage } from "@/lib/i18n";
 import type { Tables, Views } from "@/lib/database.types";
 
 export const qk = {
@@ -250,16 +250,34 @@ export interface MyPortal {
  * tenant's row, that would be a policy bug, not a UI bug.
  */
 export function useMyPortal() {
+  const { profile } = useAuth();
+  const myTenantId = profile?.tenant_id ?? null;
   return useQuery({
-    queryKey: ["my-portal"],
+    queryKey: ["my-portal", myTenantId],
     queryFn: async (): Promise<MyPortal> => {
-      const leases = await db
-        .from("leases")
-        .select("*")
-        .order("start_date", { ascending: false })
-        .then(unwrap<Tables<"leases">[]>);
+      const [leases, links] = await Promise.all([
+        db
+          .from("leases")
+          .select("*")
+          .order("start_date", { ascending: false })
+          .then(unwrap<Tables<"leases">[]>),
+        db
+          .from("lease_tenants")
+          .select("lease_id, role, tenant_id")
+          .then(unwrap<Pick<Tables<"lease_tenants">, "lease_id" | "role" | "tenant_id">[]>),
+      ]);
+      // My residence: the active lease where I am primary, then co-tenant.
+      // A lease I only guarantee is never "my" lease (A-06).
+      const roleOf = new Map(
+        links
+          .filter((link) => link.tenant_id === myTenantId)
+          .map((link) => [link.lease_id, link.role]),
+      );
+      const active = leases.filter((row) => row.status === "activo" || row.status === "por_vencer");
       const lease =
-        leases.find((row) => row.status === "activo" || row.status === "por_vencer") ??
+        active.find((row) => roleOf.get(row.id) === "primary") ??
+        active.find((row) => roleOf.get(row.id) === "co_tenant") ??
+        active[0] ??
         leases[0] ??
         null;
 
@@ -356,16 +374,16 @@ export function useMyTenant() {
  * default applies instead.
  */
 export function useLanguagePreference(fallback: AppLanguage) {
-  const { i18n } = useTranslation();
-  const { profile, refreshProfile } = useAuth();
+  // The module singleton, not useTranslation()'s wrapper: react-i18next hands
+  // out a new wrapper on every language change, which re-ran the resolve
+  // effect below with the still-old profile locale and flipped the language
+  // straight back (QA B-02).
+  const { profile, patchProfile } = useAuth();
 
-  const apply = useCallback(
-    (language: AppLanguage) => {
-      void i18n.changeLanguage(language);
-      if (typeof document !== "undefined") document.documentElement.lang = language;
-    },
-    [i18n],
-  );
+  const apply = useCallback((language: AppLanguage) => {
+    void i18n.changeLanguage(language);
+    if (typeof document !== "undefined") document.documentElement.lang = language;
+  }, []);
 
   // Resolve on mount and whenever the profile arrives. Deferred a tick because
   // changing language during render warns in react-i18next.
@@ -378,20 +396,19 @@ export function useLanguagePreference(fallback: AppLanguage) {
       else if (typeof document !== "undefined") document.documentElement.lang = language;
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [apply, fallback, i18n, profile?.locale]);
+  }, [apply, fallback, profile?.locale]);
 
   const setLanguage = useCallback(
     (language: AppLanguage) => {
       apply(language);
       window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
       if (!profile?.id) return;
-      void db
-        .from("profiles")
-        .update({ locale: language })
-        .eq("id", profile.id)
-        .then(() => refreshProfile());
+      // Patch the in-memory profile now, so the resolve effect agrees with the
+      // choice; the server copy follows.
+      patchProfile({ locale: language });
+      void db.from("profiles").update({ locale: language }).eq("id", profile.id);
     },
-    [apply, profile?.id, refreshProfile],
+    [apply, profile?.id, patchProfile],
   );
 
   return { language: i18n.language as AppLanguage, setLanguage };

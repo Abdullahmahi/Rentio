@@ -154,6 +154,7 @@ export function AppShell() {
               variant="ghost"
               className="absolute right-2 top-3"
               onClick={() => setMobileOpen(false)}
+              aria-label={t("actions.close")}
             >
               <X />
             </Button>
@@ -187,6 +188,7 @@ export function AppShell() {
           </button>
           <div className="flex shrink-0 items-center gap-1">
             <div
+              role="group"
               className="flex rounded-lg border border-border p-0.5"
               aria-label={t("actions.changeLanguage")}
             >
@@ -199,6 +201,7 @@ export function AppShell() {
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-muted",
                   )}
+                  aria-pressed={i18n.language === language}
                   onClick={() => setLanguage(language)}
                 >
                   {t(`language.${language}`)}

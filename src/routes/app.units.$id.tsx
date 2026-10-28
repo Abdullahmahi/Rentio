@@ -174,6 +174,9 @@ function UnitDetailPage() {
               actions={
                 <div className="flex items-center gap-3">
                   <UnitStatusBadge value={unit.status} />
+                  <span className="text-xs text-muted-foreground">
+                    {t("units.fields.baseRent")}
+                  </span>
                   <MoneyText value={Number(unit.base_rent)} className="text-base font-semibold" />
                 </div>
               }
