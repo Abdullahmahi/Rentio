@@ -158,7 +158,11 @@ export function planMonthlyInvoices({
     toCreate.push({
       ...describe(context),
       propertyName: context.property?.name ?? "",
-      dueDate: dueDateFor(period, context.lease.rent_due_day),
+      // A lease that starts mid-month is not due before move-in.
+      dueDate: [
+        dueDateFor(period, context.lease.rent_due_day),
+        context.lease.start_date ?? "",
+      ].sort()[1]!,
       lines,
       total,
     });

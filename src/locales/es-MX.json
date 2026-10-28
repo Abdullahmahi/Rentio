@@ -816,6 +816,7 @@
     "generate": "Generar recibos del mes",
     "generateTitle": "Generar recibos — {{month}}",
     "generateSubmit": "Generar recibos",
+    "generatePreview_one": "Se generará 1 recibo por un total de {{total}}.",
     "generatePreview": "Se generarán {{count}} recibos por un total de {{total}}.",
     "generateNothing": "No hay contratos pendientes de facturar en este mes.",
     "generateNote": "Los recibos incluyen renta y estacionamiento, y se crean como borrador.",

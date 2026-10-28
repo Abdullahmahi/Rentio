@@ -816,6 +816,7 @@
     "generate": "Generate this month's receipts",
     "generateTitle": "Generate receipts — {{month}}",
     "generateSubmit": "Generate receipts",
+    "generatePreview_one": "This will create 1 receipt totalling {{total}}.",
     "generatePreview": "This will create {{count}} receipts totalling {{total}}.",
     "generateNothing": "Every active lease already has a receipt for this month.",
     "generateNote": "Receipts include rent and parking, and are created as drafts.",

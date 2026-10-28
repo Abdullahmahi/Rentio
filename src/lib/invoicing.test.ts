@@ -281,3 +281,28 @@ test("never bills a lease whose dates do not cover the month, even if its status
   });
   expect(plan.toCreate.map((row) => row.leaseId).sort()).toEqual(["l1", "l2"]);
 });
+
+test("a lease that starts mid-month is not due before move-in", () => {
+  const data = fixture();
+  data.leases.push({
+    id: "l6",
+    unit_id: "u3",
+    status: "activo",
+    rent_amount: 1000,
+    rent_due_day: 1,
+    start_date: `${PERIOD.slice(0, 8)}27`,
+    end_date: shiftPeriod(PERIOD, 12),
+  } as never);
+  data.leaseTenants.push({ id: "lt6", lease_id: "l6", tenant_id: "t3", role: "primary" } as never);
+  const plan = planMonthlyInvoices({
+    portfolio: data,
+    period: PERIOD,
+    invoicedLeaseIds: new Set(),
+    pendingUtilities: [],
+    labels,
+  });
+  expect(plan.toCreate.find((row) => row.leaseId === "l6")?.dueDate).toBe(
+    `${PERIOD.slice(0, 8)}27`,
+  );
+  expect(plan.toCreate.find((row) => row.leaseId === "l1")?.dueDate).toBe(dueDateFor(PERIOD, 1));
+});
