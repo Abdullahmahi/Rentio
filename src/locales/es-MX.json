@@ -255,7 +255,7 @@
         "body": "Reporta un problema con fotos y dale seguimiento hasta que se resuelva."
       }
     },
-    "suspended": "La cuenta de esta empresa est\\u00e1 suspendida. Contacta a PortfolioAI para restaurar el acceso."
+    "suspended": "La cuenta de esta empresa está suspendida. Contacta a PortfolioAI para restaurar el acceso."
   },
   "orgSwitcher": {
     "label": "Actuando como",
@@ -277,9 +277,9 @@
     "duplicate": "Ese registro ya existe.",
     "invalidCredentials": "Correo o contraseña incorrectos.",
     "loadFailed": "No pudimos cargar la información",
-    "inUse": "Todav\\u00eda est\\u00e1 en uso por otros registros (contratos, pagos, gastos). Elim\\u00ednalos primero.",
-    "sessionExpired": "Tu sesi\\u00f3n expir\\u00f3. Vuelve a iniciar sesi\\u00f3n.",
-    "suspended": "La cuenta de esta empresa est\\u00e1 suspendida. Contacta a PortfolioAI."
+    "inUse": "Todavía está en uso por otros registros (contratos, pagos, gastos). Elimínalos primero.",
+    "sessionExpired": "Tu sesión expiró. Vuelve a iniciar sesión.",
+    "suspended": "La cuenta de esta empresa está suspendida. Contacta a PortfolioAI."
   },
   "unitStatus": {
     "vacante": "Vacante",
@@ -796,8 +796,8 @@
       "emailRequiredForInvite": "Agrega un correo electrónico antes de invitar al portal."
     },
     "invitedWithoutEmail": "Cuenta creada, pero no se pudo entregar el correo de invitación. Revisa el dominio de envío en Resend.",
-    "portalInvitedPending": "Invitado el {{date}} \\u00b7 a\\u00fan no ha entrado",
-    "resendInvite": "Reenviar invitaci\\u00f3n"
+    "portalInvitedPending": "Invitado el {{date}} · aún no ha entrado",
+    "resendInvite": "Reenviar invitación"
   },
   "receipts": {
     "emptyTitle": "Sin recibos",

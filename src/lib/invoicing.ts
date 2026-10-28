@@ -99,7 +99,16 @@ export function planMonthlyInvoices({
   pendingUtilities,
   labels,
 }: PlanInput): GenerationPlan {
-  const contexts = leaseContexts(portfolio).filter((context) => isActive(context.lease));
+  // Active by status AND by dates: a lease that ended last month, or a renewal
+  // that starts next month, must not be billed for this one (QA A-02).
+  const [year, month] = period.split("-").map(Number) as [number, number];
+  const periodEnd = `${year}-${String(month).padStart(2, "0")}-${new Date(year, month, 0).getDate()}`;
+  const contexts = leaseContexts(portfolio).filter(
+    ({ lease }) =>
+      isActive(lease) &&
+      (!lease.start_date || lease.start_date <= periodEnd) &&
+      (!lease.end_date || lease.end_date >= period),
+  );
 
   const utilitiesByUnit = new Map<string, Tables<"utility_charges">[]>();
   for (const charge of pendingUtilities) {

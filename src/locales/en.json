@@ -255,7 +255,7 @@
         "body": "Report a problem with photos and follow it through to done."
       }
     },
-    "suspended": "This company\\u2019s account is suspended. Contact PortfolioAI to restore access."
+    "suspended": "This company’s account is suspended. Contact PortfolioAI to restore access."
   },
   "orgSwitcher": {
     "label": "Acting as",
@@ -279,7 +279,7 @@
     "loadFailed": "We couldn't load this information",
     "inUse": "This is still used by other records (leases, payments, expenses). Remove those first.",
     "sessionExpired": "Your session expired. Sign in again.",
-    "suspended": "This company\\u2019s account is suspended. Contact PortfolioAI."
+    "suspended": "This company’s account is suspended. Contact PortfolioAI."
   },
   "unitStatus": {
     "vacante": "Vacant",
@@ -796,7 +796,7 @@
       "emailRequiredForInvite": "Add an email address before inviting them to the portal."
     },
     "invitedWithoutEmail": "Account created, but the invite email could not be delivered. Check the sending domain in Resend.",
-    "portalInvitedPending": "Invited {{date}} \\u00b7 not signed in yet",
+    "portalInvitedPending": "Invited {{date}} · not signed in yet",
     "resendInvite": "Resend invite"
   },
   "receipts": {

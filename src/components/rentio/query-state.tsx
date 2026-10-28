@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/rentio/empty-state";
-import { describeError } from "@/lib/db";
+import { errorText } from "@/lib/db";
 
 interface QueryStateProps {
   isLoading: boolean;
@@ -47,7 +47,7 @@ function ErrorState({ error, onRetry }: { error: unknown; onRetry?: (() => void)
         <AlertTriangle className="size-5" />
       </div>
       <h2 className="mt-4 text-base font-semibold text-foreground">{t("errors.loadFailed")}</h2>
-      <p className="mt-1 max-w-md text-sm text-muted-foreground">{t(describeError(error))}</p>
+      <p className="mt-1 max-w-md text-sm text-muted-foreground">{errorText(t, error)}</p>
       {onRetry ? (
         <Button className="mt-5" variant="outline" onClick={onRetry}>
           {t("actions.retry")}

@@ -9,7 +9,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { AdminOnly } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
 import { logActivity, qk, useActorId, useToastMutation } from "@/lib/queries";
-import { db, describeError } from "@/lib/db";
+import { db, errorText } from "@/lib/db";
 import { openSigned, uploadFile, type Bucket } from "@/lib/storage";
 
 interface DocumentsPanelProps {
@@ -77,7 +77,7 @@ export function DocumentsPanel({
       toast.success(t("documents.uploaded"));
       void documents.refetch();
     } catch (caught) {
-      toast.error(t(describeError(caught)));
+      toast.error(errorText(t, caught));
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -133,7 +133,7 @@ export function DocumentsPanel({
                 aria-label={t("actions.download")}
                 onClick={() =>
                   void openSigned(bucket, document.url).catch((caught) =>
-                    toast.error(t(describeError(caught))),
+                    toast.error(errorText(t, caught)),
                   )
                 }
               >

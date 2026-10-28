@@ -13,7 +13,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { useAuth } from "@/lib/auth";
 import { PORTAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
 import { useLanguagePreference, useMyTenant, useToastMutation } from "@/lib/queries";
-import { db, describeError } from "@/lib/db";
+import { db, errorText } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -219,7 +219,7 @@ function PortalProfile() {
           onClick={() => {
             void signOut()
               .then(() => navigate({ to: "/sign-in", replace: true }))
-              .catch((caught) => toast.error(t(describeError(caught))));
+              .catch((caught) => toast.error(errorText(t, caught)));
           }}
         >
           <LogOut className="size-4" />

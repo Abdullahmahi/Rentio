@@ -243,3 +243,41 @@ test("allocateOldestFirst splits centavos without drifting", () => {
   expect(Number(applied.toFixed(2))).toBe(3001.0);
   expect(result.credit).toBe(0);
 });
+
+test("never bills a lease whose dates do not cover the month, even if its status is still active", () => {
+  const data = fixture();
+  data.leases.push(
+    // ended by date, nobody flipped the status
+    {
+      id: "l4",
+      unit_id: "u3",
+      status: "activo",
+      rent_amount: 7000,
+      rent_due_day: 1,
+      start_date: "2025-01-01",
+      end_date: `${shiftPeriod(PERIOD, -1).slice(0, 8)}15`,
+    } as never,
+    // a renewal that starts next month
+    {
+      id: "l5",
+      unit_id: "u3",
+      status: "activo",
+      rent_amount: 7000,
+      rent_due_day: 1,
+      start_date: shiftPeriod(PERIOD, 1),
+      end_date: shiftPeriod(PERIOD, 13),
+    } as never,
+  );
+  data.leaseTenants.push(
+    { id: "lt4", lease_id: "l4", tenant_id: "t3", role: "primary" } as never,
+    { id: "lt5", lease_id: "l5", tenant_id: "t3", role: "primary" } as never,
+  );
+  const plan = planMonthlyInvoices({
+    portfolio: data,
+    period: PERIOD,
+    invoicedLeaseIds: new Set(),
+    pendingUtilities: [],
+    labels,
+  });
+  expect(plan.toCreate.map((row) => row.leaseId).sort()).toEqual(["l1", "l2"]);
+});

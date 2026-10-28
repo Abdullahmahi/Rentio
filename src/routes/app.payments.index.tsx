@@ -43,7 +43,7 @@ import { downloadCsv } from "@/lib/csv";
 import { allocateOldestFirst, type OpenInvoice } from "@/lib/invoicing";
 import { balanceOf, isActive, leaseContexts, leaseLabel } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { db, describeError } from "@/lib/db";
+import { db, errorText } from "@/lib/db";
 import { openSigned, signedUrl, uploadFile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums, Tables } from "@/lib/database.types";
@@ -499,7 +499,7 @@ function PaymentsPage() {
     try {
       setLightbox(await signedUrl("payment-receipts", payment.receipt_url));
     } catch (caught) {
-      toast.error(t(describeError(caught)));
+      toast.error(errorText(t, caught));
     }
   };
 

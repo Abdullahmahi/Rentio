@@ -2,7 +2,7 @@ import { useCallback, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { db, describeError } from "@/lib/db";
+import { db, errorText } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import i18n, { LANGUAGE_STORAGE_KEY, resolveLanguage, type AppLanguage } from "@/lib/i18n";
 import type { Tables, Views } from "@/lib/database.types";
@@ -169,7 +169,7 @@ export function useToastMutation<TVars, TData>({
           toast.promise(promise, {
             loading: t(pendingKey),
             success: (data: TData) => resultMessage?.(data, vars) ?? t(successKey),
-            error: (error: unknown) => t(describeError(error)),
+            error: (error: unknown) => errorText(t, error),
           });
           return promise;
         }
@@ -181,7 +181,7 @@ export function useToastMutation<TVars, TData>({
       onSuccess?.(data, vars);
     },
     onError: (error) => {
-      if (!pendingKey) toast.error(t(describeError(error)));
+      if (!pendingKey) toast.error(errorText(t, error));
     },
   });
 }

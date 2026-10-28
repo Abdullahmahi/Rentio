@@ -74,7 +74,7 @@ import {
   useToastMutation,
   type InvoiceWithPaid,
 } from "@/lib/queries";
-import { db, describeError, invokeFn } from "@/lib/db";
+import { db, errorText, invokeFn } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -388,7 +388,7 @@ function ContractDetailPage() {
       if (!url) throw new Error("no-url");
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (caught) {
-      toast.error(t(describeError(caught)));
+      toast.error(errorText(t, caught));
     }
   };
 
@@ -402,7 +402,7 @@ function ContractDetailPage() {
       if (!url) throw new Error("no-url");
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (caught) {
-      toast.error(t(describeError(caught)));
+      toast.error(errorText(t, caught));
     }
   };
 

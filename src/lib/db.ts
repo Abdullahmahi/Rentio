@@ -68,9 +68,16 @@ export function describeError(error: unknown): string {
     return "errors.sessionExpired";
   if (/organization_suspended/i.test(message)) return "errors.suspended";
   if (/null value in column "org_id"/i.test(message)) return "errors.noCompany";
-  // Our own triggers raise plain-language messages (late-fee guard, role guard):
-  // show them as they are.
-  if (code === "P0001" && message) return message;
+  // Our own triggers raise plain-language messages with a check_violation,
+  // raise_exception or insufficient_privilege code (late-fee guard, role
+  // guards, tenant self-update). Show those as they are; Postgres's own
+  // constraint wording is mapped below instead.
+  if (
+    (code === "23514" || code === "P0001" || code === "42501") &&
+    message &&
+    !/violates|permission denied|row-level security|constraint/i.test(message)
+  )
+    return message;
   if (
     code === "42501" ||
     /row-level security|permission denied|insufficient|forbidden/i.test(message)
@@ -85,4 +92,10 @@ export function describeError(error: unknown): string {
     return "errors.invalid";
   if (/Failed to fetch|NetworkError|fetch failed/i.test(message)) return "errors.network";
   return "errors.generic";
+}
+
+/** describeError gives an i18n key, or one of our own trigger messages. */
+export function errorText(t: (key: string) => string, error: unknown) {
+  const key = describeError(error);
+  return key.startsWith("errors.") ? t(key) : key;
 }
