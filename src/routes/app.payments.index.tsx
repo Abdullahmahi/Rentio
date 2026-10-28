@@ -158,7 +158,9 @@ function PaymentsPage() {
       const headById = new Map((heads ?? []).map((head) => [head.id, head]));
       return (data ?? []).flatMap((row) => {
         const head = row.invoice_id ? headById.get(row.invoice_id) : undefined;
-        if (!head || head.status === "cancelado" || head.status === "borrador") return [];
+        // Drafts count: rent is generated as a draft (D2), and a tenant who
+        // pays before staff press Send must not end up as unapplied credit.
+        if (!head || head.status === "cancelado") return [];
         return [
           {
             id: head.id,
