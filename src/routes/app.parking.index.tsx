@@ -67,7 +67,7 @@ function ParkingPage() {
     property_id: "",
     label: "",
     type: "techado",
-    monthly_fee: 1200 as number | "",
+    monthly_fee: "" as number | "",
     status: "disponible",
   });
   const [bulk, setBulk] = useState({
@@ -76,7 +76,7 @@ function ParkingPage() {
     start: "1",
     count: "10",
     type: "techado",
-    monthly_fee: 1200 as number | "",
+    monthly_fee: "" as number | "",
   });
 
   const leaseOptions = useMemo<ComboboxOption[]>(() => {
