@@ -116,3 +116,11 @@ Owner reported "New property" failing. Root causes: a super_admin has no org (or
 Not run: anything needing a live Clerk session (browser was signed out), so the super_admin switcher, the sign-in states and the ES/EN toggle are verified by code and tests only.
 
 **Open:** D1–D14 in `../plan.md`. Still-untouched QA items: nightly job (A-02/03/04/18), move-out SQL function (A-13), collected definition (A-16), WO cost → expenses (A-17), guarantor portal (A-15), missing edit/delete (B-16), Spanish-only PDFs/CSV (B-17), expenses per unit (B-34), board property name (B-25), empty-state buttons (B-31), payment error clearing (B-28), grid search (B-27), `my_lease_details` seed-data suite on prod.
+
+## 2026-10-27 — live QA on production (QA Sandbox)
+
+Clicked through every staff feature on rentio-app.com. Fixed 11 bugs (docs/qa/live-qa-2026-10-27.md):
+money inputs ate the decimal point, UTC dates in Postgres (migration 20261027001600 applied),
+receipts due before move-in, drafts not payable, disposition letter unreachable after settling,
+Spanish defaults on legal PDFs, 3-day end-of-term notices, tenant access to company files,
+$1,200 parking default. Gates: tsc clean, eslint clean, 58 tests pass. Six owner decisions listed.
