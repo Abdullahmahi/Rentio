@@ -762,6 +762,20 @@ function ContractDetailPage() {
                         ))}
                       </div>
                     ) : null}
+
+                    {/* The §92.104 letter is sent after settling, so it has to be
+                        reachable here, not only inside the settle dialog. */}
+                    {clock.stage === "settled" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-4"
+                        onClick={() => downloadDisposition()}
+                      >
+                        <Download className="size-4" />
+                        {t("contracts.downloadDisposition")}
+                      </Button>
+                    ) : null}
                   </section>
                 </div>
               </TabsContent>
@@ -1259,18 +1273,6 @@ function ContractDetailPage() {
                   </label>
                 </div>
               ) : null}
-
-              {/* The PDF is the §92.104 record and prints what was SAVED, so it
-                  only makes sense once the settlement is on file (A-12). */}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => downloadDisposition()}
-                disabled={!lease.forwarding_address_received_at || !lease.deposit_settled_at}
-              >
-                <Download className="size-4" />
-                {t("contracts.downloadDisposition")}
-              </Button>
             </FormDialog>
 
             {/* --------------------------------- notice to vacate */}
