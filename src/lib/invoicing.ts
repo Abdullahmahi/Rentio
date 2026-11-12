@@ -84,6 +84,8 @@ interface PlanInput {
     rent: string;
     parking: (label: string) => string;
   };
+  /** El Paso today; decides which leases are month-to-month holdovers (D1). */
+  today?: string;
 }
 
 /**
@@ -98,16 +100,18 @@ export function planMonthlyInvoices({
   invoicedLeaseIds,
   pendingUtilities,
   labels,
+  today = todayIso(),
 }: PlanInput): GenerationPlan {
-  // Active by status AND by dates: a lease that ended last month, or a renewal
-  // that starts next month, must not be billed for this one (QA A-02).
+  // Active by status AND by dates: a renewal that starts next month is not
+  // billed for this one (QA A-02). A lease past its end date that nobody ended
+  // is month-to-month and keeps billing (D1). Mirrors generate_invoices_for_org.
   const [year, month] = period.split("-").map(Number) as [number, number];
   const periodEnd = `${year}-${String(month).padStart(2, "0")}-${new Date(year, month, 0).getDate()}`;
   const contexts = leaseContexts(portfolio).filter(
     ({ lease }) =>
       isActive(lease) &&
       (!lease.start_date || lease.start_date <= periodEnd) &&
-      (!lease.end_date || lease.end_date >= period),
+      (!lease.end_date || lease.end_date >= period || lease.end_date < today),
   );
 
   const utilitiesByUnit = new Map<string, Tables<"utility_charges">[]>();

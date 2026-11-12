@@ -1,0 +1,542 @@
+{
+  "nav": {
+    "whatItDoes": "Qué hace",
+    "bilingual": "Bilingüe",
+    "compliance": "Cumplimiento",
+    "signIn": "Iniciar sesión",
+    "book": "Agenda un recorrido",
+    "menu": "Menú",
+    "openMenu": "Abrir menú",
+    "home": "Inicio de {{brand}}",
+    "ai": "Turno de noche",
+    "pricing": "Precio",
+    "faq": "Preguntas",
+    "languageToggle": "English",
+    "languageLabel": "View this page in English"
+  },
+  "hero": {
+    "eyebrow": "Hecho en El Paso para administradores de Texas",
+    "headlineLead": "Tus inquilinos leen en español. Tu equipo trabaja en inglés.",
+    "headlineEmphasis": "La ley de Texas está en el formulario.",
+    "subhead": "La oficina bilingüe para administradores de propiedades en Texas con 50–500 unidades. Ambos portales en inglés y español, los plazos del §92 contados por ti, y nuestro equipo migra tus unidades, inquilinos y contratos en 30 días, o no pagas hasta que esté listo.",
+    "primaryCta": "Agenda un recorrido de 30 minutos",
+    "priceLine": "{{monthlyPrice}}/mes · todo incluido · {{setupFee}} de instalación",
+    "secondaryCta": "Ver el precio y qué incluye",
+    "imageAlt": "El portal de inquilinos de {{brand}} en español en un celular, con el saldo pendiente y un botón para reportar un pago",
+    "chips": {
+      "bilingual": "Inglés + español, ambos portales",
+      "clocks": "Plazos de Texas en el formulario",
+      "live": "En operación en 30 días o no pagas",
+      "fees": "Sin cargos del portal para inquilinos"
+    },
+    "nightShift": "Turno de noche: una línea bilingüe fuera de horario, instalada por nuestro equipo",
+    "proofStrip": "{{clientProof}} · {{strings}} textos en español · §92.019 · §92.103 · §92.052 · §92.156 contados en el formulario"
+  },
+  "problem": {
+    "headingLead": "Cuatro cosas que te cuestan dinero",
+    "headingEmphasis": "antes de que te des cuenta",
+    "subhead": "Las cuatro nos las cuentan administradores de Texas. Cada una cuesta dinero antes de que alguien la vea.",
+    "items": {
+      "calls": {
+        "title": "La llamada de las 10 pm",
+        "body": "Un inquilino llama por una fuga fuera de horario, en español. Nadie contesta y la fuga termina en el techo.",
+        "cost": "Una fuga que espera hasta la mañana puede terminar en una rotación: de $1,500 a $8,000 por unidad"
+      },
+      "payments": {
+        "title": "\"Ya pagué\"",
+        "body": "Efectivo, giros postales, Zelle y cheques llegan por cinco caminos distintos. Cuadrarlos se come un día cada mes.",
+        "cost": "Un día al mes cuadrando pagos son unos $4,200 al año en tiempo del personal"
+      },
+      "deadlines": {
+        "title": "El plazo olvidado",
+        "body": "El depósito se devuelve 30 días después de recibir la dirección de reenvío. Las reparaciones de salud y seguridad, 7 días después del aviso.",
+        "cost": "Retener un depósito de mala fe puede costar $100 más tres veces el depósito (§92.109)"
+      },
+      "switching": {
+        "title": "Atorado donde estás",
+        "body": "Tus inquilinos no pueden leer el portal, y cambiarte significa semanas de captura que nadie tiene tiempo de hacer.",
+        "cost": "Así que nada cambia"
+      }
+    }
+  },
+  "ai": {
+    "eyebrow": "Lo hace nuestro equipo · instalado por nosotros",
+    "headingLead": "El",
+    "headingEmphasis": "turno de noche",
+    "subhead": "Nuestro equipo instala y opera un servicio bilingüe fuera de horario para tu empresa: la línea telefónica, la recepción de mantenimiento, la respuesta por texto a llamadas perdidas y los recordatorios de cargos por atraso. Está incluido en el precio mensual.",
+    "items": {
+      "voice": {
+        "title": "Línea telefónica bilingüe fuera de horario",
+        "body": "Una línea con IA que instala nuestro equipo contesta las llamadas de inquilinos fuera de horario en inglés o español y registra cada solicitud para tu equipo."
+      },
+      "intake": {
+        "title": "Recepción de mantenimiento fuera de horario",
+        "body": "Las llamadas de reparación en la noche se registran con la unidad y los detalles, listas para tu equipo en la mañana."
+      },
+      "textback": {
+        "title": "Respuesta por texto a llamadas perdidas",
+        "body": "Cada llamada que tu oficina no contesta recibe un mensaje en el idioma de quien llamó, para que nadie se quede esperando."
+      },
+      "reminders": {
+        "title": "Recordatorios antes de que se pueda cobrar un cargo por atraso",
+        "body": "Tus inquilinos saben de ti antes de que se pueda cobrar un cargo por atraso. Menos pagos tarde, menos discusiones."
+      }
+    },
+    "guardrail": "La línea nunca cambia un saldo, perdona un cargo ni envía un aviso legal. Eso se lo pasa a tu equipo."
+  },
+  "features": {
+    "headingLead": "Todo lo que el mes",
+    "headingEmphasis": "de verdad necesita",
+    "subhead": "Seis cosas que hace el software. No adjetivos: las acciones reales que hace tu equipo y lo que ven tus inquilinos.",
+    "items": {
+      "portal": {
+        "title": "Un portal que tus inquilinos pueden leer",
+        "body": "Cada pantalla en inglés y español, traducida texto por texto. No es un traductor automático pegado a una app en inglés."
+      },
+      "queue": {
+        "title": "Cada solicitud en una sola fila",
+        "body": "Portal, teléfono o en persona, con el origen registrado por tu equipo, para que nada se pierda sin importar cómo te contactó el inquilino."
+      },
+      "payments": {
+        "title": "Todas las formas de pagar",
+        "body": "Tarjeta, ACH y efectivo con PayNearMe en el portal. Los inquilinos que pagan por Zelle o cheque lo reportan con una foto y tu equipo lo confirma contra el banco."
+      },
+      "maintenance": {
+        "title": "Mantenimiento con fotos",
+        "body": "Las solicitudes llevan fotos desde el celular del inquilino, se asignan a un proveedor y se siguen hasta cerrarse."
+      },
+      "compliance": {
+        "title": "Plazos de Texas en el formulario",
+        "body": "Límites de cargos por atraso, el plazo del depósito, la ventana de reparación y el cambio de cerraduras se cuentan desde las fechas que marca la ley."
+      },
+      "cycle": {
+        "title": "La renta del mes en una sola pasada",
+        "body": "Genera todas las facturas del periodo, revisa el lote antes de enviarlo y mándalas juntas."
+      }
+    }
+  },
+  "proof": {
+    "eyebrow": "Pruebas",
+    "headingLead": "Administradoras de propiedades en Texas lo usan",
+    "headingEmphasis": "hoy",
+    "subhead": "Sin testimonios ni logotipos en esta página. Esto es lo que puedes comprobar en el recorrido.",
+    "items": {
+      "strings": "{{n}} textos en español, ambos portales",
+      "isolation": "Una batería de pruebas comprueba que una empresa no puede leer los datos de otra",
+      "texas": "Los plazos del §92 de Texas contados dentro de los formularios"
+    }
+  },
+  "bilingual": {
+    "eyebrow": "La diferencia",
+    "headingLead": "La fuga se reporta cuando todavía",
+    "headingEmphasis": "sale barata",
+    "body": "Ambos portales vienen en inglés y español de México: cada pantalla, a la par exacta, traducida texto por texto y no con traducción automática al momento.",
+    "argument": "No es un detalle de cortesía. Un inquilino que no puede reportar un problema con comodidad tiende a no reportarlo, y una reparación pequeña que se deja sola deja de ser pequeña. Leer la solicitud es la parte más barata de arreglarla.",
+    "parityLabel": "textos traducidos, ambos portales, a la par exacta",
+    "imageAlt": "La misma pantalla del portal de inquilinos de {{brand}} lado a lado en inglés y español",
+    "captionEn": "Inglés",
+    "captionEs": "Español (es-MX)"
+  },
+  "compliance": {
+    "eyebrow": "Código de Propiedad de Texas",
+    "headingLead": "Los plazos que la ley",
+    "headingEmphasis": "empieza a contar",
+    "subhead": "{{brand}} lleva estas fechas y te avisa antes de que venzan. No presenta nada por ti.",
+    "items": {
+      "lateFee": {
+        "title": "Cargos por atraso, retenidos y con tope",
+        "body": "La acción queda desactivada hasta que la renta tiene dos días completos de atraso, y el monto se revisa contra el tope legal.",
+        "cite": "§92.019"
+      },
+      "deposit": {
+        "title": "El plazo de 30 días del depósito",
+        "body": "Empieza cuando llega la dirección de reenvío, no al desocupar, y lleva la liquidación detallada contra ese plazo.",
+        "cite": "§92.103-92.109"
+      },
+      "repair": {
+        "title": "La ventana de reparación de siete días",
+        "body": "Las condiciones que afectan la salud o la seguridad llevan un contador de días desde el aviso por escrito del inquilino, en ámbar antes de vencer y en rojo después.",
+        "cite": "§92.052"
+      },
+      "rekey": {
+        "title": "Cambio de cerraduras en siete días",
+        "body": "Un nuevo arrendamiento abre una lista de entrega con el plazo para cambiar cerraduras contado desde el día en que empieza la posesión.",
+        "cite": "§92.156"
+      },
+      "notice": {
+        "title": "Aviso de desalojo",
+        "body": "Se genera en PDF y queda registrado en el contrato, con la fecha de entrega.",
+        "cite": "§24.005"
+      }
+    },
+    "disclaimer": "{{brand}} te ayuda a llevar los plazos legales. No es asesoría legal y no garantiza el cumplimiento."
+  },
+  "cta": {
+    "headingLead": "Míralo con tu",
+    "headingEmphasis": "propio portafolio",
+    "body": "Treinta minutos con tus propias unidades: lo que verían tus inquilinos y dónde ya están corriendo los plazos de Texas.",
+    "note": "Treinta minutos, sin diapositivas. Escoge la hora que te acomode.",
+    "button": "Agenda un recorrido de 30 minutos"
+  },
+  "footer": {
+    "tagline": "La oficina bilingüe para administradores de propiedades en Texas.",
+    "productHeading": "Producto",
+    "companyHeading": "Empresa",
+    "signIn": "Iniciar sesión",
+    "book": "Agenda un recorrido",
+    "rights": "Todos los derechos reservados.",
+    "disclaimer": "{{brand}} te ayuda a llevar los plazos legales. No es asesoría legal.",
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "contact": "Contacto"
+  },
+  "external": {
+    "newTab": "(se abre en una pestaña nueva)"
+  },
+  "offer": {
+    "eyebrow": "Qué incluye",
+    "headingLead": "Un solo precio.",
+    "headingEmphasis": "Todo lo que hacemos, marcado según lo que ya funciona.",
+    "subhead": "Dos etiquetas. Disponible hoy es software que ya está en Rentio. Lo hace nuestro equipo es lo que instalamos y operamos para tu empresa.",
+    "groups": {
+      "software": "Software",
+      "ai": "IA · el turno de noche",
+      "people": "Personas",
+      "money": "Dinero y dueños"
+    },
+    "items": {
+      "modules": {
+        "title": "Rentio, todos los módulos",
+        "body": "Propiedades, contratos, pagos, mantenimiento y reportes. Portales de personal y de inquilinos en inglés y español de México."
+      },
+      "clocks": {
+        "title": "Plazos de Texas en el formulario",
+        "body": "Tope de cargos por atraso, plazo del depósito, ventana de reparación y cambio de cerraduras, contados desde las fechas que usa la ley."
+      },
+      "pdfs": {
+        "title": "Avisos y cartas de depósito de Texas",
+        "body": "Aviso de desalojo y liquidación del depósito en PDF, en inglés y español. Rentio lleva las reglas; no es asesoría legal."
+      },
+      "payments": {
+        "title": "Pagos reportados por el inquilino",
+        "body": "Los inquilinos que todavía pagan por Zelle, efectivo o giro postal lo reportan con una foto; tu equipo confirma cada uno en una fila."
+      },
+      "portal": {
+        "title": "Portal de inquilinos con tu logotipo",
+        "body": "Tus inquilinos ven tu empresa, no la nuestra."
+      },
+      "voice": {
+        "title": "Línea telefónica bilingüe fuera de horario",
+        "body": "Una línea con IA que instala nuestro equipo contesta las llamadas de inquilinos fuera de horario en inglés o español y registra cada solicitud para tu equipo.",
+        "market": "$1.50–3 por unidad al mes en otros lados"
+      },
+      "textback": {
+        "title": "Respuesta por texto a llamadas perdidas",
+        "body": "Cada llamada que tu oficina no contesta recibe un mensaje en el idioma de quien llamó, para que nadie se quede esperando.",
+        "market": "$650+ por flujo en otros lados"
+      },
+      "migration": {
+        "title": "Migramos tus datos",
+        "body": "Unidades, inquilinos y contratos importados por nuestro equipo, no por el tuyo.",
+        "market": "$300–500 de instalación en otros lados"
+      },
+      "manager": {
+        "title": "Una persona con nombre a quien llamar",
+        "body": "Por teléfono, en inglés o español, alguien que conoce tu portafolio.",
+        "market": "Cerca de $1,000 al año en otros lados"
+      },
+      "training": {
+        "title": "Una sesión de capacitación para tu equipo",
+        "body": "Una hora, en inglés o español."
+      },
+      "audit": {
+        "title": "Auditoría gratis de cargos por atraso en Texas",
+        "body": "Revisamos tus cargos por atraso anteriores contra el tope del §92.019."
+      },
+      "website": {
+        "title": "El sitio web de tu empresa, en ambos idiomas",
+        "body": "Una página, hecha por nuestro equipo.",
+        "note": "Se hace durante la incorporación, incluido en la instalación",
+        "market": "$1.8K–4.4K + $195–800/mes en otros lados"
+      },
+      "welcome": {
+        "title": "Kit de bienvenida bilingüe para inquilinos",
+        "body": "Un volante con código QR para que tus inquilinos entren al portal el primer mes.",
+        "note": "Se entrega durante la incorporación"
+      },
+      "intake": {
+        "title": "Recepción de mantenimiento fuera de horario",
+        "body": "Las llamadas de reparación en la noche se registran con la unidad y los detalles, listas para tu equipo en la mañana."
+      },
+      "reminders": {
+        "title": "Recordatorios antes de que se pueda cobrar un cargo por atraso",
+        "body": "Tus inquilinos saben de ti antes de que se pueda cobrar un cargo por atraso. Menos pagos tarde, menos discusiones."
+      },
+      "onlineRent": {
+        "title": "Renta en línea con tarjeta, ACH o efectivo",
+        "body": "Los inquilinos pagan con tarjeta o transferencia bancaria en el portal, o en efectivo en una tienda cercana con PayNearMe. Cada pago entra solo al libro de cuentas."
+      },
+      "ownerPortal": {
+        "title": "Portal para dueños",
+        "body": "Cada dueño entra para ver ganancias, dinero que entra y que sale, el balance general, lo que debe y lo que le deben, y puede conectar más de su negocio."
+      },
+      "ownerStatements": {
+        "title": "Estados de cuenta para dueños",
+        "body": "Un estado de cuenta para cada dueño cada mes, desde Reportes, listo para enviar."
+      },
+      "quickbooks": {
+        "title": "Sincronización con QuickBooks",
+        "body": "Los pagos y gastos pasan a tu QuickBooks, así tus libros y Rentio siempre cuadran."
+      }
+    },
+    "valueLabel": "Comprados por separado, las personas, el sitio web y el turno de noche cuestan cerca de",
+    "valueFigure": "$8,000+ al año",
+    "valueNote": "para una empresa de 200 unidades, sin contar el software. Precios de mercado de nuestra investigación de precios 2026.",
+    "priceUnit": "al mes, todo el software de Rentio + IA",
+    "qualifier": "Hecho para empresas de Texas que administran de 50 a 500 unidades.",
+    "cta": "Agenda un recorrido",
+    "guarantee": {
+      "title": "La garantía de 30 días",
+      "body": "Tu portafolio queda en operación y tu primer ciclo de renta corre en Rentio dentro de 30 días de recibir tu exportación de datos, o tu primera factura espera hasta que así sea. Nosotros hacemos la migración, así que esto corre por nuestra cuenta.",
+      "exitTitle": "Fácil de salir.",
+      "exit": "Después de los primeros 6 meses, vete el mes que quieras. Exportamos cada unidad, inquilino, contrato y pago por ti en 2 días hábiles."
+    },
+    "priceLabel": "Tu precio",
+    "setup": "{{setupFee}} de instalación única: migración, capacitación y sitio web"
+  },
+  "faq": {
+    "headingLead": "Lo que nos preguntan",
+    "headingEmphasis": "los administradores",
+    "items": {
+      "switching": {
+        "q": "Usamos AppFolio o Buildium. ¿Qué tan difícil es cambiarse?",
+        "a": "No para ti. Importamos tus unidades, inquilinos y contratos desde tu exportación y capacitamos a tu equipo en una sesión. La mayoría de las empresas arrancan en 3 a 5 días hábiles, y si tu primer ciclo de renta no corre en Rentio dentro de 30 días de tu exportación, tu primera factura espera."
+      },
+      "fees": {
+        "q": "¿Mis inquilinos pagan un cargo por pagar la renta?",
+        "a": "Sin cargos del portal para inquilinos de nuestra parte, nunca. Pueden pagar con tarjeta, ACH o efectivo con PayNearMe, o seguir pagando por Zelle o giro postal y reportarlo en el portal con una foto."
+      },
+      "ai": {
+        "q": "¿La línea de IA ya funciona?",
+        "a": "Sí. Nuestro equipo instala tu línea fuera de horario en inglés y español durante la incorporación. Registra las solicitudes para tu equipo; nunca cambia un saldo, perdona un cargo ni envía un aviso legal."
+      },
+      "spanish": {
+        "q": "¿Es solo en español?",
+        "a": "No. Cada pantalla está en inglés y español de México y cada persona elige el suyo."
+      },
+      "texas": {
+        "q": "¿Me mantiene en cumplimiento con la ley de Texas?",
+        "a": "Lleva los plazos del §92 y el tope de cargos por atraso dentro de los formularios y te avisa antes de que venzan. No es asesoría legal."
+      },
+      "data": {
+        "q": "¿De quién son los datos y me puedo ir?",
+        "a": "Son tuyos. Después de los primeros 6 meses, vete el mes que quieras; exportamos cada unidad, inquilino, contrato y pago por ti en 2 días hábiles."
+      },
+      "doors": {
+        "q": "¿Cuántas unidades necesito?",
+        "a": "Rentio está hecho para 50 a 500 unidades; lo ideal es de 80 a 500. El precio es el mismo, {{monthlyPrice}} al mes, sin importar el tamaño. Con menos de 50 unidades, te diremos en la llamada que TurboTenant te sale más barato."
+      },
+      "cost": {
+        "q": "¿Cuánto cuesta?",
+        "a": "{{monthlyPrice}} al mes por el software, el turno de noche con IA que instala nuestro equipo y una persona con nombre. {{setupFee}} una sola vez por la migración, la capacitación y tu sitio web. Sin cargos por unidad y sin cargos del portal para inquilinos."
+      },
+      "setupFee": {
+        "q": "¿Por qué hay un cargo de instalación?",
+        "a": "Los {{setupFee}} cubren el trabajo que hacemos por ti una sola vez: pasar tus datos, configurar Rentio y tu línea de IA para tu empresa y capacitar a tu equipo."
+      },
+      "hiddenFees": {
+        "q": "¿Hay cargos ocultos por pagos, evaluación de inquilinos o firma electrónica?",
+        "a": "No. No cobramos ni un dólar extra además de {{monthlyPrice}} al mes. Sin cargos por unidad, sin cargos por pago, sin extras."
+      },
+      "contract": {
+        "q": "¿De cuánto es el contrato? ¿Puedo cancelar?",
+        "a": "El mínimo es de 6 meses. Después, cancela cuando quieras."
+      },
+      "live": {
+        "q": "¿Cuánto tardamos en arrancar?",
+        "a": "De 3 a 5 días hábiles para la mayoría de las empresas, contados desde que recibimos tu exportación de datos."
+      },
+      "migration": {
+        "q": "¿Quién hace la migración, ustedes o nosotros?",
+        "a": "Nosotros. Tú mandas la exportación; nosotros pasamos todo y lo revisamos contigo."
+      },
+      "staff": {
+        "q": "¿Reemplaza a mi equipo?",
+        "a": "No. Libera a tu equipo, no lo despide. La IA atiende las llamadas y mensajes repetitivos para que tu gente dedique su tiempo al trabajo que necesita a una persona."
+      },
+      "afterHours": {
+        "q": "¿Atiende llamadas de mantenimiento de emergencia fuera de horario?",
+        "a": "Sí, en inglés y español. La línea de IA contesta de noche y en fines de semana y registra cada solicitud para tu equipo."
+      },
+      "money": {
+        "q": "¿Lleva contabilidad de fideicomiso y estados de cuenta para dueños?",
+        "a": "Sí. Cada dólar que entra y que sale queda registrado y se puede rastrear, y los estados de cuenta para dueños se crean en Reportes, por propiedad o unidad, listos para enviar."
+      },
+      "tenantPortal": {
+        "q": "¿Hay un portal para que los inquilinos paguen y pidan mantenimiento?",
+        "a": "Sí. Los inquilinos reportan sus pagos de renta y piden mantenimiento con fotos en el portal, en inglés o español."
+      },
+      "payMethods": {
+        "q": "¿Los inquilinos pueden pagar con tarjeta, ACH o efectivo?",
+        "a": "Sí. Tarjeta y ACH en el portal del inquilino, y efectivo en una tienda cercana con PayNearMe. Cada pago entra solo al libro de cuentas."
+      },
+      "ownerPortal": {
+        "q": "¿Los dueños pueden entrar y ver sus reportes?",
+        "a": "Sí. Cada dueño tiene su acceso para ver ganancias, dinero que entra y que sale, el balance general, lo que debe y lo que le deben. Si quiere, puede conectar más de su negocio para verlo todo en un solo lugar."
+      },
+      "quickbooks": {
+        "q": "¿Se sincroniza con QuickBooks?",
+        "a": "Sí. Los pagos y gastos pasan a tu QuickBooks, así tus libros y Rentio siempre cuadran."
+      }
+    },
+    "seeAll": "Ver las {{count}} preguntas",
+    "description": "Respuestas directas a lo que preguntan los administradores antes de cambiarse a Rentio: precio, contrato, migración, IA y datos."
+  },
+  "status": {
+    "live": "Disponible hoy",
+    "done": "Lo hace nuestro equipo"
+  },
+  "audit": {
+    "eyebrow": "Gratis · 15 minutos",
+    "headingLead": "Descubre cuánto has cobrado de más en cargos por atraso.",
+    "headingEmphasis": "Gratis.",
+    "body": "Agenda 15 minutos y trae tu exportación de cargos por atraso de AppFolio, Buildium o una hoja de cálculo. Revisamos cada cargo contra el tope del §92.019 y te mostramos en la llamada cuántos lo rebasaron y a cuánto suma ese riesgo.",
+    "fineprint": "Cinco auditorías al mes. Borramos tu archivo después. No es asesoría legal.",
+    "button": "Agenda una auditoría gratis de cargos por atraso"
+  },
+  "booked": {
+    "badge": "Agendado",
+    "title": "Ya quedó agendado",
+    "hero": {
+      "eyebrow": "Tu recorrido ya está en el calendario",
+      "headlineLead": "Ya quedó agendado.",
+      "headlineLeadNamed": "Ya quedó agendado, {{name}}.",
+      "headlineEmphasis": "Esto es lo que sigue.",
+      "subhead": "Tres minutos de nosotros dos antes de vernos. Míralo ahora y los 30 minutos te van a rendir mucho más.",
+      "videoTitle": "Una bienvenida de los cofundadores de {{brand}}",
+      "videoPending": "Estamos grabando el video de bienvenida. En tres minutos cubre:",
+      "videoPoints": {
+        "who": "Quiénes somos y por qué lo hicimos para administradores de Texas con inquilinos que hablan español",
+        "call": "Exactamente qué hacemos en los 30 minutos, y qué no",
+        "ask": "Las dos líneas que necesitamos de ti antes de la llamada"
+      },
+      "checkEmail": "Tu confirmación y la invitación del calendario están en tu correo. ¿Necesitas otro horario? Usa el enlace para reprogramar en ese correo. Preferimos mover la llamada que perderte."
+    },
+    "prep": {
+      "eyebrow": "Antes de vernos",
+      "headingLead": "Tres cosas que hacen que la llamada",
+      "headingEmphasis": "valga tu tiempo",
+      "subhead": "Cada una toma menos de dos minutos. Juntas convierten una demostración en un recorrido por tu propio portafolio.",
+      "items": {
+        "watch": {
+          "title": "Mira el video de arriba",
+          "body": "Te dice qué vamos a hacer y qué no en la llamada, para que no haya sorpresas."
+        },
+        "reply": {
+          "title": "Responde a tu correo de confirmación",
+          "body": "Dos líneas: cuántas unidades administras y qué software usas hoy. Cargamos algunas de tus unidades antes para que veas tu propio rent roll, no una cuenta de demostración."
+        },
+        "invite": {
+          "title": "Trae a la persona que lleva tu oficina",
+          "body": "La que contesta las llamadas de inquilinos y cuadra los pagos. Ella tendrá las preguntas que importan, y es para quien el cambio tiene que funcionar."
+        }
+      }
+    },
+    "agenda": {
+      "eyebrow": "Los 30 minutos",
+      "headingLead": "Sin diapositivas.",
+      "headingEmphasis": "Tus unidades.",
+      "subhead": "Esta es toda la llamada, minuto a minuto, para que sepas a qué vas.",
+      "items": {
+        "portfolio": {
+          "time": "0 a 10 min",
+          "title": "Tu portafolio, en Rentio",
+          "body": "Algunas de tus unidades y contratos, ya cargados. Ves tu rent roll, tus órdenes de trabajo y lo que tus inquilinos verían en su celular, en español."
+        },
+        "moments": {
+          "time": "10 a 20 min",
+          "title": "Los tres momentos",
+          "body": "Un inquilino reporta un pago por Zelle con una captura de pantalla. Un plazo de depósito ya corriendo en una salida. Una fuga reportada a las 10 pm que en la mañana ya es una orden de trabajo con fotos."
+        },
+        "plan": {
+          "time": "20 a 30 min",
+          "title": "El número y el plan",
+          "body": "Tu precio, cómo se ven tus 30 días y si te conviene. Si no, te lo decimos y solo perdiste media hora."
+        }
+      }
+    },
+    "day": {
+      "eyebrow": "Qué cambia",
+      "headingLead": "El mismo martes,",
+      "headingEmphasis": "de dos maneras",
+      "subhead": "Nada aquí es inventado. Son las cuatro llamadas y preguntas que nos contó cada administrador de Texas.",
+      "before": "Hoy",
+      "after": "Con {{brand}}",
+      "rows": {
+        "morning": {
+          "time": "7:40 am",
+          "before": "Tres mensajes de voz en español de anoche. Uno es una fuga. Nadie sabe cuál.",
+          "after": "La fuga es una orden de trabajo con dos fotos. El inquilino la levantó desde el portal a las 10:12 pm, en español."
+        },
+        "payment": {
+          "time": "10:15 am",
+          "before": "Un inquilino insiste en que pagó por Zelle el viernes. Alguien pasa una hora en la app del banco.",
+          "after": "El pago por Zelle está en la fila de confirmación con la captura del inquilino. Un clic lo cuadra."
+        },
+        "deposit": {
+          "time": "2:00 pm",
+          "before": "La unidad 204 se desocupó. ¿Cuándo llegó la dirección de reenvío? ¿Cuándo hay que devolver el depósito?",
+          "after": "La unidad 204 muestra 11 días restantes en el plazo del depósito, contados desde el día en que llegó la dirección de reenvío."
+        },
+        "night": {
+          "time": "10:05 pm",
+          "before": "Suena tu teléfono personal. Es un inquilino.",
+          "after": "Los inquilinos reportan problemas en el portal, en su idioma. Tu teléfono se queda en la mesa."
+        }
+      }
+    },
+    "path": {
+      "eyebrow": "Cómo te cambiamos",
+      "headingLead": "Treinta días,",
+      "headingEmphasis": "hecho por nosotros",
+      "subhead": "Cambiar de software falla cuando el administrador tiene que capturar los datos. Por eso lo hacemos nosotros.",
+      "steps": {
+        "day0": {
+          "label": "Día 0",
+          "title": "El recorrido",
+          "body": "Vemos tu portafolio juntos y acordamos el plan y el precio."
+        },
+        "week1": {
+          "label": "Semana 1",
+          "title": "Importamos tus datos",
+          "body": "Unidades, inquilinos y contratos, capturados por nuestro equipo desde tu exportación u hoja de cálculo. Tú lo revisas, nosotros lo corregimos."
+        },
+        "week2": {
+          "label": "Semana 2",
+          "title": "Tu equipo recibe una sesión",
+          "body": "Una hora, en inglés o español. Después, una persona con nombre a quien llamar cuando algo no quede claro."
+        },
+        "week3": {
+          "label": "Semanas 3 y 4",
+          "title": "Los inquilinos entran al portal",
+          "body": "Sale el volante de bienvenida con código QR. Los inquilinos ven tu logotipo y leen cada pantalla en su idioma."
+        },
+        "day30": {
+          "label": "Día 30",
+          "title": "Corre el primer ciclo de renta",
+          "body": "Todas las facturas generadas en una pasada, revisadas y enviadas. Si no ha pasado dentro de 30 días de tu exportación, tu primera factura espera hasta que así sea."
+        }
+      }
+    },
+    "closing": {
+      "headingLead": "Nos vemos",
+      "headingEmphasis": "en la llamada",
+      "body": "Mira el video, responde con tu número de unidades y tu software, y trae a la persona que lleva tu oficina. Todo lo demás corre por nuestra cuenta.",
+      "reschedule": "¿No puedes? Reprograma desde tu correo de confirmación. Mover la llamada está bien. Perderla desperdicia lo que preparamos con tu portafolio.",
+      "home": "Volver al inicio"
+    },
+    "footer": {
+      "disclaimer": "{{brand}} te ayuda a llevar los plazos legales. No es asesoría legal."
+    }
+  }
+}

@@ -1,11 +1,13 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/marketing/ui/container";
 import { OrbitingCircles } from "@/components/marketing/ui/orbiting-circles";
 import { OrbitDot, OrbitRing } from "@/components/marketing/ui/icons";
 import { BookingLink } from "@/components/marketing/booking-link";
 import portalEsHero from "@/assets/marketing/portal-es-hero.png";
+import { clientProof, PRICE_VARS, SPANISH_STRINGS } from "@/lib/marketing";
 
 /**
  * Ported from Vetra's `hero.tsx`.
@@ -17,7 +19,7 @@ import portalEsHero from "@/assets/marketing/portal-es-hero.png";
  * screenshot of an admin dashboard would undercut it.
  */
 export function Hero() {
-  const { t } = useTranslation("marketing");
+  const { t, i18n } = useTranslation("marketing");
 
   return (
     <section className="relative isolate flex w-full flex-col items-center justify-center py-16 lg:py-24">
@@ -76,15 +78,46 @@ export function Hero() {
           </Container>
 
           <Container delay={0.25} className="z-20">
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <BookingLink size="lg">{t("hero.primaryCta")}</BookingLink>
+            <div className="mt-6 flex flex-wrap items-start justify-center gap-3">
+              <div className="flex flex-col items-center gap-1.5">
+                <BookingLink size="lg">{t("hero.primaryCta")}</BookingLink>
+                <p className="text-xs text-muted-foreground">{t("hero.priceLine", PRICE_VARS)}</p>
+              </div>
               <Button asChild size="lg" variant="outline" className="group">
-                <a href="#what-it-does">
+                <a href="#offer">
                   {t("hero.secondaryCta")}
                   <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </a>
               </Button>
             </div>
+          </Container>
+
+          <Container delay={0.28}>
+            <ul className="flex flex-wrap items-center justify-center gap-2">
+              {(["bilingual", "clocks", "live", "fees"] as const).map((chip) => (
+                <li key={chip}>
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1 text-sm font-normal">
+                    <Check className="size-3.5 text-primary" aria-hidden />
+                    {t(`hero.chips.${chip}`)}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          </Container>
+
+          {/* Third beat: the night shift is a plan, never a hero claim, until
+              the voice line takes a real call (audit.md §6.1). */}
+          <Container delay={0.29}>
+            <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Moon className="size-4 shrink-0" aria-hidden />
+              {t("hero.nightShift")}
+            </p>
+            <p className="mx-auto mt-3 max-w-2xl text-balance text-xs text-muted-foreground">
+              {t("hero.proofStrip", {
+                clientProof: clientProof(i18n.language),
+                strings: SPANISH_STRINGS,
+              })}
+            </p>
           </Container>
 
           <Container delay={0.3} className="relative">

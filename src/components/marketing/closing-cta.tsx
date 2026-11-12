@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Container } from "@/components/marketing/ui/container";
 import { Particles } from "@/components/marketing/ui/particles";
 import { BookingLink } from "@/components/marketing/booking-link";
+import { PRICE_VARS } from "@/lib/marketing";
 
 /**
  * Ported from Vetra's `cta.tsx`: a particle field, a heading, a paragraph and
@@ -33,6 +34,7 @@ export function ClosingCta() {
         <Container delay={0.2}>
           <div className="mt-8 flex flex-col items-center gap-3">
             <BookingLink size="lg">{t("cta.button")}</BookingLink>
+            <p className="text-sm font-medium">{t("hero.priceLine", PRICE_VARS)}</p>
             <p className="text-sm text-muted-foreground">{t("cta.note")}</p>
           </div>
         </Container>

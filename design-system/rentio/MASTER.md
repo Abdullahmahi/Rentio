@@ -48,7 +48,11 @@ one-thumb, often on a poor connection).
 
 ---
 
-## Colour — direction A · Evergreen
+## Colour
+
+> **2026-10-28: Harbor is now the default palette** (owner's choice), with Mesa, Juniper and Graphite selectable per browser in Settings > Preferences. Values live in `src/styles.css` (`:root` and `[data-palette]`), measured, and in `design-system/theme-options.css`. The semantic tones and chart fills below are unchanged and shared by every palette. The Evergreen table below is kept for history.
+
+### Previous default — direction A · Evergreen
 
 Deep green retained and slightly deepened; the neutrals, semantic tones and
 dark theme are unchanged from what was already measured and shipped.

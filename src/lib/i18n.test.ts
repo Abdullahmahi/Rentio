@@ -7,6 +7,7 @@ import { expect, test } from "bun:test";
 import esMX from "@/locales/es-MX.json";
 import en from "@/locales/en.json";
 import marketingEn from "@/locales/marketing.en.json";
+import marketingEsMX from "@/locales/marketing.es-MX.json";
 
 type Tree = { [key: string]: string | Tree };
 
@@ -89,8 +90,8 @@ test("every literal t() key in the source exists in both locales", async () => {
   const dynamic = /\$\{|\bt\(`/; // template keys are resolved at runtime
   const missing: string[] = [];
 
-  // The public marketing page is a second namespace, English-only by design -
-  // see the comment in i18n.ts. Its keys are checked against its own file.
+  // The public marketing page is a second namespace (see i18n.ts). Its keys
+  // are checked against its own file; EN/ES parity is tested below.
   const marketingKeys = new Set(flatten(marketingEn as Tree));
 
   for await (const file of new Glob("src/**/*.{ts,tsx}").scan(".")) {
@@ -108,4 +109,23 @@ test("every literal t() key in the source exists in both locales", async () => {
   }
 
   expect(missing).toEqual([]);
+});
+
+test("marketing locales have identical keys and placeholders", () => {
+  const en = flatten(marketingEn as Tree).sort();
+  const es = flatten(marketingEsMX as Tree).sort();
+  expect(es).toEqual(en);
+
+  const placeholders = (tree: Tree, path: string) => {
+    const value = path
+      .split(".")
+      .reduce<string | Tree>((node, key) => (node as Tree)[key]!, tree) as string;
+    return [...value.matchAll(/\{\{(\w+)\}\}/g)].map((match) => match[1]).sort();
+  };
+  const mismatched = en.filter(
+    (key) =>
+      JSON.stringify(placeholders(marketingEn as Tree, key)) !==
+      JSON.stringify(placeholders(marketingEsMX as Tree, key)),
+  );
+  expect(mismatched).toEqual([]);
 });

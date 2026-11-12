@@ -2,7 +2,11 @@ import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { RentioMark } from "@/components/rentio/rentio-mark";
 import { BookingLink } from "@/components/marketing/booking-link";
+import { LanguageToggle } from "@/components/marketing/language-toggle";
 import { BRAND_NAME } from "@/lib/brand";
+import { CONTACT_EMAIL, CONTACT_PHONE, LEGAL_ENTITY } from "@/lib/marketing";
+
+const LINK = "text-muted-foreground transition-colors hover:text-foreground";
 
 /**
  * Vetra's footer carries social icons and a newsletter form. Both are cut:
@@ -30,7 +34,7 @@ export function Footer() {
           <ul className="mt-3 space-y-2 text-sm">
             <li>
               <a
-                href="#what-it-does"
+                href="/#what-it-does"
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
                 {t("nav.whatItDoes")}
@@ -38,7 +42,7 @@ export function Footer() {
             </li>
             <li>
               <a
-                href="#bilingual"
+                href="/#bilingual"
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
                 {t("nav.bilingual")}
@@ -46,7 +50,7 @@ export function Footer() {
             </li>
             <li>
               <a
-                href="#compliance"
+                href="/#compliance"
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
                 {t("nav.compliance")}
@@ -64,13 +68,39 @@ export function Footer() {
           </h2>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <Link
-                to="/sign-in"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
+              <Link to="/sign-in" className={LINK}>
                 {t("footer.signIn")}
               </Link>
             </li>
+            <li>
+              <Link to="/privacy" className={LINK}>
+                {t("footer.privacy")}
+              </Link>
+            </li>
+            <li>
+              <Link to="/terms" className={LINK}>
+                {t("footer.terms")}
+              </Link>
+            </li>
+            <li>
+              <Link to="/contact" className={LINK}>
+                {t("footer.contact")}
+              </Link>
+            </li>
+            {CONTACT_EMAIL ? (
+              <li>
+                <a href={`mailto:${CONTACT_EMAIL}`} className={LINK}>
+                  {CONTACT_EMAIL}
+                </a>
+              </li>
+            ) : null}
+            {CONTACT_PHONE ? (
+              <li>
+                <a href={`tel:${CONTACT_PHONE.replace(/[^\d+]/g, "")}`} className={LINK}>
+                  {CONTACT_PHONE}
+                </a>
+              </li>
+            ) : null}
           </ul>
           <BookingLink variant="outline" className="mt-4 w-full">
             {t("footer.book")}
@@ -81,8 +111,10 @@ export function Footer() {
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-muted-foreground sm:px-6">
           <span className="numeric">
-            &copy; {year} {BRAND_NAME}. {t("footer.rights")}
+            &copy; {year} {BRAND_NAME}
+            {LEGAL_ENTITY ? ` · ${LEGAL_ENTITY}` : ""}. {t("footer.rights")}
           </span>
+          <LanguageToggle className="h-8 text-xs" />
         </div>
       </div>
     </footer>

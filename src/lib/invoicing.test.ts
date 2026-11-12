@@ -244,10 +244,10 @@ test("allocateOldestFirst splits centavos without drifting", () => {
   expect(result.credit).toBe(0);
 });
 
-test("never bills a lease whose dates do not cover the month, even if its status is still active", () => {
+test("bills an active lease past its end date (D1 month-to-month), never a renewal before it starts", () => {
   const data = fixture();
   data.leases.push(
-    // ended by date, nobody flipped the status
+    // ended by date, nobody flipped the status: a holdover, still billed (D1)
     {
       id: "l4",
       unit_id: "u3",
@@ -278,8 +278,9 @@ test("never bills a lease whose dates do not cover the month, even if its status
     invoicedLeaseIds: new Set(),
     pendingUtilities: [],
     labels,
+    today: PERIOD,
   });
-  expect(plan.toCreate.map((row) => row.leaseId).sort()).toEqual(["l1", "l2"]);
+  expect(plan.toCreate.map((row) => row.leaseId).sort()).toEqual(["l1", "l2", "l4"]);
 });
 
 test("a lease that starts mid-month is not due before move-in", () => {

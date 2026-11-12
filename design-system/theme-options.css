@@ -1,0 +1,126 @@
+/*
+ * Rentio · four shadcn theme options (light mode), 2026-10-28.
+ * Not wired in. To try one, copy its block into :root in src/styles.css.
+ * Token names match shadcn new-york + Rentio's extra semantic tokens.
+ * Contrast measured (WCAG 2.x): every text pair >= 4.5:1 on background and card.
+ * Dark-mode values are not designed yet.
+ * Mockups: Paper file "Rentio", page "Themes · 4 shadcn options".
+ */
+
+/* Shared semantic states, unchanged from MASTER.md (already measured). */
+.theme-shared {
+  --success: oklch(from #26724d l c h);
+  --warning: oklch(from #805c03 l c h);
+  --destructive: oklch(from #b3261e l c h);
+  --danger: oklch(from #b3261e l c h);
+  --info: oklch(from #2b5d8a l c h);
+}
+
+/* 1 · Harbor — harbor blue on fog, sea-glass teal accent. Body 15.4, muted 5.5, button 8.7. */
+.theme-harbor {
+  --radius: 0.625rem;
+  --background: oklch(from #f6f8fa l c h);
+  --foreground: oklch(from #12212e l c h);
+  --card: oklch(from #ffffff l c h);
+  --card-foreground: oklch(from #12212e l c h);
+  --popover: oklch(from #ffffff l c h);
+  --popover-foreground: oklch(from #12212e l c h);
+  --primary: oklch(from #1f4e79 l c h);
+  --primary-foreground: oklch(from #ffffff l c h);
+  --secondary: oklch(from #e9eff5 l c h);
+  --secondary-foreground: oklch(from #12212e l c h);
+  --muted: oklch(from #e9eff5 l c h);
+  --muted-foreground: oklch(from #56677a l c h);
+  --accent: oklch(from #dff0ee l c h);
+  --accent-foreground: oklch(from #1d6b66 l c h);
+  --border: oklch(from #dfe6ed l c h);
+  --input: oklch(from #dfe6ed l c h);
+  --ring: oklch(from #1f4e79 l c h);
+  --chart-1: oklch(from #1f4e79 l c h);
+  --chart-2: oklch(from #5b9bc6 l c h);
+  --chart-3: oklch(from #2f8f8a l c h);
+  --chart-4: oklch(from #a9c1d6 l c h);
+  --sidebar: oklch(from #eef3f7 l c h);
+}
+
+/* 2 · Mesa — twilight indigo on sandstone, sage accent. Body 15.4, muted 5.7, button 8.3. */
+.theme-mesa {
+  --radius: 0.875rem;
+  --background: oklch(from #f8f5f0 l c h);
+  --foreground: oklch(from #221d18 l c h);
+  --card: oklch(from #fffdf9 l c h);
+  --card-foreground: oklch(from #221d18 l c h);
+  --popover: oklch(from #fffdf9 l c h);
+  --popover-foreground: oklch(from #221d18 l c h);
+  --primary: oklch(from #3d4a8a l c h);
+  --primary-foreground: oklch(from #ffffff l c h);
+  --secondary: oklch(from #efedf6 l c h);
+  --secondary-foreground: oklch(from #221d18 l c h);
+  --muted: oklch(from #f1ece4 l c h);
+  --muted-foreground: oklch(from #6a6055 l c h);
+  --accent: oklch(from #e6eee3 l c h);
+  --accent-foreground: oklch(from #46664a l c h);
+  --border: oklch(from #e8e0d4 l c h);
+  --input: oklch(from #e8e0d4 l c h);
+  --ring: oklch(from #3d4a8a l c h);
+  --chart-1: oklch(from #3d4a8a l c h);
+  --chart-2: oklch(from #8a96cc l c h);
+  --chart-3: oklch(from #6f8f6f l c h);
+  --chart-4: oklch(from #d2c2a6 l c h);
+  --sidebar: oklch(from #f1ece4 l c h);
+}
+
+/* 3 · Juniper — juniper green, berry-blue accent, dark pine sidebar. Body 14.9, muted 5.3, button 6.3. */
+.theme-juniper {
+  --radius: 0.625rem;
+  --background: oklch(from #f6f8f5 l c h);
+  --foreground: oklch(from #1a2420 l c h);
+  --card: oklch(from #ffffff l c h);
+  --card-foreground: oklch(from #1a2420 l c h);
+  --popover: oklch(from #ffffff l c h);
+  --popover-foreground: oklch(from #1a2420 l c h);
+  --primary: oklch(from #2d6a5a l c h);
+  --primary-foreground: oklch(from #ffffff l c h);
+  --secondary: oklch(from #e8efeb l c h);
+  --secondary-foreground: oklch(from #1a2420 l c h);
+  --muted: oklch(from #e8efeb l c h);
+  --muted-foreground: oklch(from #5b6a63 l c h);
+  --accent: oklch(from #e5ecf6 l c h);
+  --accent-foreground: oklch(from #3b5b94 l c h);
+  --border: oklch(from #dfe6e0 l c h);
+  --input: oklch(from #dfe6e0 l c h);
+  --ring: oklch(from #2d6a5a l c h);
+  --chart-1: oklch(from #2d6a5a l c h);
+  --chart-2: oklch(from #7fb39d l c h);
+  --chart-3: oklch(from #3b5b94 l c h);
+  --chart-4: oklch(from #a9bfdc l c h);
+  --sidebar: oklch(from #1c332d l c h);
+  --sidebar-foreground: oklch(from #d5e2dc l c h);
+}
+
+/* 4 · Graphite — shadcn zinc, near-black primary, teal accent. Body 17.0, muted 5.8, button 17.0. */
+.theme-graphite {
+  --radius: 0.5rem;
+  --background: oklch(from #fafafa l c h);
+  --foreground: oklch(from #18181b l c h);
+  --card: oklch(from #ffffff l c h);
+  --card-foreground: oklch(from #18181b l c h);
+  --popover: oklch(from #ffffff l c h);
+  --popover-foreground: oklch(from #18181b l c h);
+  --primary: oklch(from #18181b l c h);
+  --primary-foreground: oklch(from #fafafa l c h);
+  --secondary: oklch(from #f4f4f5 l c h);
+  --secondary-foreground: oklch(from #18181b l c h);
+  --muted: oklch(from #f4f4f5 l c h);
+  --muted-foreground: oklch(from #62626b l c h);
+  --accent: oklch(from #e3f3ef l c h);
+  --accent-foreground: oklch(from #0f6b63 l c h);
+  --border: oklch(from #e4e4e7 l c h);
+  --input: oklch(from #e4e4e7 l c h);
+  --ring: oklch(from #a1a1aa l c h);
+  --chart-1: oklch(from #18181b l c h);
+  --chart-2: oklch(from #0f766e l c h);
+  --chart-3: oklch(from #5eb8ac l c h);
+  --chart-4: oklch(from #a1a1aa l c h);
+  --sidebar: oklch(from #fafafa l c h);
+}

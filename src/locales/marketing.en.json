@@ -4,19 +4,85 @@
     "bilingual": "Bilingual",
     "compliance": "Compliance",
     "signIn": "Sign in",
-    "book": "Book a meeting",
+    "book": "Book a walkthrough",
     "menu": "Menu",
     "openMenu": "Open menu",
-    "home": "{{brand}} home"
+    "home": "{{brand}} home",
+    "ai": "Night shift",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "languageToggle": "Español",
+    "languageLabel": "Ver esta página en español"
   },
   "hero": {
-    "eyebrow": "English and Spanish, by default",
-    "headlineLead": "Property management your",
-    "headlineEmphasis": "tenants can read",
-    "subhead": "A bilingual tenant portal, every request tracked whichever way it arrives, and Texas compliance built in.",
-    "primaryCta": "Book a meeting",
-    "secondaryCta": "See what it does",
-    "imageAlt": "The {{brand}} tenant portal in Spanish on a phone, showing the balance due and a button to report a payment"
+    "eyebrow": "Built in El Paso for Texas property managers",
+    "headlineLead": "Your tenants read Spanish. Your staff work in English.",
+    "headlineEmphasis": "Texas law is in the form.",
+    "subhead": "The bilingual back office for Texas property managers with 50–500 doors. Both portals in English and Mexican Spanish, the §92 deadlines counted for you, and our team moves your units, tenants and leases over in 30 days, or you don't pay until it's done.",
+    "primaryCta": "Book a 30-minute walkthrough",
+    "priceLine": "{{monthlyPrice}}/month · everything included · {{setupFee}} setup",
+    "secondaryCta": "See the price and what's in it",
+    "imageAlt": "The {{brand}} tenant portal in Spanish on a phone, showing the balance due and a button to report a payment",
+    "chips": {
+      "bilingual": "English + Spanish, both portals",
+      "clocks": "Texas clocks in the form",
+      "live": "Live in 30 days or you don't pay",
+      "fees": "No portal fees for tenants"
+    },
+    "nightShift": "Night shift: an after-hours bilingual line, set up by our team",
+    "proofStrip": "{{clientProof}} · {{strings}} strings in Spanish · §92.019 · §92.103 · §92.052 · §92.156 counted in the form"
+  },
+  "problem": {
+    "headingLead": "Four things that cost you money",
+    "headingEmphasis": "before you notice",
+    "subhead": "We hear all four from Texas managers. Each one costs money before anyone sees it.",
+    "items": {
+      "calls": {
+        "title": "The 10 pm call",
+        "body": "A tenant calls about a leak after hours, in Spanish. Nobody answers, so the leak becomes a ceiling.",
+        "cost": "A leak left until morning can become a turn: $1,500 to $8,000 a unit"
+      },
+      "payments": {
+        "title": "\"I already paid\"",
+        "body": "Cash, money orders, Zelle and checks arrive five different ways. Matching them eats a day every month.",
+        "cost": "A day a month of matching is about $4,200 a year in staff time"
+      },
+      "deadlines": {
+        "title": "The forgotten clock",
+        "body": "Deposits are due 30 days after the forwarding address. Health and safety repairs, 7 days after notice.",
+        "cost": "Bad-faith deposit retention can cost $100 plus three times the deposit (§92.109)"
+      },
+      "switching": {
+        "title": "Stuck where you are",
+        "body": "Your tenants can't read the portal, and switching means weeks of data entry nobody has time for.",
+        "cost": "So nothing changes"
+      }
+    }
+  },
+  "ai": {
+    "eyebrow": "Done for you · set up by our team",
+    "headingLead": "The",
+    "headingEmphasis": "night shift",
+    "subhead": "Our team sets up and runs an after-hours bilingual service for your company: the phone line, maintenance intake, missed-call text-back and late-fee reminders. It is included in the monthly price.",
+    "items": {
+      "voice": {
+        "title": "After-hours bilingual phone line",
+        "body": "An AI line our team sets up answers tenant calls after hours in English or Spanish and logs each request for your staff."
+      },
+      "intake": {
+        "title": "After-hours maintenance intake",
+        "body": "Repair calls at night are taken down with the unit and the details, ready for your staff in the morning."
+      },
+      "textback": {
+        "title": "Missed-call text-back",
+        "body": "Every call your office misses gets a text back in the caller's language, so nobody is left waiting."
+      },
+      "reminders": {
+        "title": "Reminders before a late fee is chargeable",
+        "body": "Tenants hear from you before a late fee can be charged. Fewer late payments, fewer arguments."
+      }
+    },
+    "guardrail": "The line never changes a balance, waives a fee or sends a legal notice. It hands those to your staff."
   },
   "features": {
     "headingLead": "Everything the month",
@@ -29,18 +95,18 @@
       },
       "queue": {
         "title": "Every request in one queue",
-        "body": "Portal, WhatsApp, phone or walk-in - each work order records how it arrived, so nothing falls through whichever way the tenant reached you."
+        "body": "Portal, phone or walk-in, with the source recorded by your staff, so nothing falls through whichever way the tenant reached you."
       },
       "payments": {
-        "title": "Payments tenants can report",
-        "body": "Tenants pay by transfer, Zelle or check and report it with a photo. Staff compare the claim against the bank and confirm it."
+        "title": "Every way tenants pay",
+        "body": "Card, ACH and cash through PayNearMe in the portal. Tenants who pay by Zelle or check report it with a photo, and staff confirm it against the bank."
       },
       "maintenance": {
         "title": "Maintenance with photos",
         "body": "Requests carry images from the tenant's phone, get assigned to a vendor, and are tracked through to close."
       },
       "compliance": {
-        "title": "Texas compliance built in",
+        "title": "Texas deadlines in the form",
         "body": "Late-fee limits, the deposit clock, the repair window and rekey deadlines are tracked against the dates the statute counts from."
       },
       "cycle": {
@@ -50,74 +116,15 @@
     }
   },
   "proof": {
-    "headingLead": "What your staff",
-    "headingEmphasis": "see",
-    "subhead": "Two of the screens they work in every day.",
-    "rentRoll": {
-      "title": "Rent roll",
-      "figureLabel": "Collected this month",
-      "figureNote": "of $31,140.00 invoiced",
-      "columns": {
-        "unit": "Unit",
-        "tenant": "Tenant",
-        "rent": "Rent",
-        "status": "Status"
-      },
-      "rows": {
-        "a": {
-          "unit": "101",
-          "tenant": "R. Delgado",
-          "rent": "$1,095.00",
-          "status": "Paid"
-        },
-        "b": {
-          "unit": "204",
-          "tenant": "K. Obrien",
-          "rent": "$1,550.00",
-          "status": "Overdue"
-        },
-        "c": {
-          "unit": "302",
-          "tenant": "E. Rivas",
-          "rent": "$1,010.00",
-          "status": "Paid"
-        }
-      },
-      "figure": "$14,720.00"
-    },
-    "queue": {
-      "title": "Work orders",
-      "figureLabel": "Open work orders",
-      "figureNote": "3 marked urgent",
-      "columns": {
-        "unit": "Unit",
-        "issue": "Issue",
-        "source": "Source",
-        "age": "Age"
-      },
-      "rows": {
-        "a": {
-          "unit": "201",
-          "issue": "No hot water",
-          "source": "WhatsApp",
-          "age": "2d"
-        },
-        "b": {
-          "unit": "104",
-          "issue": "Sparking outlet",
-          "source": "Portal",
-          "age": "5d"
-        },
-        "c": {
-          "unit": "303",
-          "issue": "Dripping shower",
-          "source": "Phone",
-          "age": "9d"
-        }
-      },
-      "figure": "10"
-    },
-    "disclaimer": "Illustrative interface with demo data. Not a claim about results."
+    "eyebrow": "Proof",
+    "headingLead": "Running Texas property management companies",
+    "headingEmphasis": "today",
+    "subhead": "No testimonials or logos on this page. Here is what you can check on the walkthrough.",
+    "items": {
+      "strings": "{{n}} strings in Spanish, both portals",
+      "isolation": "A test suite proves one company cannot read another's data",
+      "texas": "Texas §92 deadlines counted inside the forms"
+    }
   },
   "bilingual": {
     "eyebrow": "The difference",
@@ -166,21 +173,370 @@
   },
   "cta": {
     "headingLead": "See it on your",
-    "headingEmphasis": "portfolio",
-    "body": "A walkthrough on your own units and your own tenants - what the month looks like, what your tenants would see, and where the statutory clocks would already be running.",
+    "headingEmphasis": "own portfolio",
+    "body": "Thirty minutes on your own units: what your tenants would see, and where the Texas clocks are already running.",
     "note": "Thirty minutes, no slides. Pick a time that suits you.",
-    "button": "Book a meeting"
+    "button": "Book a 30-minute walkthrough"
   },
   "footer": {
-    "tagline": "Bilingual property management for Texas landlords.",
+    "tagline": "The bilingual back office for Texas property managers.",
     "productHeading": "Product",
     "companyHeading": "Company",
     "signIn": "Sign in",
-    "book": "Book a meeting",
+    "book": "Book a walkthrough",
     "rights": "All rights reserved.",
-    "disclaimer": "{{brand}} helps you track statutory deadlines. It is not legal advice."
+    "disclaimer": "{{brand}} helps you track statutory deadlines. It is not legal advice.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact"
   },
   "external": {
     "newTab": "(opens in a new tab)"
+  },
+  "offer": {
+    "eyebrow": "What's included",
+    "headingLead": "One price.",
+    "headingEmphasis": "Everything we do, marked by what's live.",
+    "subhead": "Two labels. Live today is software in Rentio now. Done for you is set up and run by our team for your company.",
+    "groups": {
+      "software": "Software",
+      "ai": "AI · the night shift",
+      "people": "People",
+      "money": "Money and owners"
+    },
+    "items": {
+      "modules": {
+        "title": "Rentio, every module",
+        "body": "Properties, leases, payments, maintenance and reports. Staff and tenant portals in English and Mexican Spanish."
+      },
+      "clocks": {
+        "title": "Texas clocks in the form",
+        "body": "Late-fee cap, deposit clock, repair window and rekey deadline, counted from the dates the statute uses."
+      },
+      "pdfs": {
+        "title": "Texas notice and deposit letters",
+        "body": "Notice to vacate and deposit disposition as PDFs, in English and Spanish. Rentio tracks the rules; it is not legal advice."
+      },
+      "payments": {
+        "title": "Tenant-reported payments",
+        "body": "Tenants who still pay by Zelle, cash or money order report it with a photo; your staff confirm each one in a queue."
+      },
+      "portal": {
+        "title": "Tenant portal with your logo",
+        "body": "Your tenants see your company, not ours."
+      },
+      "voice": {
+        "title": "After-hours bilingual phone line",
+        "body": "An AI line our team sets up answers tenant calls after hours in English or Spanish and logs each request for your staff.",
+        "market": "$1.50–3 per unit a month elsewhere"
+      },
+      "textback": {
+        "title": "Missed-call text-back",
+        "body": "Every call your office misses gets a text back in the caller's language, so nobody is left waiting.",
+        "market": "$650+ per workflow elsewhere"
+      },
+      "migration": {
+        "title": "We move your data",
+        "body": "Units, tenants and leases imported by our team, not yours.",
+        "market": "$300–500 setup elsewhere"
+      },
+      "manager": {
+        "title": "A named person to call",
+        "body": "By phone, in English or Spanish, from someone who knows your portfolio.",
+        "market": "About $1,000 a year elsewhere"
+      },
+      "training": {
+        "title": "One staff training session",
+        "body": "One hour, in English or Spanish."
+      },
+      "audit": {
+        "title": "Free Texas late-fee audit",
+        "body": "We check your past late fees against the §92.019 cap."
+      },
+      "website": {
+        "title": "Your company website, in both languages",
+        "body": "One page, built by our team.",
+        "note": "Built during onboarding, included in setup",
+        "market": "$1.8K–4.4K + $195–800/mo elsewhere"
+      },
+      "welcome": {
+        "title": "Bilingual tenant welcome kit",
+        "body": "A flyer with a QR code so tenants join the portal in the first month.",
+        "note": "Delivered during onboarding"
+      },
+      "intake": {
+        "title": "After-hours maintenance intake",
+        "body": "Repair calls at night are taken down with the unit and the details, ready for your staff in the morning."
+      },
+      "reminders": {
+        "title": "Reminders before a late fee is chargeable",
+        "body": "Tenants hear from you before a late fee can be charged. Fewer late payments, fewer arguments."
+      },
+      "onlineRent": {
+        "title": "Online rent by card, ACH or cash",
+        "body": "Tenants pay by card or bank transfer in the portal, or in cash at a nearby store through PayNearMe. Every payment lands in the ledger on its own."
+      },
+      "ownerPortal": {
+        "title": "Owner portal",
+        "body": "Each owner logs in to see earnings, cash in and cash out, the balance sheet, what they owe and what is owed to them, and can connect more of their business."
+      },
+      "ownerStatements": {
+        "title": "Owner statements",
+        "body": "A statement for every owner each month, from Reports, ready to send."
+      },
+      "quickbooks": {
+        "title": "QuickBooks sync",
+        "body": "Payments and expenses flow into your QuickBooks, so your books and Rentio always agree."
+      }
+    },
+    "valueLabel": "Bought separately, the people, the website and the night shift run about",
+    "valueFigure": "$8,000+ a year",
+    "valueNote": "for a 200-door company, before the software. Market prices from our 2026 pricing research.",
+    "priceUnit": "per month, the whole Rentio software + AI bundle",
+    "qualifier": "Built for Texas companies managing 50–500 doors.",
+    "cta": "Book a walkthrough",
+    "guarantee": {
+      "title": "The 30-day guarantee",
+      "body": "Your portfolio is live and your first rent cycle runs in Rentio within 30 days of us receiving your data export, or your first invoice waits until it does. We do the migration, so this is on us.",
+      "exitTitle": "Easy to leave.",
+      "exit": "After the first 6 months, leave any month. We export every unit, tenant, lease and payment for you within 2 business days."
+    },
+    "priceLabel": "Your price",
+    "setup": "{{setupFee}} one-time setup: migration, training, website"
+  },
+  "faq": {
+    "headingLead": "Questions managers",
+    "headingEmphasis": "ask us",
+    "items": {
+      "switching": {
+        "q": "We're on AppFolio or Buildium. How painful is switching?",
+        "a": "Not on your side. We import your units, tenants and leases from your export and train your staff in one session. Most companies are live in 3–5 business days, and if your first rent cycle isn't running in Rentio within 30 days of your export, your first invoice waits."
+      },
+      "fees": {
+        "q": "Do my tenants pay a fee to pay rent?",
+        "a": "No portal fees for tenants from us, ever. They can pay by card, ACH or cash through PayNearMe, or keep paying by Zelle or money order and report it in the portal with a photo."
+      },
+      "ai": {
+        "q": "Is the AI line live?",
+        "a": "Yes. Our team sets up your after-hours line in English and Spanish during onboarding. It logs requests for your staff; it never changes a balance, waives a fee or sends a legal notice."
+      },
+      "spanish": {
+        "q": "Is it only in Spanish?",
+        "a": "No. Every screen is in English and Mexican Spanish and each person picks their own."
+      },
+      "texas": {
+        "q": "Does it keep me compliant with Texas law?",
+        "a": "It tracks the §92 deadlines and the late-fee cap inside the forms and warns you before they pass. It is not legal advice."
+      },
+      "data": {
+        "q": "Who owns the data, and can I leave?",
+        "a": "You do. After the first 6 months, leave any month; we export every unit, tenant, lease and payment for you within 2 business days."
+      },
+      "doors": {
+        "q": "How many doors do I need?",
+        "a": "Rentio is built for 50–500 doors; best fit 80–500. The price is the same {{monthlyPrice}} a month at any size. Under 50 doors, we'll tell you on the call that TurboTenant is the cheaper fit."
+      },
+      "cost": {
+        "q": "What does it cost?",
+        "a": "{{monthlyPrice}} a month for the software, the AI night shift set up by our team, and a named person. {{setupFee}} once for migration, training and your website. No per-door fees, no tenant portal fees."
+      },
+      "setupFee": {
+        "q": "Why is there a setup fee?",
+        "a": "The {{setupFee}} covers the work we do for you once: moving your data over, configuring Rentio and your AI line for your company, and training your staff."
+      },
+      "hiddenFees": {
+        "q": "Are there hidden fees for payments, screening or e-sign?",
+        "a": "No. We don't charge a single extra dollar on top of {{monthlyPrice}} a month. No per-door fees, no per-payment fees, no add-ons."
+      },
+      "contract": {
+        "q": "What's the contract length? Can I cancel?",
+        "a": "The minimum is 6 months. After that, cancel any time."
+      },
+      "live": {
+        "q": "How long until we're live?",
+        "a": "3–5 business days for most companies, counted from when we receive your data export."
+      },
+      "migration": {
+        "q": "Who does the migration, you or us?",
+        "a": "Us. You send the export; we move everything over and check it with you."
+      },
+      "staff": {
+        "q": "Does it replace my staff?",
+        "a": "No. It frees up your staff, it doesn't fire them. The AI takes the repetitive calls and messages so your team spends its time on the work that needs a person."
+      },
+      "afterHours": {
+        "q": "Does it handle after-hours emergency maintenance calls?",
+        "a": "Yes, in English and Spanish. The AI line answers at night and on weekends and logs every request for your staff."
+      },
+      "money": {
+        "q": "Does it do trust accounting and owner statements?",
+        "a": "Yes. Every dollar coming in and going out is recorded and can be traced, and owner statements are created under Reports, by property or unit, ready to send."
+      },
+      "tenantPortal": {
+        "q": "Is there a tenant portal for rent and maintenance?",
+        "a": "Yes. Tenants report their rent payments and submit maintenance requests with photos in the portal, in English or Spanish."
+      },
+      "payMethods": {
+        "q": "Can tenants pay by card, ACH or cash?",
+        "a": "Yes. Card and ACH in the tenant portal, and cash at a nearby store through PayNearMe. Each payment lands in the ledger on its own."
+      },
+      "ownerPortal": {
+        "q": "Can owners log in and see their reports?",
+        "a": "Yes. Each owner gets a login to see earnings, cash in and cash out, the balance sheet, what they owe and what is owed to them. If they want, they can connect more of their business to see it all in one place."
+      },
+      "quickbooks": {
+        "q": "Does it sync with QuickBooks?",
+        "a": "Yes. Payments and expenses flow into your QuickBooks, so your books and Rentio always agree."
+      }
+    },
+    "seeAll": "See all {{count}} questions",
+    "description": "Straight answers to what property managers ask before switching to Rentio: price, contract, migration, AI and data."
+  },
+  "booked": {
+    "badge": "Booked",
+    "title": "You're booked",
+    "hero": {
+      "eyebrow": "Your walkthrough is on the calendar",
+      "headlineLead": "You're booked.",
+      "headlineLeadNamed": "You're booked, {{name}}.",
+      "headlineEmphasis": "Here's what happens next.",
+      "subhead": "Three minutes from the two of us before we meet. Watch it now and the 30 minutes will be worth a lot more to you.",
+      "videoTitle": "A welcome from the {{brand}} co-founders",
+      "videoPending": "The welcome video is being recorded. In three minutes it covers:",
+      "videoPoints": {
+        "who": "Who we are and why we built this for Texas managers with Spanish-speaking tenants",
+        "call": "Exactly what we do in the 30 minutes, and what we don't",
+        "ask": "The two lines we need from you before the call"
+      },
+      "checkEmail": "Your confirmation and calendar invite are in your inbox. Need another time? Use the reschedule link in that email. We would rather move the call than miss you."
+    },
+    "prep": {
+      "eyebrow": "Before we meet",
+      "headingLead": "Three things that make the call",
+      "headingEmphasis": "worth your time",
+      "subhead": "Each one takes under two minutes. Together they turn a demo into a walkthrough of your own portfolio.",
+      "items": {
+        "watch": {
+          "title": "Watch the video above",
+          "body": "It tells you what we will and won't do on the call, so there are no surprises."
+        },
+        "reply": {
+          "title": "Reply to your confirmation email",
+          "body": "Two lines: how many doors you manage, and what software you use today. We load a few of your units ahead of time so you see your own rent roll, not a demo account."
+        },
+        "invite": {
+          "title": "Bring the person who runs your office",
+          "body": "The one who answers the tenant calls and matches the payments. They will have the questions that matter, and they are the one the switch has to work for."
+        }
+      }
+    },
+    "agenda": {
+      "eyebrow": "The 30 minutes",
+      "headingLead": "No slides.",
+      "headingEmphasis": "Your units.",
+      "subhead": "Here is the whole call, minute by minute, so you know what you are walking into.",
+      "items": {
+        "portfolio": {
+          "time": "0 to 10 min",
+          "title": "Your portfolio, in Rentio",
+          "body": "A few of your units and leases, already loaded. You see your rent roll, your work orders and what your tenants would see on their phone, in Spanish."
+        },
+        "moments": {
+          "time": "10 to 20 min",
+          "title": "The three moments",
+          "body": "A tenant reports a Zelle payment with a screenshot. A deposit clock already running on a move-out. A leak reported at 10 pm that is a work order with photos by morning."
+        },
+        "plan": {
+          "time": "20 to 30 min",
+          "title": "The number and the plan",
+          "body": "Your price, what your 30 days look like, and whether it is a fit. If it isn't, we will say so and you have lost half an hour."
+        }
+      }
+    },
+    "day": {
+      "eyebrow": "What changes",
+      "headingLead": "The same Tuesday,",
+      "headingEmphasis": "two ways",
+      "subhead": "Nothing here is invented. These are the four calls and questions every Texas manager told us about.",
+      "before": "Today",
+      "after": "On {{brand}}",
+      "rows": {
+        "morning": {
+          "time": "7:40 am",
+          "before": "Three voicemails in Spanish from last night. One of them is a leak. Nobody is sure which.",
+          "after": "The leak is a work order with two photos. The tenant filed it from the portal at 10:12 pm, in Spanish."
+        },
+        "payment": {
+          "time": "10:15 am",
+          "before": "A tenant insists they paid by Zelle on Friday. Someone spends an hour in the bank app.",
+          "after": "The Zelle payment is in the confirm queue with the tenant's screenshot. One click matches it."
+        },
+        "deposit": {
+          "time": "2:00 pm",
+          "before": "Unit 204 moved out. When did the forwarding address arrive? When is the deposit due back?",
+          "after": "Unit 204 shows 11 days left on the deposit clock, counted from the day the forwarding address came in."
+        },
+        "night": {
+          "time": "10:05 pm",
+          "before": "Your personal phone rings. It's a tenant.",
+          "after": "Tenants report problems in the portal, in their language. Your phone stays on the counter."
+        }
+      }
+    },
+    "path": {
+      "eyebrow": "How we move you over",
+      "headingLead": "Thirty days,",
+      "headingEmphasis": "done for you",
+      "subhead": "Switching software fails when the manager has to do the data entry. So we do it.",
+      "steps": {
+        "day0": {
+          "label": "Day 0",
+          "title": "The walkthrough",
+          "body": "We see your portfolio together and agree the plan and the price."
+        },
+        "week1": {
+          "label": "Week 1",
+          "title": "We import your data",
+          "body": "Units, tenants and leases, entered by our team from your export or spreadsheet. You check it, we fix it."
+        },
+        "week2": {
+          "label": "Week 2",
+          "title": "Your staff get one session",
+          "body": "One hour, in English or Spanish. After that, a named person to call when something is unclear."
+        },
+        "week3": {
+          "label": "Weeks 3 and 4",
+          "title": "Tenants join the portal",
+          "body": "The welcome flyer with a QR code goes out. Tenants see your logo and read every screen in their language."
+        },
+        "day30": {
+          "label": "Day 30",
+          "title": "The first rent cycle runs",
+          "body": "Every invoice generated in one pass, reviewed, sent. If it hasn't happened within 30 days of your export, your first invoice waits until it does."
+        }
+      }
+    },
+    "closing": {
+      "headingLead": "We'll see you",
+      "headingEmphasis": "on the call",
+      "body": "Watch the video, reply with your door count and software, and bring the person who runs your office. Everything else is on us.",
+      "reschedule": "Can't make it? Reschedule from your confirmation email. A moved call is fine. A missed one wastes the prep we did on your portfolio.",
+      "home": "Back to the homepage"
+    },
+    "footer": {
+      "disclaimer": "{{brand}} helps you track statutory deadlines. It is not legal advice."
+    }
+  },
+  "status": {
+    "live": "Live today",
+    "done": "Done for you"
+  },
+  "audit": {
+    "eyebrow": "Free · 15 minutes",
+    "headingLead": "Find out what you've over-charged in late fees.",
+    "headingEmphasis": "Free.",
+    "body": "Book 15 minutes and bring your late-fee export from AppFolio, Buildium or a spreadsheet. We check every fee against the §92.019 cap and show you, on the call, how many were over it and what that exposure adds up to.",
+    "fineprint": "Five audits a month. We delete your file afterwards. Not legal advice.",
+    "button": "Book a free late-fee audit"
   }
 }

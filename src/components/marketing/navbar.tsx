@@ -6,13 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { RentioMark } from "@/components/rentio/rentio-mark";
 import { BookingLink } from "@/components/marketing/booking-link";
+import { LanguageToggle } from "@/components/marketing/language-toggle";
 import { cn } from "@/lib/utils";
 
-/** In-page anchors. There is no pricing page, so there is no pricing link. */
+/**
+ * Home-page anchors, written as `/#id` so they also work from /privacy,
+ * /terms and /contact. "Pricing" is the offer card; there is no pricing page.
+ */
 const SECTIONS = [
   { id: "what-it-does", key: "nav.whatItDoes" },
-  { id: "bilingual", key: "nav.bilingual" },
   { id: "compliance", key: "nav.compliance" },
+  { id: "ai", key: "nav.ai" },
+  { id: "offer", key: "nav.pricing" },
+  { id: "faq", key: "nav.faq" },
 ] as const;
 
 export function Navbar() {
@@ -43,7 +49,7 @@ export function Navbar() {
             {SECTIONS.map((section) => (
               <li key={section.id}>
                 <a
-                  href={`#${section.id}`}
+                  href={`/#${section.id}`}
                   className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {t(section.key)}
@@ -54,6 +60,7 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <LanguageToggle className="hidden sm:inline-flex" />
           <Button asChild variant="ghost" className="hidden sm:inline-flex">
             <Link to="/sign-in">{t("nav.signIn")}</Link>
           </Button>
@@ -78,13 +85,14 @@ export function Navbar() {
                 {SECTIONS.map((section) => (
                   <a
                     key={section.id}
-                    href={`#${section.id}`}
+                    href={`/#${section.id}`}
                     className="flex h-12 items-center rounded-lg px-2 text-base font-medium transition-colors hover:bg-muted"
                   >
                     {t(section.key)}
                   </a>
                 ))}
                 <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
+                  <LanguageToggle className="h-12 w-full justify-start px-2" />
                   <Button asChild variant="outline" className="h-12 w-full">
                     <Link to="/sign-in">{t("nav.signIn")}</Link>
                   </Button>

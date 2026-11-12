@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Container } from "@/components/marketing/ui/container";
 import portalEn from "@/assets/marketing/portal-en.png";
 import portalEs from "@/assets/marketing/portal-es.png";
+import { SPANISH_STRINGS } from "@/lib/marketing";
 
 /**
  * The lead differentiator.
@@ -41,7 +42,7 @@ export function Bilingual() {
             </p>
 
             <div className="mt-6 flex items-baseline gap-3 rounded-lg border border-border bg-surface px-4 py-3">
-              <span className="numeric text-3xl font-semibold text-primary">983</span>
+              <span className="numeric text-3xl font-semibold text-primary">{SPANISH_STRINGS}</span>
               <span className="text-sm text-muted-foreground">{t("bilingual.parityLabel")}</span>
             </div>
           </Container>

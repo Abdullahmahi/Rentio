@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/tanstack-react-start";
+import { PRE_PAINT_SCRIPT } from "@/lib/palette";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -31,8 +32,10 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">{t("empty.title")}</h2>
-        <p className="mt-2 text-sm text-muted-foreground">{t("empty.description")}</p>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">
+          {t("errors.pageNotFoundTitle")}
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t("errors.pageNotFoundBody")}</p>
         <div className="mt-6">
           <Link
             to="/"
@@ -53,17 +56,20 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">{t("empty.title")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("empty.description")}</p>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          {t("errors.crashTitle")}
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("errors.crashBody")}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
+            type="button"
             onClick={() => {
-              router.invalidate();
+              void router.invalidate();
               reset();
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            {t("actions.confirm")}
+            {t("actions.retry")}
           </button>
           <a
             href="/"
@@ -95,6 +101,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: BRAND_NAME },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: BRAND_NAME },
+      // The public page ships in both languages (EN/ES toggle on "/").
+      { property: "og:locale", content: "en_US" },
+      { property: "og:locale:alternate", content: "es_MX" },
       { property: "og:title", content: "Property management your tenants can read" },
       {
         property: "og:description",
@@ -137,12 +146,24 @@ function RootShell({ children }: { children: ReactNode }) {
   // localStorage, so the honest first-paint value is the per-portal default:
   // tenants land in Spanish, staff in English. Once the client resolves the
   // user's actual preference, `useLanguagePreference` updates the attribute.
+  //
+  // The public page "/" has an EN/ES toggle, so there <html lang> follows the
+  // live i18n language: English on the server, the visitor's choice once the
+  // client has resolved it.
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const lang = pathname.startsWith("/portal") ? PORTAL_DEFAULT_LANGUAGE : INTERNAL_DEFAULT_LANGUAGE;
+  const { i18n } = useTranslation();
+  const lang = pathname.startsWith("/portal")
+    ? PORTAL_DEFAULT_LANGUAGE
+    : pathname === "/"
+      ? i18n.language
+      : INTERNAL_DEFAULT_LANGUAGE;
 
   return (
-    <html lang={lang}>
+    // suppressHydrationWarning: the pre-paint script below sets `dark` and
+    // data-palette on <html> before React hydrates.
+    <html lang={lang} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: PRE_PAINT_SCRIPT }} />
         <HeadContent />
       </head>
       <body>

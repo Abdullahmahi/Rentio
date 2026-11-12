@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { SignIn } from "@clerk/tanstack-react-start";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ export const Route = createFileRoute("/sign-in")({
  * staff/tenant toggle: the role comes off the profile after authentication
  * and `homeFor()` picks the shell. Clerk handles the credentials, Google
  * and password reset; this page only decides where a signed-in person goes.
+ * No request-access link (D8): /request-access stays deployed but dormant.
  */
 function SignInPage() {
   const { t } = useTranslation();
@@ -59,14 +60,8 @@ function SignInPage() {
     <AuthLayout
       title={t("auth.signIn")}
       description={t("auth.signInDescription")}
-      footer={
-        <span className="text-muted-foreground">
-          {t("auth.firstTimeHere")}{" "}
-          <Link to="/request-access" className="font-medium text-primary hover:underline">
-            {t("auth.activateYourAccount")}
-          </Link>
-        </span>
-      }
+      // Invite-only (D8): tenants activate from their property manager's email.
+      footer={<p className="text-muted-foreground">{t("auth.inviteOnlyHint")}</p>}
     >
       {unrecognised ? (
         <div
@@ -74,9 +69,7 @@ function SignInPage() {
           className="mt-6 rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
         >
           <p className="font-medium">{t("auth.unrecognisedAccount")}</p>
-          <Link to="/request-access" className="mt-1 inline-block font-medium hover:underline">
-            {t("auth.requestAccessCta")}
-          </Link>
+          <p className="mt-1">{t("auth.inviteOnlyHint")}</p>
         </div>
       ) : null}
 

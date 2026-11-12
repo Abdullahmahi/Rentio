@@ -71,20 +71,23 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(from #faf9f7 l c h);
+  /* Harbor, the default palette (owner's choice, 2026-10-28). Three more
+     palettes override these neutrals below via [data-palette]; the semantic
+     tones and chart fills stay shared so "overdue" means one colour in every
+     palette. Primary is a cool hue on purpose: a warm primary is not separable
+     from --danger. Measured: body 15.4, muted 5.5 (5.0 on muted), button 8.7. */
+  --background: oklch(from #f6f8fa l c h);
   --surface: oklch(from #ffffff l c h);
-  --foreground: oklch(from #1c1a17 l c h);
-  --muted-foreground: oklch(from #6b655c l c h);
-  /* Deepened a touch from #1b4d3e for the rebrand. Stays green on purpose:
-     a warm primary is not separable from --danger, which in this product
-     means overdue rent. See MASTER.md, "Why the primary is not a warm hue". */
-  --primary: oklch(from #174a3c l c h);
+  --foreground: oklch(from #12212e l c h);
+  --muted-foreground: oklch(from #56677a l c h);
+  --primary: oklch(from #1f4e79 l c h);
   --primary-foreground: oklch(from #ffffff l c h);
-  --accent: oklch(from #c2703d l c h);
-  --accent-foreground: oklch(from #ffffff l c h);
-  --border: oklch(from #e7e3dd l c h);
-  --secondary: oklch(from #f3f0ec l c h);
-  --muted: oklch(from #f3f0ec l c h);
+  /* shadcn's hover/selection tint, not a brand colour. */
+  --accent: oklch(from #dff0ee l c h);
+  --accent-foreground: oklch(from #1d6b66 l c h);
+  --border: oklch(from #dfe6ed l c h);
+  --secondary: oklch(from #e9eff5 l c h);
+  --muted: oklch(from #e9eff5 l c h);
   /* Worst case is `text-success` on `bg-success/10` over the PAGE background,
      not the card: #2f7a54 measured 4.35:1 there. Same hue, L 0.52 -> 0.495,
      which clears 4.5:1 across every tint/surface pair with margin (4.84:1). */
@@ -129,17 +132,18 @@
 }
 
 .dark {
-  --background: oklch(from #14110f l c h);
-  --surface: oklch(from #1c1917 l c h);
-  --foreground: oklch(from #f5f2ed l c h);
-  --muted-foreground: oklch(from #a8a199 l c h);
-  --primary: oklch(from #46a684 l c h);
-  --primary-foreground: oklch(from #14110f l c h);
-  --accent: oklch(from #c2703d l c h);
-  --accent-foreground: oklch(from #ffffff l c h);
-  --border: oklch(from #2e2a26 l c h);
-  --secondary: oklch(from #25211e l c h);
-  --muted: oklch(from #25211e l c h);
+  /* Harbor dark. Measured: body 16.3, muted 7.4 on surface, button 8.2. */
+  --background: oklch(from #0e1620 l c h);
+  --surface: oklch(from #15202b l c h);
+  --foreground: oklch(from #eef3f8 l c h);
+  --muted-foreground: oklch(from #9fb0c2 l c h);
+  --primary: oklch(from #7fb3e0 l c h);
+  --primary-foreground: oklch(from #0e1620 l c h);
+  --accent: oklch(from #173a39 l c h);
+  --accent-foreground: oklch(from #8fd3cc l c h);
+  --border: oklch(from #2a3a4b l c h);
+  --secondary: oklch(from #1b2734 l c h);
+  --muted: oklch(from #1b2734 l c h);
   /* The four semantic tones, re-tuned for dark. They were byte-identical to
      the light values, which was a copy-paste, not a choice — only --primary
      had ever been lifted for this theme. Same method for all four: hold the
@@ -182,6 +186,92 @@
   --chart-track: color-mix(in oklab, var(--foreground) 10%, transparent);
   --chart-grid: color-mix(in oklab, var(--foreground) 8%, transparent);
   color-scheme: dark;
+}
+
+/* Palettes. Picked per browser in Settings > Preferences (lib/palette.ts);
+   the pre-paint script in __root.tsx sets data-palette before first paint.
+   Light rules use :root[...] (0,2,0); dark rules use :root.dark[...] (0,3,0)
+   so dark always wins. Only neutrals, primary and the hover tint change. */
+/* Mesa: twilight indigo on sandstone, sage tint. Light body 15.4, muted 5.7, button 8.3. Dark body 16.5, button 9.3. */
+:root[data-palette="mesa"] {
+  --background: oklch(from #f8f5f0 l c h);
+  --surface: oklch(from #fffdf9 l c h);
+  --foreground: oklch(from #221d18 l c h);
+  --muted-foreground: oklch(from #6a6055 l c h);
+  --primary: oklch(from #3d4a8a l c h);
+  --primary-foreground: oklch(from #ffffff l c h);
+  --accent: oklch(from #e6eee3 l c h);
+  --accent-foreground: oklch(from #46664a l c h);
+  --border: oklch(from #e8e0d4 l c h);
+  --secondary: oklch(from #efedf6 l c h);
+  --muted: oklch(from #f1ece4 l c h);
+}
+:root.dark[data-palette="mesa"] {
+  --background: oklch(from #15130f l c h);
+  --surface: oklch(from #1e1b17 l c h);
+  --foreground: oklch(from #f6f1ea l c h);
+  --muted-foreground: oklch(from #ada395 l c h);
+  --primary: oklch(from #a9b4f0 l c h);
+  --primary-foreground: oklch(from #15130f l c h);
+  --accent: oklch(from #24301f l c h);
+  --accent-foreground: oklch(from #a8c9a5 l c h);
+  --border: oklch(from #352f28 l c h);
+  --secondary: oklch(from #26221d l c h);
+  --muted: oklch(from #26221d l c h);
+}
+/* Juniper: green with a berry-blue tint. Light body 14.9, muted 5.3 (4.9 on muted), button 6.3. Dark body 16.4, button 8.7. */
+:root[data-palette="juniper"] {
+  --background: oklch(from #f6f8f5 l c h);
+  --surface: oklch(from #ffffff l c h);
+  --foreground: oklch(from #1a2420 l c h);
+  --muted-foreground: oklch(from #5b6a63 l c h);
+  --primary: oklch(from #2d6a5a l c h);
+  --primary-foreground: oklch(from #ffffff l c h);
+  --accent: oklch(from #e5ecf6 l c h);
+  --accent-foreground: oklch(from #3b5b94 l c h);
+  --border: oklch(from #dfe6e0 l c h);
+  --secondary: oklch(from #e8efeb l c h);
+  --muted: oklch(from #e8efeb l c h);
+}
+:root.dark[data-palette="juniper"] {
+  --background: oklch(from #0f1513 l c h);
+  --surface: oklch(from #16201c l c h);
+  --foreground: oklch(from #edf3f0 l c h);
+  --muted-foreground: oklch(from #9db0a7 l c h);
+  --primary: oklch(from #6fc2a4 l c h);
+  --primary-foreground: oklch(from #0f1513 l c h);
+  --accent: oklch(from #1c2638 l c h);
+  --accent-foreground: oklch(from #a9c1ec l c h);
+  --border: oklch(from #2a3d36 l c h);
+  --secondary: oklch(from #1c2925 l c h);
+  --muted: oklch(from #1c2925 l c h);
+}
+/* Graphite: shadcn zinc, near-black primary, teal tint. Light body 17.0, muted 5.8, button 17.0. Dark body 19.1, button 17.0. */
+:root[data-palette="graphite"] {
+  --background: oklch(from #fafafa l c h);
+  --surface: oklch(from #ffffff l c h);
+  --foreground: oklch(from #18181b l c h);
+  --muted-foreground: oklch(from #62626b l c h);
+  --primary: oklch(from #18181b l c h);
+  --primary-foreground: oklch(from #fafafa l c h);
+  --accent: oklch(from #e3f3ef l c h);
+  --accent-foreground: oklch(from #0f6b63 l c h);
+  --border: oklch(from #e4e4e7 l c h);
+  --secondary: oklch(from #f4f4f5 l c h);
+  --muted: oklch(from #f4f4f5 l c h);
+}
+:root.dark[data-palette="graphite"] {
+  --background: oklch(from #09090b l c h);
+  --surface: oklch(from #18181b l c h);
+  --foreground: oklch(from #fafafa l c h);
+  --muted-foreground: oklch(from #a1a1aa l c h);
+  --primary: oklch(from #fafafa l c h);
+  --primary-foreground: oklch(from #18181b l c h);
+  --accent: oklch(from #0f2e2a l c h);
+  --accent-foreground: oklch(from #5eead4 l c h);
+  --border: oklch(from #2e2e33 l c h);
+  --secondary: oklch(from #27272a l c h);
+  --muted: oklch(from #27272a l c h);
 }
 
 @layer base {
