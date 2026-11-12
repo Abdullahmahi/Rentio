@@ -24,6 +24,12 @@ migrations still reference the Supabase `auth` and `storage` schemas.
 > The **last section is demo data** and begins with `TRUNCATE`. Delete it
 > before running this anywhere but a demo or staging database.
 
+**Anything after 2026-10-24:** run `DATABASE_URL=… sh scripts/migrate-pending.sh`
+on the server. It applies only the migrations the database is missing, in
+order, each in one transaction, and prints `skip`/`apply` per file; a second
+run does nothing. Code on `main` may call functions these create
+(`create_lease`, `claim_notifications`), so run it **before** the deploy.
+
 The Hetzner database (restored from the Supabase dump) only needs the two
 newest migrations, in order, each as its own `psql -f` call:
 
