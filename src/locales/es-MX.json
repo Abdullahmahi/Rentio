@@ -128,6 +128,7 @@
     "cancel": "Cancelar",
     "confirm": "Confirmar",
     "collapse": "Contraer navegación",
+    "remove": "Quitar",
     "expand": "Expandir navegación",
     "changeLanguage": "Cambiar idioma",
     "changeTheme": "Cambiar tema",
@@ -136,7 +137,7 @@
     "save": "Guardar",
     "edit": "Editar",
     "delete": "Eliminar",
-    "retry": "Reintentar",
+    "retry": "Intentar de nuevo",
     "download": "Descargar",
     "back": "Volver",
     "close": "Cerrar",
@@ -153,7 +154,29 @@
   },
   "theme": {
     "light": "Modo claro",
-    "dark": "Modo oscuro"
+    "dark": "Modo oscuro",
+    "palette": {
+      "title": "Paleta de colores",
+      "description": "Cambia los colores en este dispositivo. Los colores de pagado, pendiente y vencido son los mismos en todas las paletas.",
+      "options": {
+        "harbor": {
+          "name": "Harbor",
+          "description": "Azul puerto sobre gris niebla. La predeterminada."
+        },
+        "mesa": {
+          "name": "Mesa",
+          "description": "Índigo crepúsculo sobre arena cálida."
+        },
+        "juniper": {
+          "name": "Juniper",
+          "description": "Verde sereno con acento azul baya."
+        },
+        "graphite": {
+          "name": "Graphite",
+          "description": "Casi negro sobre gris zinc, minimalista."
+        }
+      }
+    }
   },
   "user": {
     "name": "Mariana Torres",
@@ -214,11 +237,9 @@
     "signUpSent": "Revisa tu correo.",
     "signUpSentHint": "Si ese correo está en un contrato, ya va en camino un enlace para establecer tu contraseña. Puede tardar unos minutos.",
     "tenantSignUpLink": "¿Eres inquilino? Crea tu acceso",
-    "firstTimeHere": "¿Primera vez aquí?",
-    "activateYourAccount": "Activa tu cuenta →",
+    "inviteOnlyHint": "Inquilinos: tu administrador de propiedades te enviará una invitación por correo para crear tu acceso.",
     "orContinueWith": "o continúa con",
     "unrecognisedAccount": "No encontramos una cuenta con ese correo.",
-    "requestAccessCta": "Solicitar acceso →",
     "activateTitle": "Crea tu contraseña",
     "activateWelcome": "Bienvenido, {{name}}",
     "activateDescription": "Elige una contraseña y tu portal queda listo.",
@@ -269,6 +290,10 @@
     "super_admin": "Equipo PortfolioAI"
   },
   "errors": {
+    "pageNotFoundTitle": "Página no encontrada",
+    "pageNotFoundBody": "Esa página no existe.",
+    "crashTitle": "Algo falló de nuestro lado",
+    "crashBody": "Inténtalo de nuevo o vuelve a la página de inicio.",
     "noCompany": "Elige una empresa en la barra superior primero. Estás viendo todas las empresas.",
     "invalid": "Algún campo tiene un valor inválido. Revisa el código postal, el estado y los montos.",
     "generic": "Ocurrió un error. Inténtalo de nuevo.",
@@ -570,6 +595,7 @@
     "noParking": "Sin estacionamiento asignado",
     "noParkingDescription": "Asigna un cajón desde el módulo de Estacionamiento.",
     "inlineTenantDescription": "Se agregará al contrato sin perder lo que ya capturaste.",
+    "unknownTenant": "Inquilino desconocido",
     "filters": {
       "allStatuses": "Todos los estados"
     },
@@ -735,6 +761,8 @@
     "repairWindow": "Día {{day}} de {{total}} — plazo legal de reparación.",
     "repairOverdue": "Día {{count}} — fuera del plazo legal de 7 días para reparar.",
     "writtenNoticeOn": "Aviso escrito recibido el {{date}}.",
+    "recordNotice": "Hoy llegó el aviso por escrito",
+    "noticeRecorded": "Aviso registrado. Corre el plazo de 7 días para reparar.",
     "board": {
       "nueva": "Nuevas",
       "asignada": "Asignadas",
@@ -749,7 +777,7 @@
     "ach": "Transferencia ACH",
     "zelle": "Zelle",
     "check": "Cheque",
-    "money_order": "Money order",
+    "money_order": "Giro postal",
     "cash": "Efectivo",
     "card": "Tarjeta",
     "other": "Otro"
@@ -768,6 +796,13 @@
     "noLease": "Sin contrato",
     "contactTitle": "Datos de contacto",
     "currentLease": "Contrato actual",
+    "otherLeases": "Otros contratos",
+    "roleOnLease": "Rol en el contrato",
+    "leaseRole": {
+      "primary": "Titular",
+      "co_tenant": "Coinquilino",
+      "guarantor": "Fiador"
+    },
     "columns": {
       "name": "Nombre",
       "phone": "Teléfono",
@@ -888,6 +923,8 @@
     "batchSummary": "{{count}} borrador por facturar, por un total de",
     "batchSummary_other": "{{count}} borradores por facturar, por un total de",
     "batchSendAll": "Enviar los {{count}}",
+    "confirmSendTitle": "¿Enviar recibos por correo?",
+    "confirmSendDescription": "{{count}} inquilinos recibirán un correo con su recibo. Total {{total}}. Quienes no tienen correo no lo recibirán.",
     "batchDiscard": "Revisar después",
     "pdfPending": "Generando el PDF…",
     "pdfReady": "PDF listo"
@@ -1018,13 +1055,15 @@
   "portal": {
     "balanceDue": "Saldo pendiente",
     "dueOn": "Vence el {{date}}",
-    "upToDate": "Estás al corriente ✓",
+    "upToDate": "Estás al corriente",
     "upToDateHint": "No tienes saldo pendiente. ¡Gracias!",
     "paymentUnderReview": "Pago en revisión por {{amount}}",
+    "paymentRejected": "No pudimos confirmar tu pago de {{amount}}",
+    "rejectedReason": "Motivo: {{reason}}",
+    "photoAlt": "Foto {{n}} de la solicitud",
+    "addAnotherPhoto": "Agregar otra foto",
     "reportPayment": "Reportar pago",
     "reportPaymentHint": "Cuéntanos del pago que ya hiciste para que lo confirmemos.",
-    "payOnline": "Pagar en línea",
-    "payOnlineSoon": "Pagos en línea próximamente",
     "reference": "Tu número de unidad (úsalo como referencia)",
     "copy": "Copiar",
     "copied": "Copiado",
@@ -1089,6 +1128,7 @@
     "pendingPayments_other": "{{count}} pagos esperan confirmación",
     "unitsOf": "{{occupied}} / {{total}} unidades",
     "ofInvoiced": "de {{amount}} facturado",
+    "noInvoicesYet": "Aún no se generan los recibos de este mes",
     "overdueLeases": "{{count}} contrato vencido",
     "overdueLeases_other": "{{count}} contratos vencidos",
     "urgentOrders": "{{count}} urgente",
@@ -1231,7 +1271,18 @@
   "settings": {
     "saved": "Configuración actualizada.",
     "logoSaved": "Logo actualizado.",
+    "data": {
+      "title": "Tus datos",
+      "hint": "Un ZIP con archivos CSV de todas tus propiedades, unidades, inquilinos, contratos, recibos, pagos, órdenes de trabajo y gastos.",
+      "exportAll": "Exportar todos los datos",
+      "exporting": "Preparando tu exportación…",
+      "exported": "Exportación descargada.",
+      "welcomeKit": "Descargar kit de bienvenida para inquilinos",
+      "welcomeKitHint": "Un volante bilingüe de una página para inquilinos nuevos: cómo entrar al portal y cómo pagar.",
+      "welcomeKitReady": "Kit de bienvenida descargado."
+    },
     "roleChanged": "Rol actualizado.",
+    "ownRoleLocked": "Pide a otro administrador que cambie tu rol.",
     "inviteSent": "Invitación enviada.",
     "adminOnly": "Solo un administrador puede ver esta sección.",
     "inviteUser": "Invitar usuario",
@@ -1262,7 +1313,8 @@
       "paymentNotesHint": "Texto libre, p. ej. \"Incluye tu número de unidad en el concepto\".",
       "nsfFee": "Cargo por pago devuelto",
       "nsfFeeHint": "Se cobra cuando un cheque rebota o se devuelve un pago ACH.",
-      "lateFeePercentHint": "Predeterminado para contratos nuevos. Texas presume razonable hasta 12% en una estructura de 4 unidades o menos, y 10% por encima de eso."
+      "lateFeePercentHint": "Predeterminado para contratos nuevos. Texas presume razonable hasta 12% en una estructura de 4 unidades o menos, y 10% por encima de eso.",
+      "lateFeePercentOverCap": "Supera el tope de Texas ({{small}}% con 4 unidades o menos, {{large}}% por encima). El asistente de contratos lo rechazará."
     },
     "paymentInstructionsNotice": "Todo lo que pongas aquí se muestra a los inquilinos en su portal. Llena solo los métodos que aceptas — una fila vacía nunca se muestra.",
     "noBankNumbersNotice": "A propósito no hay campo para número de ruta ni de cuenta. Publicarlos a todos los inquilinos invita cargos no autorizados y fraude con cheques; eso va detrás de un procesador de pagos."

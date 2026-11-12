@@ -53,30 +53,62 @@ export const Route = createFileRoute("/api/fn/send-invoice-email")({
           const tenant = tenants?.[0];
           if (!tenant?.email) return json({ error: "tenant has no email address" }, 400);
 
+          // The tenant's portal language; Spanish when they have none yet.
+          const { data: profile } = await db
+            .from("profiles")
+            .select("locale")
+            .in(
+              "tenant_id",
+              (links ?? []).map((row) => row.tenant_id),
+            )
+            .not("locale", "is", null)
+            .limit(1)
+            .maybeSingle();
+          const es = profile?.locale !== "en";
+          const lang = es ? "es-MX" : "en";
+
           const company = settings?.company_name ?? "Rentio";
-          const periodLabel = formatPeriod(invoice.period_month);
+          const periodLabel = formatPeriod(invoice.period_month, es ? "es-MX" : "en-US");
           const total = Number(invoice.total);
           const due = Math.max(0, total - Number(balance?.paid ?? 0));
           const unit = escapeHtml(details?.unit_number);
+          const name = escapeHtml(tenant.full_name);
+          const row = (label: string, value: string) =>
+            `<tr><td style="padding:4px 16px 4px 0;color:#6B655C">${label}</td><td style="font-weight:600">${value}</td></tr>`;
+          const folio = escapeHtml(invoice.invoice_number ?? "—");
 
-          const body = `
-            <p>Hola ${escapeHtml(tenant.full_name)},</p>
+          const body = es
+            ? `
+            <p>Hola ${name},</p>
             <p>Adjuntamos tu recibo de renta correspondiente a <strong>${periodLabel}</strong> de la unidad
             <strong>${unit}</strong>.</p>
             <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;font-size:14px">
-              <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Folio</td><td style="font-weight:600">${escapeHtml(invoice.invoice_number ?? "—")}</td></tr>
-              <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Vencimiento</td><td style="font-weight:600">${formatDate(invoice.due_date)}</td></tr>
-              <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Total</td><td style="font-weight:600">${formatMoney(total)}</td></tr>
-              <tr><td style="padding:4px 16px 4px 0;color:#6B655C">Saldo</td><td style="font-weight:600">${formatMoney(due)}</td></tr>
+              ${row("Folio", folio)}
+              ${row("Vencimiento", formatDate(invoice.due_date))}
+              ${row("Total", formatMoney(total))}
+              ${row("Saldo", formatMoney(due))}
             </table>
             <p style="color:#6B655C">Consulta "Cómo pagar" en tu portal. Incluye <strong>unidad ${unit}</strong> como referencia en cualquier pago.</p>
-            <p>Cuando realices tu pago, repórtalo desde tu portal para que lo confirmemos.</p>`;
+            <p>Cuando realices tu pago, repórtalo desde tu portal para que lo confirmemos.</p>`
+            : `
+            <p>Hi ${name},</p>
+            <p>Attached is your rent invoice for <strong>${periodLabel}</strong>, unit <strong>${unit}</strong>.</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;font-size:14px">
+              ${row("Invoice", folio)}
+              ${row("Due", formatDate(invoice.due_date))}
+              ${row("Total", formatMoney(total))}
+              ${row("Balance", formatMoney(due))}
+            </table>
+            <p style="color:#6B655C">See "How to pay" in your portal. Put <strong>unit ${unit}</strong> as the reference on any payment.</p>
+            <p>Once you've paid, report it in your portal so we can confirm it.</p>`;
+
+          const title = es ? `Recibo de renta — ${periodLabel}` : `Rent invoice — ${periodLabel}`;
+          const unitLabel = `${es ? "Unidad" : "Unit"} ${details?.unit_number ?? ""}`.trim();
 
           await sendEmail({
             to: tenant.email,
-            subject:
-              `Recibo de renta — ${periodLabel} — Unidad ${details?.unit_number ?? ""}`.trim(),
-            html: emailLayout(`Recibo de renta — ${periodLabel}`, body, company),
+            subject: `${title} — ${unitLabel}`,
+            html: emailLayout(title, body, company, lang),
             attachments: [
               {
                 filename: `recibo-${invoice.invoice_number ?? invoiceId}.pdf`,

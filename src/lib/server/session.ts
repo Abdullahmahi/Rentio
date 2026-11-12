@@ -22,16 +22,15 @@ export const ACTING_ORG_COOKIE = "rentio_org";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * The company a super_admin acts in: the cookie's uuid, nothing for the
- * explicit "all" (platform view), and, with no cookie at all, the only
- * company when there is exactly one, so a one-client platform just works.
+ * The company a super_admin acts in: the cookie's uuid, or nothing (the
+ * read-only platform view). Acting is always an explicit pick in the org
+ * switcher. It used to default to the only company, which meant the day a
+ * second company was created every super_admin silently fell into the
+ * platform view and their writes started failing.
  */
-async function actingOrgFor(request: Request) {
+function actingOrgFor(request: Request) {
   const cookie = readCookie(request, ACTING_ORG_COOKIE);
-  if (cookie === "all") return null;
-  if (cookie && UUID.test(cookie)) return cookie;
-  const { data } = await serviceDb().from("organizations").select("id").limit(2);
-  return data?.length === 1 ? (data[0]?.id ?? null) : null;
+  return cookie && UUID.test(cookie) ? cookie : null;
 }
 
 function readCookie(request: Request, name: string) {
@@ -226,7 +225,7 @@ export async function requireSession(request: Request): Promise<Session | Respon
   // A super_admin has no company of their own. With one picked (cookie from
   // /api/org) they act exactly like that company's admin; with none picked
   // they keep the read-everything platform view and can write nothing.
-  const acting = entry.profile.role === "super_admin" ? await actingOrgFor(request) : null;
+  const acting = entry.profile.role === "super_admin" ? actingOrgFor(request) : null;
   const profile = acting ? { ...entry.profile, org_id: acting } : entry.profile;
 
   const token = signJwt({ role: "authenticated", sub: profile.id, org_id: profile.org_id });

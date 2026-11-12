@@ -12,13 +12,18 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivateRouteImport } from './routes/activate'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RequestAccessRouteImport } from './routes/request-access'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as VslRouteImport } from './routes/vsl'
 import { Route as ApiMeRouteImport } from './routes/api.me'
 import { Route as ApiOrgRouteImport } from './routes/api.org'
 import { Route as AppIndexRouteImport } from './routes/app.index'
@@ -27,13 +32,17 @@ import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
 import { Route as PortalProfileRouteImport } from './routes/portal.profile'
 import { Route as PortalReportPaymentRouteImport } from './routes/portal.report-payment'
 import { Route as ApiFilesSplatRouteImport } from './routes/api.files.$'
+import { Route as ApiFnExportAllRouteImport } from './routes/api.fn.export-all'
 import { Route as ApiFnGenerateDepositDispositionRouteImport } from './routes/api.fn.generate-deposit-disposition'
 import { Route as ApiFnGenerateInvoicePdfRouteImport } from './routes/api.fn.generate-invoice-pdf'
 import { Route as ApiFnGenerateNoticeToVacateRouteImport } from './routes/api.fn.generate-notice-to-vacate'
+import { Route as ApiFnGenerateWelcomeKitRouteImport } from './routes/api.fn.generate-welcome-kit'
 import { Route as ApiFnSendInvoiceEmailRouteImport } from './routes/api.fn.send-invoice-email'
+import { Route as ApiFnSendNotificationsRouteImport } from './routes/api.fn.send-notifications'
 import { Route as ApiFnSendStaffInviteRouteImport } from './routes/api.fn.send-staff-invite'
 import { Route as ApiFnSendTenantInviteRouteImport } from './routes/api.fn.send-tenant-invite'
 import { Route as ApiFnSubmitAccessRequestRouteImport } from './routes/api.fn.submit-access-request'
+import { Route as ApiJobsNightlyRouteImport } from './routes/api.jobs.nightly'
 import { Route as ApiStorageActionRouteImport } from './routes/api.storage.$action'
 import { Route as AppContractsIndexRouteImport } from './routes/app.contracts.index'
 import { Route as AppContractsIdRouteImport } from './routes/app.contracts.$id'
@@ -76,6 +85,16 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -89,6 +108,11 @@ const LoginRoute = LoginRouteImport.update({
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestAccessRoute = RequestAccessRouteImport.update({
@@ -109,6 +133,16 @@ const SignInRoute = SignInRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VslRoute = VslRouteImport.update({
+  id: '/vsl',
+  path: '/vsl',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiMeRoute = ApiMeRouteImport.update({
@@ -151,6 +185,11 @@ const ApiFilesSplatRoute = ApiFilesSplatRouteImport.update({
   path: '/api/files/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiFnExportAllRoute = ApiFnExportAllRouteImport.update({
+  id: '/api/fn/export-all',
+  path: '/api/fn/export-all',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFnGenerateDepositDispositionRoute =
   ApiFnGenerateDepositDispositionRouteImport.update({
     id: '/api/fn/generate-deposit-disposition',
@@ -168,9 +207,19 @@ const ApiFnGenerateNoticeToVacateRoute =
     path: '/api/fn/generate-notice-to-vacate',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiFnGenerateWelcomeKitRoute = ApiFnGenerateWelcomeKitRouteImport.update({
+  id: '/api/fn/generate-welcome-kit',
+  path: '/api/fn/generate-welcome-kit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFnSendInvoiceEmailRoute = ApiFnSendInvoiceEmailRouteImport.update({
   id: '/api/fn/send-invoice-email',
   path: '/api/fn/send-invoice-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFnSendNotificationsRoute = ApiFnSendNotificationsRouteImport.update({
+  id: '/api/fn/send-notifications',
+  path: '/api/fn/send-notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFnSendStaffInviteRoute = ApiFnSendStaffInviteRouteImport.update({
@@ -189,6 +238,11 @@ const ApiFnSubmitAccessRequestRoute =
     path: '/api/fn/submit-access-request',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiJobsNightlyRoute = ApiJobsNightlyRouteImport.update({
+  id: '/api/jobs/nightly',
+  path: '/api/jobs/nightly',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStorageActionRoute = ApiStorageActionRouteImport.update({
   id: '/api/storage/$action',
   path: '/api/storage/$action',
@@ -324,13 +378,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
   '/app': typeof AppRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/request-access': typeof RequestAccessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
+  '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
   '/portal/contracts': typeof PortalContractsRoute
@@ -339,13 +398,17 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/api/files/$': typeof ApiFilesSplatRoute
+  '/api/fn/export-all': typeof ApiFnExportAllRoute
   '/api/fn/generate-deposit-disposition': typeof ApiFnGenerateDepositDispositionRoute
   '/api/fn/generate-invoice-pdf': typeof ApiFnGenerateInvoicePdfRoute
   '/api/fn/generate-notice-to-vacate': typeof ApiFnGenerateNoticeToVacateRoute
+  '/api/fn/generate-welcome-kit': typeof ApiFnGenerateWelcomeKitRoute
   '/api/fn/send-invoice-email': typeof ApiFnSendInvoiceEmailRoute
+  '/api/fn/send-notifications': typeof ApiFnSendNotificationsRoute
   '/api/fn/send-staff-invite': typeof ApiFnSendStaffInviteRoute
   '/api/fn/send-tenant-invite': typeof ApiFnSendTenantInviteRoute
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
+  '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
@@ -376,12 +439,17 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
+  '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
   '/request-access': typeof RequestAccessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
+  '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
   '/portal/contracts': typeof PortalContractsRoute
@@ -390,13 +458,17 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/portal': typeof PortalIndexRoute
   '/api/files/$': typeof ApiFilesSplatRoute
+  '/api/fn/export-all': typeof ApiFnExportAllRoute
   '/api/fn/generate-deposit-disposition': typeof ApiFnGenerateDepositDispositionRoute
   '/api/fn/generate-invoice-pdf': typeof ApiFnGenerateInvoicePdfRoute
   '/api/fn/generate-notice-to-vacate': typeof ApiFnGenerateNoticeToVacateRoute
+  '/api/fn/generate-welcome-kit': typeof ApiFnGenerateWelcomeKitRoute
   '/api/fn/send-invoice-email': typeof ApiFnSendInvoiceEmailRoute
+  '/api/fn/send-notifications': typeof ApiFnSendNotificationsRoute
   '/api/fn/send-staff-invite': typeof ApiFnSendStaffInviteRoute
   '/api/fn/send-tenant-invite': typeof ApiFnSendTenantInviteRoute
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
+  '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
@@ -429,13 +501,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
   '/app': typeof AppRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/request-access': typeof RequestAccessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
+  '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
   '/portal/contracts': typeof PortalContractsRoute
@@ -444,13 +521,17 @@ export interface FileRoutesById {
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/api/files/$': typeof ApiFilesSplatRoute
+  '/api/fn/export-all': typeof ApiFnExportAllRoute
   '/api/fn/generate-deposit-disposition': typeof ApiFnGenerateDepositDispositionRoute
   '/api/fn/generate-invoice-pdf': typeof ApiFnGenerateInvoicePdfRoute
   '/api/fn/generate-notice-to-vacate': typeof ApiFnGenerateNoticeToVacateRoute
+  '/api/fn/generate-welcome-kit': typeof ApiFnGenerateWelcomeKitRoute
   '/api/fn/send-invoice-email': typeof ApiFnSendInvoiceEmailRoute
+  '/api/fn/send-notifications': typeof ApiFnSendNotificationsRoute
   '/api/fn/send-staff-invite': typeof ApiFnSendStaffInviteRoute
   '/api/fn/send-tenant-invite': typeof ApiFnSendTenantInviteRoute
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
+  '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
@@ -484,13 +565,18 @@ export interface FileRouteTypes {
     | '/'
     | '/activate'
     | '/app'
+    | '/contact'
+    | '/faq'
     | '/forgot-password'
     | '/login'
     | '/portal'
+    | '/privacy'
     | '/request-access'
     | '/reset-password'
     | '/sign-in'
     | '/signup'
+    | '/terms'
+    | '/vsl'
     | '/api/me'
     | '/api/org'
     | '/portal/contracts'
@@ -499,13 +585,17 @@ export interface FileRouteTypes {
     | '/app/'
     | '/portal/'
     | '/api/files/$'
+    | '/api/fn/export-all'
     | '/api/fn/generate-deposit-disposition'
     | '/api/fn/generate-invoice-pdf'
     | '/api/fn/generate-notice-to-vacate'
+    | '/api/fn/generate-welcome-kit'
     | '/api/fn/send-invoice-email'
+    | '/api/fn/send-notifications'
     | '/api/fn/send-staff-invite'
     | '/api/fn/send-tenant-invite'
     | '/api/fn/submit-access-request'
+    | '/api/jobs/nightly'
     | '/api/storage/$action'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
@@ -536,12 +626,17 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activate'
+    | '/contact'
+    | '/faq'
     | '/forgot-password'
     | '/login'
+    | '/privacy'
     | '/request-access'
     | '/reset-password'
     | '/sign-in'
     | '/signup'
+    | '/terms'
+    | '/vsl'
     | '/api/me'
     | '/api/org'
     | '/portal/contracts'
@@ -550,13 +645,17 @@ export interface FileRouteTypes {
     | '/app'
     | '/portal'
     | '/api/files/$'
+    | '/api/fn/export-all'
     | '/api/fn/generate-deposit-disposition'
     | '/api/fn/generate-invoice-pdf'
     | '/api/fn/generate-notice-to-vacate'
+    | '/api/fn/generate-welcome-kit'
     | '/api/fn/send-invoice-email'
+    | '/api/fn/send-notifications'
     | '/api/fn/send-staff-invite'
     | '/api/fn/send-tenant-invite'
     | '/api/fn/submit-access-request'
+    | '/api/jobs/nightly'
     | '/api/storage/$action'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
@@ -588,13 +687,18 @@ export interface FileRouteTypes {
     | '/'
     | '/activate'
     | '/app'
+    | '/contact'
+    | '/faq'
     | '/forgot-password'
     | '/login'
     | '/portal'
+    | '/privacy'
     | '/request-access'
     | '/reset-password'
     | '/sign-in'
     | '/signup'
+    | '/terms'
+    | '/vsl'
     | '/api/me'
     | '/api/org'
     | '/portal/contracts'
@@ -603,13 +707,17 @@ export interface FileRouteTypes {
     | '/app/'
     | '/portal/'
     | '/api/files/$'
+    | '/api/fn/export-all'
     | '/api/fn/generate-deposit-disposition'
     | '/api/fn/generate-invoice-pdf'
     | '/api/fn/generate-notice-to-vacate'
+    | '/api/fn/generate-welcome-kit'
     | '/api/fn/send-invoice-email'
+    | '/api/fn/send-notifications'
     | '/api/fn/send-staff-invite'
     | '/api/fn/send-tenant-invite'
     | '/api/fn/submit-access-request'
+    | '/api/jobs/nightly'
     | '/api/storage/$action'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
@@ -642,23 +750,32 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivateRoute: typeof ActivateRoute
   AppRoute: typeof AppRouteWithChildren
+  ContactRoute: typeof ContactRoute
+  FaqRoute: typeof FaqRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   RequestAccessRoute: typeof RequestAccessRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignInRoute: typeof SignInRoute
   SignupRoute: typeof SignupRoute
+  TermsRoute: typeof TermsRoute
+  VslRoute: typeof VslRoute
   ApiMeRoute: typeof ApiMeRoute
   ApiOrgRoute: typeof ApiOrgRoute
   ApiFilesSplatRoute: typeof ApiFilesSplatRoute
+  ApiFnExportAllRoute: typeof ApiFnExportAllRoute
   ApiFnGenerateDepositDispositionRoute: typeof ApiFnGenerateDepositDispositionRoute
   ApiFnGenerateInvoicePdfRoute: typeof ApiFnGenerateInvoicePdfRoute
   ApiFnGenerateNoticeToVacateRoute: typeof ApiFnGenerateNoticeToVacateRoute
+  ApiFnGenerateWelcomeKitRoute: typeof ApiFnGenerateWelcomeKitRoute
   ApiFnSendInvoiceEmailRoute: typeof ApiFnSendInvoiceEmailRoute
+  ApiFnSendNotificationsRoute: typeof ApiFnSendNotificationsRoute
   ApiFnSendStaffInviteRoute: typeof ApiFnSendStaffInviteRoute
   ApiFnSendTenantInviteRoute: typeof ApiFnSendTenantInviteRoute
   ApiFnSubmitAccessRequestRoute: typeof ApiFnSubmitAccessRequestRoute
+  ApiJobsNightlyRoute: typeof ApiJobsNightlyRoute
   ApiStorageActionRoute: typeof ApiStorageActionRoute
   RestV1SplatRoute: typeof RestV1SplatRoute
 }
@@ -686,6 +803,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -705,6 +836,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/request-access': {
@@ -733,6 +871,20 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vsl': {
+      id: '/vsl'
+      path: '/vsl'
+      fullPath: '/vsl'
+      preLoaderRoute: typeof VslRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/me': {
@@ -791,6 +943,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFilesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/fn/export-all': {
+      id: '/api/fn/export-all'
+      path: '/api/fn/export-all'
+      fullPath: '/api/fn/export-all'
+      preLoaderRoute: typeof ApiFnExportAllRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/fn/generate-deposit-disposition': {
       id: '/api/fn/generate-deposit-disposition'
       path: '/api/fn/generate-deposit-disposition'
@@ -812,11 +971,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFnGenerateNoticeToVacateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/fn/generate-welcome-kit': {
+      id: '/api/fn/generate-welcome-kit'
+      path: '/api/fn/generate-welcome-kit'
+      fullPath: '/api/fn/generate-welcome-kit'
+      preLoaderRoute: typeof ApiFnGenerateWelcomeKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/fn/send-invoice-email': {
       id: '/api/fn/send-invoice-email'
       path: '/api/fn/send-invoice-email'
       fullPath: '/api/fn/send-invoice-email'
       preLoaderRoute: typeof ApiFnSendInvoiceEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/fn/send-notifications': {
+      id: '/api/fn/send-notifications'
+      path: '/api/fn/send-notifications'
+      fullPath: '/api/fn/send-notifications'
+      preLoaderRoute: typeof ApiFnSendNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/fn/send-staff-invite': {
@@ -838,6 +1011,13 @@ declare module '@tanstack/react-router' {
       path: '/api/fn/submit-access-request'
       fullPath: '/api/fn/submit-access-request'
       preLoaderRoute: typeof ApiFnSubmitAccessRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/jobs/nightly': {
+      id: '/api/jobs/nightly'
+      path: '/api/jobs/nightly'
+      fullPath: '/api/jobs/nightly'
+      preLoaderRoute: typeof ApiJobsNightlyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/storage/$action': {
@@ -1104,23 +1284,32 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivateRoute: ActivateRoute,
   AppRoute: AppRouteWithChildren,
+  ContactRoute: ContactRoute,
+  FaqRoute: FaqRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   RequestAccessRoute: RequestAccessRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignInRoute: SignInRoute,
   SignupRoute: SignupRoute,
+  TermsRoute: TermsRoute,
+  VslRoute: VslRoute,
   ApiMeRoute: ApiMeRoute,
   ApiOrgRoute: ApiOrgRoute,
   ApiFilesSplatRoute: ApiFilesSplatRoute,
+  ApiFnExportAllRoute: ApiFnExportAllRoute,
   ApiFnGenerateDepositDispositionRoute: ApiFnGenerateDepositDispositionRoute,
   ApiFnGenerateInvoicePdfRoute: ApiFnGenerateInvoicePdfRoute,
   ApiFnGenerateNoticeToVacateRoute: ApiFnGenerateNoticeToVacateRoute,
+  ApiFnGenerateWelcomeKitRoute: ApiFnGenerateWelcomeKitRoute,
   ApiFnSendInvoiceEmailRoute: ApiFnSendInvoiceEmailRoute,
+  ApiFnSendNotificationsRoute: ApiFnSendNotificationsRoute,
   ApiFnSendStaffInviteRoute: ApiFnSendStaffInviteRoute,
   ApiFnSendTenantInviteRoute: ApiFnSendTenantInviteRoute,
   ApiFnSubmitAccessRequestRoute: ApiFnSubmitAccessRequestRoute,
+  ApiJobsNightlyRoute: ApiJobsNightlyRoute,
   ApiStorageActionRoute: ApiStorageActionRoute,
   RestV1SplatRoute: RestV1SplatRoute,
 }

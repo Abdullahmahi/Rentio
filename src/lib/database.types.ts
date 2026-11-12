@@ -249,6 +249,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      late_fee_warnings: {
+        Row: {
+          invoice_id: string;
+          org_id: string;
+          eligible_on: string;
+          sent_at: string | null;
+          channel: string | null;
+          created_at: string;
+        };
+        Insert: {
+          invoice_id: string;
+          org_id?: string;
+          eligible_on: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          invoice_id?: string;
+          org_id?: string;
+          eligible_on?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       lease_notices: {
         Row: {
           id: string;
@@ -1147,6 +1174,86 @@ export type Database = {
       my_tenant_id: { Args: Record<string, never>; Returns: string };
       my_lease_ids: { Args: Record<string, never>; Returns: string[] };
       next_invoice_number: { Args: Record<string, never>; Returns: string };
+      today_el_paso: { Args: Record<string, never>; Returns: string };
+      confirm_payment: {
+        Args: { p_payment: string };
+        Returns: { allocations: number; applied: number; credit: number };
+      };
+      record_payment: {
+        Args: {
+          p_lease: string;
+          p_amount: number;
+          p_paid_at: string;
+          p_method: Database["public"]["Enums"]["payment_method"];
+          p_reference?: string | null;
+          p_notes?: string | null;
+          p_receipt_url?: string | null;
+          p_allocations?: { invoice_id: string; amount: number }[] | null;
+        };
+        Returns: { payment_id: string; allocations: number; applied: number; credit: number };
+      };
+      void_payment: {
+        Args: { p_payment: string; p_reason: string };
+        Returns: { allocations: number; amount: number };
+      };
+      create_lease: {
+        Args: {
+          p_unit: string;
+          p_terms: {
+            start_date: string;
+            end_date: string;
+            rent_amount: number;
+            rent_due_day: number;
+            grace_days: number;
+            late_fee_type: Database["public"]["Enums"]["late_fee_type"];
+            late_fee_percent: number;
+            late_fee_amount: number;
+            late_fee_over_cap_ack: boolean;
+            deposit_amount: number;
+          };
+          p_primary: string;
+          p_co_tenants?: string[];
+          p_guarantors?: string[];
+          p_checklist?: { item: string; item_key: string; position: number }[];
+        };
+        Returns: string;
+      };
+      generate_invoices: {
+        Args: { p_period: string };
+        Returns: { created: number; skipped: number }[];
+      };
+      nightly: { Args: Record<string, never>; Returns: Json };
+      queue_rent_reminders: { Args: Record<string, never>; Returns: number };
+      claim_notifications: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          kind: string;
+          payload: Json;
+          tenant_name: string | null;
+          tenant_email: string | null;
+          locale: string;
+          company_name: string;
+          unit_number: string | null;
+        }[];
+      };
+      notification_result: { Args: { p_id: string; p_channel: string | null }; Returns: undefined };
+      late_fee_warnings_to_send: {
+        Args: Record<string, never>;
+        Returns: {
+          invoice_id: string;
+          org_id: string;
+          eligible_on: string;
+          period_month: string;
+          fee: number;
+          balance: number;
+          unit_number: string;
+          tenant_name: string | null;
+          tenant_email: string | null;
+          locale: string;
+          company_name: string;
+        }[];
+      };
     };
     Enums: {
       access_request_status: "pending" | "approved" | "declined";

@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, Plus, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PhotoPicker } from "@/components/rentio/photo-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/rentio/empty-state";
 import { Field } from "@/components/rentio/form-dialog";
@@ -49,37 +49,51 @@ function PortalMaintenance() {
     photos: [] as File[],
   });
 
+  // The request is saved before its photos upload. If a photo fails, the
+  // retry must add the missing photos to that request, not file a second one.
+  const [progress, setProgress] = useState<{ orderId: string; uploaded: number } | null>(null);
+
   const submit = useToastMutation({
     mutationFn: async () => {
       const lease = portal.data?.lease;
       if (!lease || !form.category) throw new Error("incomplete");
 
-      // RLS only accepts source = 'portal' from a tenant.
-      const { data: order, error: caught } = await db
-        .from("work_orders")
-        .insert({
-          unit_id: lease.unit_id,
-          lease_id: lease.id,
-          source: "portal",
-          category: form.category,
-          priority: form.priority,
-          title:
-            `${t(`woCategory.${form.category}`)} — ${t("units.columns.unit")} ${portal.data?.details?.unit_number ?? ""}`.trim(),
-          description: form.description.trim() || null,
-        })
-        .select("id")
-        .single();
-      if (caught) throw caught;
+      let orderId = progress?.orderId;
+      if (!orderId) {
+        // RLS only accepts source = 'portal' from a tenant.
+        const { data: order, error: caught } = await db
+          .from("work_orders")
+          .insert({
+            unit_id: lease.unit_id,
+            lease_id: lease.id,
+            source: "portal",
+            category: form.category,
+            priority: form.priority,
+            title:
+              `${t(`woCategory.${form.category}`)} — ${t("units.columns.unit")} ${portal.data?.details?.unit_number ?? ""}`.trim(),
+            description: form.description.trim() || null,
+          })
+          .select("id")
+          .single();
+        if (caught) throw caught;
+        orderId = order.id;
+        setProgress({ orderId, uploaded: 0 });
+      }
 
-      for (const photo of form.photos) {
-        const path = await uploadFile("work-order-photos", order.id, photo);
-        await db.from("work_order_photos").insert({ work_order_id: order.id, url: path });
+      for (let i = progress?.uploaded ?? 0; i < form.photos.length; i += 1) {
+        const path = await uploadFile("work-order-photos", orderId, form.photos[i]!);
+        const { error: photoError } = await db
+          .from("work_order_photos")
+          .insert({ work_order_id: orderId, url: path });
+        if (photoError) throw photoError;
+        setProgress({ orderId, uploaded: i + 1 });
       }
     },
     successKey: "portal.requestSent",
     invalidate: [["my-portal"]],
     onSuccess: () => {
       setCreating(false);
+      setProgress(null);
       setForm({ category: null, priority: "media", description: "", photos: [] });
     },
   });
@@ -163,14 +177,11 @@ function PortalMaintenance() {
             htmlFor="request-photos"
             hint={t("portal.photosHint")}
           >
-            <Input
+            <PhotoPicker
               id="request-photos"
-              type="file"
-              accept="image/*"
-              capture="environment"
               multiple
-              className="h-12"
-              onChange={(event) => setForm({ ...form, photos: [...(event.target.files ?? [])] })}
+              files={form.photos}
+              onChange={(photos) => setForm({ ...form, photos })}
             />
           </Field>
 

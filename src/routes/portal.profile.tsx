@@ -215,7 +215,7 @@ function PortalProfile() {
 
         <Button
           variant="outline"
-          className="h-12 w-full text-danger"
+          className="h-12 w-full"
           onClick={() => {
             void signOut()
               .then(() => navigate({ to: "/sign-in", replace: true }))

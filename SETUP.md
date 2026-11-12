@@ -104,6 +104,24 @@ Then:
   and photos live there. Restore once into a scratch database to prove it works.
 - **Firewall:** allow 22, 80, 443 only. Reach Coolify's 8000 over an SSH tunnel.
 - **Files:** the old Supabase Storage files are gone with the project (demo data only), so `/data/storage` starts empty. Re-upload anything needed through the app.
+- **Nightly job** (draft invoices on the 1st, late-fee warning emails, rent
+  reminders 3 days before the due date, and the tenant-notification backstop:
+  payment confirmed/refused and repair updates are normally emailed seconds
+  after the staff action via `/api/fn/send-notifications`; D2, D3):
+  1. `rentio-app` → Environment Variables → add `CRON_SECRET` (at least 16
+     random characters: `openssl rand -hex 32`). Redeploy so the app sees it.
+  2. `rentio-app` → Scheduled Tasks → New: name `nightly`, frequency
+     `10 6 * * *` (daily 06:10 UTC), command:
+
+     ```sh
+     curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" http://localhost:3000/api/jobs/nightly
+     ```
+
+  It answers a JSON summary (`invoices_created`, `warnings_queued`,
+  `emailed`, …) and logs it. Without the header it is a 401. Running it twice
+  changes nothing the second time. 06:10 UTC is late evening the day before in
+  El Paso in winter (MST) and just after midnight in summer (MDT); the job
+  always works on the El Paso date at the moment it runs.
 
 ## Checks
 
@@ -115,6 +133,7 @@ bunx tsc --noEmit
 bunx eslint .
 bun run db:setup         # regenerate setup.sql after a migration
 psql "$DATABASE_URL" -f supabase/tests/rls_test.sql   # role + cross-organization assertions
+psql "$DATABASE_URL" -f supabase/tests/lifecycle_test.sql   # invoices, confirm, warnings, nightly()
 ```
 
 `supabase/tests/rls_test.sql` rolls itself back, so it is safe against staging.

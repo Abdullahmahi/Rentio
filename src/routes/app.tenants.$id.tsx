@@ -66,6 +66,14 @@ function TenantDetailPage() {
 
   const currentLease = currentLeaseFor(leases, id);
   const leaseIds = leases.map((context) => context.lease.id);
+  // Every lease this person is on, with their role: "Primary on 104,
+  // guarantor on 103" must be visible, not just the current one (N5).
+  const roleByLease = new Map(
+    (portfolio.data?.leaseTenants ?? [])
+      .filter((link) => link.tenant_id === id)
+      .map((link) => [link.lease_id, link.role] as const),
+  );
+  const otherLeases = leases.filter((context) => context.lease.id !== currentLease?.lease.id);
 
   /** Has this tenant already been given portal access? */
   const portalProfile = useQuery({
@@ -326,6 +334,11 @@ function TenantDetailPage() {
                             <Row label={t("contracts.columns.status")}>
                               <LeaseStatusBadge value={currentLease.lease.status} />
                             </Row>
+                            <Row label={t("tenants.roleOnLease")}>
+                              {t(
+                                `tenants.leaseRole.${roleByLease.get(currentLease.lease.id) ?? "primary"}`,
+                              )}
+                            </Row>
                           </dl>
                           <Button
                             className="mt-4"
@@ -343,6 +356,41 @@ function TenantDetailPage() {
                       ) : (
                         <p className="mt-2 text-sm text-muted-foreground">{t("tenants.noLease")}</p>
                       )}
+                      {otherLeases.length > 0 ? (
+                        <div className="mt-5 border-t border-border pt-4">
+                          <h3 className="text-sm font-semibold">{t("tenants.otherLeases")}</h3>
+                          <ul className="mt-2 divide-y divide-border">
+                            {otherLeases.map((context) => (
+                              <li
+                                key={context.lease.id}
+                                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2"
+                              >
+                                <button
+                                  type="button"
+                                  className="min-w-0 text-left"
+                                  onClick={() =>
+                                    void navigate({
+                                      to: "/app/contracts/$id",
+                                      params: { id: context.lease.id },
+                                    })
+                                  }
+                                >
+                                  <p className="truncate text-sm font-medium">
+                                    {context.property?.name ?? "—"} · {t("units.columns.unit")}{" "}
+                                    {context.unit?.unit_number ?? "—"}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {t(
+                                      `tenants.leaseRole.${roleByLease.get(context.lease.id) ?? "primary"}`,
+                                    )}
+                                  </p>
+                                </button>
+                                <LeaseStatusBadge value={context.lease.status} />
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
                     </div>
                   </section>
                 </div>

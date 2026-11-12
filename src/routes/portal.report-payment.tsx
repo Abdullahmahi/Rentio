@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Camera, CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
+import { PhotoPicker } from "@/components/rentio/photo-picker";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,8 @@ export const Route = createFileRoute("/portal/report-payment")({
   component: ReportPaymentPage,
 });
 
-const METHODS: Enums<"payment_method">[] = ["ach", "zelle", "check", "money_order", "cash"];
+// Most-used first for El Paso (research §3). Owner to confirm the order.
+const METHODS: Enums<"payment_method">[] = ["zelle", "cash", "money_order", "check", "ach"];
 
 function ReportPaymentPage() {
   const { t } = useTranslation();
@@ -35,7 +37,7 @@ function ReportPaymentPage() {
   const [form, setForm] = useState({
     amount: "" as number | "",
     paid_at: todayIso(),
-    method: "ach" as Enums<"payment_method">,
+    method: "zelle" as Enums<"payment_method">,
     reference: "",
     notes: "",
     receipt: null as File | null,
@@ -43,37 +45,38 @@ function ReportPaymentPage() {
 
   const balance = Number(portal.data?.balance?.balance ?? 0);
   // Pre-fill with what is actually owed, once, without fighting the user.
-  if (!touched && form.amount === "" && balance > 0) {
-    setTouched(true);
-    setForm((current) => ({ ...current, amount: balance }));
-  }
+  // In an effect, not during render (RP3): a render must not set state.
+  useEffect(() => {
+    if (!touched && form.amount === "" && balance > 0) {
+      setTouched(true);
+      setForm((current) => ({ ...current, amount: balance }));
+    }
+  }, [touched, form.amount, balance]);
 
   const submit = useToastMutation({
     mutationFn: async () => {
       const lease = portal.data?.lease;
       if (!lease) throw new Error("no-lease");
 
-      // RLS allows exactly this shape from a tenant: pendiente + reported_by_tenant.
-      const { data: payment, error: caught } = await db
-        .from("payments")
-        .insert({
-          lease_id: lease.id,
-          amount: form.amount === "" ? 0 : form.amount,
-          paid_at: form.paid_at,
-          method: form.method,
-          reference: form.reference.trim() || null,
-          notes: form.notes.trim() || null,
-          status: "pendiente",
-          reported_by_tenant: true,
-        })
-        .select("id")
-        .single();
-      if (caught) throw caught;
+      // B-012: tenants may insert but never update payments, so the photo goes
+      // up first (payment-receipts/<lease_id>/…) and its path rides the insert.
+      const receipt_url = form.receipt
+        ? await uploadFile("payment-receipts", lease.id, form.receipt)
+        : null;
 
-      if (form.receipt) {
-        const path = await uploadFile("payment-receipts", lease.id, form.receipt);
-        await db.from("payments").update({ receipt_url: path }).eq("id", payment.id);
-      }
+      // RLS allows exactly this shape from a tenant: pendiente + reported_by_tenant.
+      const { error: caught } = await db.from("payments").insert({
+        lease_id: lease.id,
+        amount: form.amount === "" ? 0 : form.amount,
+        paid_at: form.paid_at,
+        method: form.method,
+        reference: form.reference.trim() || null,
+        notes: form.notes.trim() || null,
+        status: "pendiente",
+        reported_by_tenant: true,
+        receipt_url,
+      });
+      if (caught) throw caught;
     },
     successKey: "portal.reportSent",
     invalidate: [["my-portal"]],
@@ -181,20 +184,10 @@ function ReportPaymentPage() {
             htmlFor="report-receipt"
             hint={t("portal.receiptPhotoHint")}
           >
-            <label
-              htmlFor="report-receipt"
-              className="flex h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface text-sm text-muted-foreground"
-            >
-              <Camera className="size-6" />
-              {form.receipt ? form.receipt.name : t("portal.takePhoto")}
-            </label>
-            <input
+            <PhotoPicker
               id="report-receipt"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="sr-only"
-              onChange={(event) => setForm({ ...form, receipt: event.target.files?.[0] ?? null })}
+              files={form.receipt ? [form.receipt] : []}
+              onChange={(files) => setForm({ ...form, receipt: files[0] ?? null })}
             />
           </Field>
 

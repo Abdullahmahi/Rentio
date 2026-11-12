@@ -40,15 +40,28 @@ interface AuthValue {
 
 const AuthContext = createContext<AuthValue | null>(null);
 
-/** Clerk's sign-in and sign-up cards in the app's own colors and type. */
+/**
+ * Clerk's sign-in and sign-up cards in the app's own colors and type, flat
+ * inside the Rentio card (one card, one title). Clerk's own header and its
+ * "Sign up" footer link go (invite-only, D8); the "Secured by Clerk" line
+ * stays, the free plan requires it. The dev-instance badge is hidden only
+ * cosmetically; the keys stay on the development instance (D9).
+ */
 export const clerkAppearance = {
   variables: {
     colorPrimary: "#1B4D3E",
     fontFamily: "Inter Variable, Inter, system-ui, sans-serif",
     borderRadius: "0.625rem",
   },
-  elements: { rootBox: "w-full", cardBox: "w-full shadow-none" },
-};
+  options: { elevation: "flush", unsafe_disableDevelopmentModeWarnings: true },
+  elements: {
+    rootBox: "w-full",
+    cardBox: "w-full shadow-none border-0",
+    card: "shadow-none border-0 bg-transparent",
+    header: "hidden",
+    footerAction: "hidden",
+  },
+} as const;
 
 /** Where a role belongs when it lands on the wrong shell. */
 export function homeFor(role: Role | null) {
@@ -119,6 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isLoaded, userId, loadProfile]);
 
   const signOut = useCallback(async () => {
+    // Drop the acting-company cookie (super_admin) before the session goes,
+    // so the next sign-in on this browser starts in the platform view.
+    await fetch("/api/org", { method: "DELETE" }).catch(() => undefined);
     await clerkSignOut();
     setProfile(null);
   }, [clerkSignOut]);

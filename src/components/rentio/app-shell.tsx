@@ -81,6 +81,18 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   );
 }
 
+/** The label must say what the click will do, not always "expand". */
+function ShellTrigger() {
+  const { t } = useTranslation();
+  const { open } = useSidebar();
+  return (
+    <SidebarTrigger
+      className="-ml-1"
+      aria-label={open ? t("actions.collapse") : t("actions.expand")}
+    />
+  );
+}
+
 export function AppShell() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -173,7 +185,7 @@ export function AppShell() {
 
       <SidebarInset className="min-w-0 bg-background">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-surface/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/80 sm:px-6">
-          <SidebarTrigger className="-ml-1" aria-label={t("actions.expand")} />
+          <ShellTrigger />
           <Separator orientation="vertical" className="mr-1 h-4" />
           <Breadcrumb className="min-w-0 flex-1">
             <BreadcrumbList>

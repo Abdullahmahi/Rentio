@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, ClipboardCopy, Clock, CreditCard, ReceiptText, Wrench } from "lucide-react";
+import { CheckCircle2, ClipboardCopy, Clock, ReceiptText, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,16 @@ function PortalHome() {
   const balance = Number(portal.data?.balance?.balance ?? 0);
   const owes = balance > 0.005;
   const pendingReport = portal.data?.payments.find((payment) => payment.status === "pendiente");
-  const nextInvoice = portal.data?.invoices.find((invoice) => invoice.balance > 0.005);
+  // The newest payment, if it was a report staff refused: say so, and why.
+  const latestPayment = portal.data?.payments[0];
+  const rejectedReport =
+    latestPayment?.status === "cancelado" && latestPayment.reported_by_tenant
+      ? latestPayment
+      : undefined;
+  // The list is newest-first; "Due on" must be the oldest unpaid one.
+  const nextInvoice = portal.data?.invoices
+    .filter((invoice) => invoice.balance > 0.005)
+    .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
   const openOrders = (portal.data?.workOrders ?? []).filter(
     (order) => !["resuelta", "cerrada"].includes(order.status),
   );
@@ -138,27 +147,27 @@ function PortalHome() {
             </p>
           ) : null}
 
+          {rejectedReport && !pendingReport ? (
+            <div className="mt-4 rounded-lg border border-danger/25 bg-danger/5 px-3 py-2 text-sm">
+              <p className="font-medium text-danger">
+                {t("portal.paymentRejected", {
+                  amount: formatMoney(Number(rejectedReport.amount)),
+                })}
+              </p>
+              {rejectedReport.void_reason ? (
+                <p className="mt-0.5 text-muted-foreground">
+                  {t("portal.rejectedReason", { reason: rejectedReport.void_reason })}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
           {/* One working path, unmistakably primary. */}
           <div className="mt-5">
             <Button asChild className="h-12 w-full text-base">
               <Link to="/portal/report-payment">{t("portal.reportPayment")}</Link>
             </Button>
           </div>
-
-          {/* Intentionally present and disabled — online payments are Phase 2.
-              The caption carries the explanation; a tooltip would say the same
-              thing a second time, and hover does not exist on a phone. */}
-          <p className="mt-3 text-xs text-muted-foreground">{t("portal.payOnlineSoon")}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mt-1 h-9 px-0 text-muted-foreground hover:bg-transparent"
-            disabled
-            aria-disabled="true"
-          >
-            <CreditCard className="size-4" />
-            {t("portal.payOnline")}
-          </Button>
         </section>
 
         {/* ------------------------------------------------- how to pay */}
@@ -272,6 +281,11 @@ function PortalHome() {
                     <p className="text-xs text-muted-foreground">
                       {t(`paymentStatus.${payment.status}`)}
                     </p>
+                    {payment.status === "cancelado" && payment.void_reason ? (
+                      <p className="max-w-[12rem] text-xs text-muted-foreground">
+                        {payment.void_reason}
+                      </p>
+                    ) : null}
                   </div>
                 </li>
               ))}

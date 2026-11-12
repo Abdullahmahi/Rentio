@@ -43,7 +43,7 @@ import { downloadCsv } from "@/lib/csv";
 import { allocateOldestFirst, type OpenInvoice } from "@/lib/invoicing";
 import { balanceOf, isActive, leaseContexts, leaseLabel } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { db, errorText } from "@/lib/db";
+import { db, errorText, invokeFn } from "@/lib/db";
 import { openSigned, signedUrl, uploadFile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums, Tables } from "@/lib/database.types";
@@ -288,9 +288,13 @@ function PaymentsPage() {
       });
   }, [payments.data, decorate, methodFilter, propertyFilter, fromDate, toDate]);
 
-  // Land on the queue whenever something is waiting; otherwise show history.
+  // Land on the queue when something is waiting; otherwise history. Once,
+  // on first load: a refetch mid-review must not flip the tab under the
+  // manager's hands (M2).
+  const landed = useRef(false);
   useEffect(() => {
-    if (!payments.data) return;
+    if (!payments.data || landed.current) return;
+    landed.current = true;
     setTab(queue.length > 0 ? "queue" : "history");
   }, [payments.data, queue.length]);
 
@@ -334,66 +338,17 @@ function PaymentsPage() {
   const allocatedTotal = effectiveAllocations.reduce((sum, row) => sum + row.amount, 0);
   const credit = Math.max(0, Number(form.amount || 0) - allocatedTotal);
 
-  const insertAllocations = async (
-    paymentId: string,
-    rows: { invoiceId: string; amount: number }[],
-  ) => {
-    if (rows.length === 0) return;
-    const { error: caught } = await db.from("payment_allocations").insert(
-      rows.map((row) => ({
-        payment_id: paymentId,
-        invoice_id: row.invoiceId,
-        amount: row.amount,
-      })),
-    );
-    if (caught) throw caught;
-  };
-
-  /** Keep invoice.status honest after money moves. */
-  const refreshInvoiceStatuses = async (invoiceIds: string[]) => {
-    if (invoiceIds.length === 0) return;
-    const { data } = await db.from("invoice_balances").select("*").in("invoice_id", invoiceIds);
-    for (const row of data ?? []) {
-      if (!row.invoice_id) continue;
-      const paid = Number(row.paid ?? 0);
-      const total = Number(row.total ?? 0);
-      const status: Enums<"invoice_status"> =
-        paid >= total - 0.005 ? "pagado" : paid > 0 ? "pagado_parcial" : "enviado";
-      await db
-        .from("invoices")
-        .update({ status })
-        .eq("id", row.invoice_id)
-        .neq("status", "cancelado")
-        .neq("status", "borrador");
-    }
-  };
-
+  // One SQL transaction (B-013): status, oldest-first allocations, invoice
+  // statuses and the activity log. A second confirm is refused there.
   const confirm = useToastMutation({
     mutationFn: async (payment: PaymentRow) => {
-      const open = (openInvoices.data ?? []).filter(
-        (invoice) => invoice.leaseId === payment.lease_id,
-      );
-      const { allocations } = allocateOldestFirst(Number(payment.amount), open);
-
-      const { error: caught } = await db
-        .from("payments")
-        .update({
-          status: "confirmado",
-          confirmed_by: actorId,
-          confirmed_at: new Date().toISOString(),
-        })
-        .eq("id", payment.id);
+      const { error: caught } = await db.rpc("confirm_payment", { p_payment: payment.id });
       if (caught) throw caught;
-
-      await insertAllocations(payment.id, allocations);
-      await refreshInvoiceStatuses(allocations.map((row) => row.invoiceId));
-      await logActivity(actorId, "payment", payment.id, "confirm", {
-        amount: payment.amount,
-        allocations: allocations.length,
-      });
     },
     successKey: "payments.confirmed",
     invalidate: [qk.payments, ["open-invoices"], ["invoices"], qk.portfolio],
+    // The trigger queued "payment confirmed"; send it now, not at midnight.
+    onSuccess: () => void invokeFn("send-notifications"),
   });
 
   const reject = useToastMutation({
@@ -410,35 +365,19 @@ function PaymentsPage() {
     onSuccess: () => {
       setRejectFor(null);
       setReason("");
+      void invokeFn("send-notifications");
     },
   });
 
-  // Voiding never deletes the row — it drops the allocations and keeps history.
+  // One SQL transaction: drops the allocations, keeps the row as cancelled
+  // with the reason, restores invoice statuses, logs it. Admin only.
   const voidPayment = useToastMutation({
     mutationFn: async ({ payment, why }: { payment: PaymentRow; why: string }) => {
-      const { data: existing } = await db
-        .from("payment_allocations")
-        .select("invoice_id")
-        .eq("payment_id", payment.id);
-      const touched = (existing ?? []).map((row) => row.invoice_id);
-
-      const { error: deleteError } = await db
-        .from("payment_allocations")
-        .delete()
-        .eq("payment_id", payment.id);
-      if (deleteError) throw deleteError;
-
-      const { error: caught } = await db
-        .from("payments")
-        .update({ status: "cancelado", void_reason: why })
-        .eq("id", payment.id);
-      if (caught) throw caught;
-
-      await refreshInvoiceStatuses(touched);
-      await logActivity(actorId, "payment", payment.id, "void", {
-        reason: why,
-        amount: payment.amount,
+      const { error: caught } = await db.rpc("void_payment", {
+        p_payment: payment.id,
+        p_reason: why,
       });
+      if (caught) throw caught;
     },
     successKey: "payments.voided",
     invalidate: [qk.payments, ["open-invoices"], ["invoices"], qk.portfolio],
@@ -448,36 +387,29 @@ function PaymentsPage() {
     },
   });
 
+  // One SQL transaction: the confirmed payment, the allocations shown in
+  // "Apply to", invoice statuses and the activity log. The receipt is
+  // uploaded first so its path goes in with the row.
   const record = useToastMutation({
     mutationFn: async () => {
       if (!form.lease_id) throw new Error("no-lease");
-
-      const { data: payment, error: caught } = await db
-        .from("payments")
-        .insert({
-          lease_id: form.lease_id,
-          amount: form.amount === "" ? 0 : form.amount,
-          paid_at: form.paid_at,
-          method: form.method,
-          reference: form.reference.trim() || null,
-          notes: form.notes.trim() || null,
-          status: "confirmado",
-          recorded_by: actorId,
-          confirmed_by: actorId,
-          confirmed_at: new Date().toISOString(),
-        })
-        .select("id")
-        .single();
+      const receipt = form.receipt
+        ? await uploadFile("payment-receipts", form.lease_id, form.receipt)
+        : null;
+      const { error: caught } = await db.rpc("record_payment", {
+        p_lease: form.lease_id,
+        p_amount: Number(form.amount || 0),
+        p_paid_at: form.paid_at,
+        p_method: form.method,
+        p_reference: form.reference.trim() || null,
+        p_notes: form.notes.trim() || null,
+        p_receipt_url: receipt,
+        p_allocations: effectiveAllocations.map((row) => ({
+          invoice_id: row.invoiceId,
+          amount: row.amount,
+        })),
+      });
       if (caught) throw caught;
-
-      if (form.receipt) {
-        const path = await uploadFile("payment-receipts", form.lease_id, form.receipt);
-        await db.from("payments").update({ receipt_url: path }).eq("id", payment.id);
-      }
-
-      await insertAllocations(payment.id, effectiveAllocations);
-      await refreshInvoiceStatuses(effectiveAllocations.map((row) => row.invoiceId));
-      await logActivity(actorId, "payment", payment.id, "create", { amount: form.amount, credit });
     },
     successKey: "payments.recorded",
     invalidate: [qk.payments, ["open-invoices"], ["invoices"], qk.portfolio],

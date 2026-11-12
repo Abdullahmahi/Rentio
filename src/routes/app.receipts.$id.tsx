@@ -39,6 +39,7 @@ import {
   useToastMutation,
 } from "@/lib/queries";
 import { db, errorText, invokeFn } from "@/lib/db";
+import { openAfter } from "@/lib/open-after";
 import type { Enums, Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -289,15 +290,15 @@ function ReceiptDetailPage() {
   // rather than leaving the button looking dead.
   const downloadPdf = () => {
     void toast.promise(
-      (async () => {
+      openAfter(async () => {
         const { data, error } = await invokeFn("generate-invoice-pdf", {
           body: { invoice_id: id },
         });
         if (error) throw error;
         const url = (data as { url?: string } | null)?.url;
         if (!url) throw new Error("no-url");
-        window.open(url, "_blank", "noopener,noreferrer");
-      })(),
+        return url;
+      }),
       {
         loading: t("receipts.pdfPending"),
         success: t("receipts.pdfReady"),

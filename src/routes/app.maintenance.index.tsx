@@ -112,6 +112,7 @@ const OPEN_STATUSES: Enums<"wo_status">[] = [
 
 interface OrderRow extends Tables<"work_orders"> {
   unitNumber: string;
+  propertyName: string;
   propertyId: string | null;
   photoCount: number;
   thumbnails: string[];
@@ -221,6 +222,7 @@ function MaintenancePage() {
         return {
           ...order,
           unitNumber: context?.unit.unit_number ?? "—",
+          propertyName: context?.property?.name ?? "",
           propertyId: context?.property?.id ?? null,
           photoCount: order._photos,
           thumbnails: order._thumbs,
@@ -651,7 +653,9 @@ function MaintenancePage() {
                             )}
                           >
                             <p className="line-clamp-2 text-sm font-medium">{row.title}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">
+                            {/* Unit 104 means nothing across three properties (W3). */}
+                            <p className="mt-1 truncate text-xs text-muted-foreground">
+                              {row.propertyName ? `${row.propertyName} · ` : ""}
                               {t("units.columns.unit")} {row.unitNumber}
                             </p>
                             <div className="mt-2 flex flex-wrap items-center gap-2">

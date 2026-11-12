@@ -501,20 +501,25 @@ function ContractDetailPage() {
               actions={
                 <div className="flex flex-wrap items-center gap-2">
                   <LeaseStatusBadge value={lease.status} />
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      setRenewSeed(
-                        seedFromLease(
-                          lease,
-                          portfolio.data?.leaseTenants.filter((link) => link.lease_id === id) ?? [],
-                        ),
-                      )
-                    }
-                  >
-                    <RefreshCw className="size-4" />
-                    {t("contracts.renew")}
-                  </Button>
+                  {/* A terminated or rescinded lease is history; renewing it
+                      would resurrect it (C4). */}
+                  {isActive(lease) ? (
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setRenewSeed(
+                          seedFromLease(
+                            lease,
+                            portfolio.data?.leaseTenants.filter((link) => link.lease_id === id) ??
+                              [],
+                          ),
+                        )
+                      }
+                    >
+                      <RefreshCw className="size-4" />
+                      {t("contracts.renew")}
+                    </Button>
+                  ) : null}
                   {isActive(lease) ? (
                     <Button
                       variant="outline"

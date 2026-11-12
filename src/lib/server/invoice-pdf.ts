@@ -221,7 +221,14 @@ export async function renderInvoicePdf(db: Db, orgId: string, invoiceId: string)
   }
 
   y = 58;
-  text("Generated for internal records; not legal advice.", left, 8, regular, MUTED);
+  // Bilingual like every label above: the tenant's copy is the same file.
+  text(
+    "Generado para registros internos; no es asesoría legal. · Generated for internal records; not legal advice.",
+    left,
+    8,
+    regular,
+    MUTED,
+  );
   y -= 11;
   text(
     "Documento generado para control interno. No constituye asesoría legal.",

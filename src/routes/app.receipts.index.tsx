@@ -18,7 +18,7 @@ import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { InvoiceStatusBadge, effectiveInvoiceStatus } from "@/components/rentio/status";
-import { formatDate, formatMoney, todayIso } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 import { currentPeriod, planMonthlyInvoices } from "@/lib/invoicing";
 import { leaseContexts } from "@/lib/portfolio";
 import {
@@ -30,7 +30,9 @@ import {
   useToastMutation,
   type InvoiceWithPaid,
 } from "@/lib/queries";
-import { db } from "@/lib/db";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/rentio/confirm-dialog";
+import { db, invokeFn } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -122,49 +124,12 @@ function ReceiptsPage() {
 
   const generate = useToastMutation({
     mutationFn: async () => {
-      if (!plan) throw new Error("no-plan");
-      let created = 0;
-
-      for (const planned of plan.toCreate) {
-        const { data: folio, error: folioError } = await db.rpc("next_invoice_number");
-        if (folioError) throw folioError;
-
-        const { data: invoice, error: invoiceError } = await db
-          .from("invoices")
-          .insert({
-            lease_id: planned.leaseId,
-            period_month: period,
-            invoice_number: folio,
-            issue_date: todayIso(),
-            due_date: planned.dueDate,
-            status: "borrador",
-            total: planned.total,
-          })
-          .select("id")
-          .single();
-
-        // The (lease_id, period_month) unique constraint is the real backstop
-        // against double-billing; if a concurrent run won, skip and carry on.
-        if (invoiceError) {
-          if (invoiceError.code === "23505") continue;
-          throw invoiceError;
-        }
-
-        const { error: linesError } = await db.from("invoice_lines").insert(
-          planned.lines.map((line) => ({
-            invoice_id: invoice.id,
-            description: line.description,
-            category: line.category,
-            quantity: 1,
-            amount: line.amount,
-          })),
-        );
-        if (linesError) throw linesError;
-        created += 1;
-      }
-
-      await logActivity(actorId, "invoice", null, "generate_month", { period, created });
-      return created;
+      // The same SQL the nightly job runs (D2): one transaction, drafts,
+      // skips leases already invoiced, writes the activity log. The plan
+      // above is only the preview.
+      const { data, error: caught } = await db.rpc("generate_invoices", { p_period: period });
+      if (caught) throw caught;
+      return data?.[0]?.created ?? 0;
     },
     successKey: "receipts.generated",
     pendingKey: "receipts.generating",
@@ -181,17 +146,44 @@ function ReceiptsPage() {
 
   const sendSelected = useToastMutation({
     mutationFn: async (ids: string[]) => {
-      const { error } = await db.from("invoices").update({ status: "enviado" }).in("id", ids);
-      if (error) throw error;
-      await logActivity(actorId, "invoice", null, "send_bulk", { count: ids.length, period });
+      // Same path as the single Send: the function emails the PDF and marks
+      // the invoice enviado. If it fails (mail not configured), still mark
+      // it sent so the batch isn't blocked on the provider.
+      // ponytail: sequential; batch the function if 400+ doors makes this slow.
+      const unemailed: string[] = [];
+      for (const id of ids) {
+        try {
+          const { error: functionError } = await invokeFn("send-invoice-email", {
+            body: { invoice_id: id },
+          });
+          if (functionError) throw functionError;
+        } catch (caught) {
+          console.warn("send-invoice-email", caught);
+          unemailed.push(id);
+        }
+      }
+      if (unemailed.length > 0) {
+        const { error } = await db
+          .from("invoices")
+          .update({ status: "enviado" })
+          .in("id", unemailed);
+        if (error) throw error;
+      }
+      await logActivity(actorId, "invoice", null, "send_bulk", {
+        count: ids.length,
+        emailed: ids.length - unemailed.length,
+        period,
+      });
+      return unemailed.length;
     },
     successKey: "receipts.sent",
     pendingKey: "receipts.sending",
     resultMessage: (_data, ids) => t("receipts.sentCount", { count: ids.length }),
     invalidate: [["invoices"]],
-    onSuccess: () => {
+    onSuccess: (unemailed) => {
       setSelected([]);
       setReviewingBatch(false);
+      if (unemailed > 0) toast.warning(t("receipts.sentWithoutEmail"));
     },
   });
 
@@ -203,6 +195,9 @@ function ReceiptsPage() {
   }, [reviewingBatch, drafts]);
 
   const draftTotal = drafts.reduce((sum, row) => sum + Number(row.total), 0);
+  const selectedTotal = rows
+    .filter((row) => selected.includes(row.id))
+    .reduce((sum, row) => sum + Number(row.total), 0);
 
   /**
    * Dismisses the review header only. The drafts stay — this codebase never
@@ -413,13 +408,18 @@ function ReceiptsPage() {
               >
                 {t("receipts.batchDiscard")}
               </Button>
-              <Button
-                disabled={sendSelected.isPending || drafts.length === 0}
-                onClick={() => sendSelected.mutate(drafts.map((row) => row.id))}
-              >
-                <Send className="size-4" />
-                {t("receipts.batchSendAll", { count: drafts.length })}
-              </Button>
+              {/* ~40 emails to ~40 people: the one place a confirm earns its keep (M4). */}
+              <ConfirmDialog
+                triggerLabel={t("receipts.batchSendAll", { count: drafts.length })}
+                triggerVariant="default"
+                title={t("receipts.confirmSendTitle")}
+                description={t("receipts.confirmSendDescription", {
+                  count: drafts.length,
+                  total: formatMoney(draftTotal),
+                })}
+                confirmLabel={t("receipts.batchSendAll", { count: drafts.length })}
+                onConfirm={() => sendSelected.mutate(drafts.map((row) => row.id))}
+              />
             </div>
           </div>
         ) : null}
@@ -435,14 +435,17 @@ function ReceiptsPage() {
           onSelectionChange={setSelected}
           isSelectable={(row) => row.status === "borrador"}
           bulkActions={
-            <Button
-              size="sm"
-              disabled={sendSelected.isPending}
-              onClick={() => sendSelected.mutate(selected)}
-            >
-              <Send className="size-4" />
-              {t("receipts.sendSelected")}
-            </Button>
+            <ConfirmDialog
+              triggerLabel={t("receipts.sendSelected")}
+              triggerVariant="default"
+              title={t("receipts.confirmSendTitle")}
+              description={t("receipts.confirmSendDescription", {
+                count: selected.length,
+                total: formatMoney(selectedTotal),
+              })}
+              confirmLabel={t("receipts.sendSelected")}
+              onConfirm={() => sendSelected.mutate(selected)}
+            />
           }
         />
       </QueryState>

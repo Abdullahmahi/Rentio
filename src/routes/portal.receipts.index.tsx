@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Download, ReceiptText } from "lucide-react";
+import { ChevronRight, ReceiptText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/rentio/empty-state";
@@ -103,8 +103,8 @@ function PortalReceipts() {
                       void navigate({ to: "/portal/receipts/$id", params: { id: invoice.id } })
                     }
                   >
-                    <Download className="size-4" />
                     {t("portal.viewReceipt")}
+                    <ChevronRight className="size-4" />
                   </Button>
                 </div>
               </li>

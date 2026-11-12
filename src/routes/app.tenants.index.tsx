@@ -40,6 +40,7 @@ export const Route = createFileRoute("/app/tenants/")({
 interface TenantRow {
   tenant: Tables<"tenants">;
   unitNumber: string | null;
+  propertyId: string | null;
   lease: Tables<"leases"> | undefined;
   balance: number;
 }
@@ -64,6 +65,7 @@ function TenantsPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState<string | null>(null);
   const [leaseFilter, setLeaseFilter] = useState(ALL);
+  const [propertyFilter, setPropertyFilter] = useState(ALL);
 
   const rows = useMemo<TenantRow[]>(() => {
     if (!portfolio.data) return [];
@@ -78,16 +80,18 @@ function TenantsPage() {
         return {
           tenant,
           unitNumber: context?.unit?.unit_number ?? null,
+          propertyId: context?.property?.id ?? null,
           lease: context?.lease,
           balance: Number(context?.balance?.balance ?? 0),
         };
       })
       .filter((row) => {
+        if (propertyFilter !== ALL && row.propertyId !== propertyFilter) return false;
         if (leaseFilter === "with") return Boolean(row.lease);
         if (leaseFilter === "without") return !row.lease;
         return true;
       });
-  }, [portfolio.data, leaseFilter]);
+  }, [portfolio.data, leaseFilter, propertyFilter]);
 
   const create = useToastMutation({
     mutationFn: async (values: typeof EMPTY_FORM) => {
@@ -175,7 +179,7 @@ function TenantsPage() {
         }
       />
 
-      <div className="max-w-xs">
+      <div className="flex flex-wrap gap-2 [&>*]:w-full [&>*]:sm:w-56">
         <Select value={leaseFilter} onValueChange={setLeaseFilter}>
           <SelectTrigger aria-label={t("tenants.filters.label")}>
             <SelectValue />
@@ -184,6 +188,19 @@ function TenantsPage() {
             <SelectItem value={ALL}>{t("tenants.filters.all")}</SelectItem>
             <SelectItem value="with">{t("tenants.filters.withLease")}</SelectItem>
             <SelectItem value="without">{t("tenants.filters.withoutLease")}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+          <SelectTrigger aria-label={t("units.filters.property")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{t("units.filters.allProperties")}</SelectItem>
+            {portfolio.data?.properties.map((property) => (
+              <SelectItem key={property.id} value={property.id}>
+                {property.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

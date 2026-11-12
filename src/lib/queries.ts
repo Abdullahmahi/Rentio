@@ -281,12 +281,14 @@ export function useMyPortal() {
           .filter((link) => link.tenant_id === myTenantId)
           .map((link) => [link.lease_id, link.role]),
       );
-      const active = leases.filter((row) => row.status === "activo" || row.status === "por_vencer");
+      // A-06: primary, then co-tenant, never a lease the person only guarantees.
+      const mine = leases.filter((row) => roleOf.get(row.id) !== "guarantor");
+      const active = mine.filter((row) => row.status === "activo" || row.status === "por_vencer");
       const lease =
         active.find((row) => roleOf.get(row.id) === "primary") ??
         active.find((row) => roleOf.get(row.id) === "co_tenant") ??
         active[0] ??
-        leases[0] ??
+        mine[0] ??
         null;
 
       if (!lease) {

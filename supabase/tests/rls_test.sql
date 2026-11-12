@@ -88,6 +88,10 @@ begin
   select count(*) into n from public.properties;
   perform pg_temp.check('admin reads properties', n = 3);
 
+  -- A draft the nightly job would create; the tenant below must not see it.
+  insert into public.invoices (lease_id, period_month, due_date, status)
+  values (lease_a, date '2099-01-01', date '2099-01-01', 'borrador');
+
   -- ============================================ tenant is fenced to own lease
   perform pg_temp.act_as(tenant_a);
 
@@ -100,6 +104,8 @@ begin
   perform pg_temp.check('tenant cannot read another tenant invoices', n = 0);
   select count(*) into n from public.invoices where lease_id = lease_a;
   perform pg_temp.check('tenant CAN read own invoices', n >= 1);
+  select count(*) into n from public.invoices where lease_id = lease_a and status = 'borrador';
+  perform pg_temp.check('tenant cannot read own draft invoices', n = 0);
 
   select count(*) into n from public.invoice_lines il join public.invoices i on i.id = il.invoice_id where i.lease_id = lease_b;
   perform pg_temp.check('tenant cannot read another tenant invoice lines', n = 0);
@@ -495,6 +501,351 @@ begin
 
   reset role;
   raise notice '--- all RLS assertions passed ---';
+end;
+$$;
+
+-- ======================================== B-013 confirm_payment, D3 warnings
+-- One transaction, staff of the payment's org only, oldest invoice first,
+-- and a second confirm is a clear error rather than a second allocation.
+
+do $$
+declare
+  admin_id   uuid := '00000000-0000-0000-0000-0000000000a1';
+  manager_id uuid := '00000000-0000-0000-0000-0000000000a2';
+  tenant_a   uuid := '00000000-0000-0000-0000-0000000000b1';
+  admin_b    uuid := '00000000-0000-0000-0000-0000000000c1';
+  pay public.payments%rowtype;
+  open_before numeric; allocated numeric; n int; result jsonb;
+  inv_a uuid; inv_other uuid; lease_a uuid;
+begin
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  select * into pay from public.payments where status = 'pendiente' order by created_at limit 1;
+  perform pg_temp.check('fixture: a pending payment', pay.id is not null);
+  select coalesce(sum(b.balance), 0) into open_before
+  from public.invoice_balances b join public.invoices i on i.id = b.invoice_id
+  where i.lease_id = pay.lease_id and i.status <> 'cancelado' and b.balance > 0;
+
+  set local role authenticated;
+
+  perform pg_temp.act_as(tenant_a);
+  begin
+    perform public.confirm_payment(pay.id);
+    perform pg_temp.check('tenant cannot confirm a payment', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('tenant cannot confirm a payment', true);
+  end;
+
+  perform pg_temp.act_as(admin_b);
+  begin
+    perform public.confirm_payment(pay.id);
+    perform pg_temp.check('org B admin cannot confirm an org A payment', false);
+  exception when no_data_found then
+    perform pg_temp.check('org B admin cannot confirm an org A payment', true);
+  end;
+
+  perform pg_temp.act_as(manager_id);
+  result := public.confirm_payment(pay.id);
+  perform pg_temp.check('manager confirms a pending payment',
+    (select status from public.payments where id = pay.id) = 'confirmado'
+    and (select confirmed_by from public.payments where id = pay.id) = manager_id);
+  select coalesce(sum(amount), 0), count(*) into allocated, n
+  from public.payment_allocations where payment_id = pay.id;
+  perform pg_temp.check('allocations = min(amount, open balance)', allocated = least(pay.amount, open_before));
+  perform pg_temp.check('result reports the allocations', (result ->> 'allocations')::int = n
+    and (result ->> 'credit')::numeric = pay.amount - allocated);
+  -- oldest first: every allocated invoice but the newest is now fully paid
+  perform pg_temp.check('allocation is oldest-first', not exists (
+    select 1 from public.payment_allocations pa
+    join public.invoices i on i.id = pa.invoice_id
+    join public.invoice_balances b on b.invoice_id = i.id
+    where pa.payment_id = pay.id and b.balance > 0
+      and i.due_date < (select max(i2.due_date) from public.payment_allocations pa2
+                        join public.invoices i2 on i2.id = pa2.invoice_id where pa2.payment_id = pay.id)));
+  perform pg_temp.check('confirm writes activity_log', exists (
+    select 1 from public.activity_log where entity_id = pay.id and action = 'confirm'));
+
+  begin
+    perform public.confirm_payment(pay.id);
+    perform pg_temp.check('second confirm is refused', false);
+  exception when raise_exception then
+    perform pg_temp.check('second confirm is refused', true);
+  end;
+  select count(*) into n from public.payment_allocations where payment_id = pay.id;
+  perform pg_temp.check('second confirm adds no allocations', n = (result ->> 'allocations')::int);
+
+  -- -------------------------------- record_payment / void_payment roles
+  perform pg_temp.act_as(tenant_a);
+  begin
+    perform public.record_payment(pay.lease_id, 10, current_date, 'cash');
+    perform pg_temp.check('tenant cannot record a payment', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('tenant cannot record a payment', true);
+  end;
+  begin
+    perform public.void_payment(pay.id, 'tenant');
+    perform pg_temp.check('tenant cannot void a payment (rpc)', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('tenant cannot void a payment (rpc)', true);
+  end;
+
+  perform pg_temp.act_as(admin_b);
+  begin
+    perform public.record_payment(pay.lease_id, 10, current_date, 'cash');
+    perform pg_temp.check('org B admin cannot record on an org A lease', false);
+  exception when no_data_found then
+    perform pg_temp.check('org B admin cannot record on an org A lease', true);
+  end;
+  begin
+    perform public.void_payment(pay.id, 'other org');
+    perform pg_temp.check('org B admin cannot void an org A payment', false);
+  exception when no_data_found then
+    perform pg_temp.check('org B admin cannot void an org A payment', true);
+  end;
+
+  perform pg_temp.act_as(manager_id);
+  result := public.record_payment(pay.lease_id, 10, current_date, 'cash');
+  perform pg_temp.check('manager CAN record a payment', exists (
+    select 1 from public.payments where id = (result ->> 'payment_id')::uuid and status = 'confirmado'));
+  begin
+    perform public.void_payment(pay.id, 'manager');
+    perform pg_temp.check('manager cannot void a payment (rpc)', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('manager cannot void a payment (rpc)', true);
+  end;
+
+  perform pg_temp.act_as(admin_id);
+  perform public.void_payment(pay.id, 'rls test');
+  perform pg_temp.check('admin CAN void a payment (rpc)',
+    (select status from public.payments where id = pay.id) = 'cancelado'
+    and not exists (select 1 from public.payment_allocations where payment_id = pay.id));
+  begin
+    perform public.void_payment(pay.id, 'twice');
+    perform pg_temp.check('second void is refused', false);
+  exception when raise_exception then
+    perform pg_temp.check('second void is refused', true);
+  end;
+  perform pg_temp.act_as(manager_id);
+
+  -- the nightly pieces are not reachable through the API as a person
+  begin
+    perform public.apply_payment(pay.id);
+    perform pg_temp.check('staff cannot call apply_payment() directly', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot call apply_payment() directly', true);
+  end;
+  begin
+    perform public.nightly();
+    perform pg_temp.check('staff cannot call nightly()', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot call nightly()', true);
+  end;
+  begin
+    perform public.generate_invoices_for_org(current_date, (select org_id from public.profiles where id = admin_b));
+    perform pg_temp.check('staff cannot generate for another org', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot generate for another org', true);
+  end;
+
+  -- --------------------------------------------- late_fee_warnings RLS
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  select lt.lease_id into lease_a from public.lease_tenants lt
+    join public.profiles p on p.tenant_id = lt.tenant_id where p.id = tenant_a limit 1;
+  select id into inv_a from public.invoices where lease_id = lease_a limit 1;
+  select id into inv_other from public.invoices
+    where lease_id not in (select lt.lease_id from public.lease_tenants lt
+                           join public.profiles p on p.tenant_id = lt.tenant_id where p.id = tenant_a)
+      and org_id = (select org_id from public.invoices where id = inv_a) limit 1;
+  insert into public.late_fee_warnings (invoice_id, eligible_on) values
+    (inv_a, current_date), (inv_other, current_date) on conflict do nothing;
+  perform pg_temp.check('warning takes org_id from its invoice',
+    (select org_id from public.late_fee_warnings where invoice_id = inv_a)
+      = (select org_id from public.invoices where id = inv_a));
+
+  set local role authenticated;
+  perform pg_temp.act_as(tenant_a);
+  select count(*) into n from public.late_fee_warnings where invoice_id = inv_a;
+  perform pg_temp.check('tenant reads the warning on their own invoice', n = 1);
+  select count(*) into n from public.late_fee_warnings where invoice_id = inv_other;
+  perform pg_temp.check('tenant cannot read another tenant warning', n = 0);
+  update public.late_fee_warnings set sent_at = now() where invoice_id = inv_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('tenant cannot mark a warning sent', n = 0);
+
+  perform pg_temp.act_as(admin_id);
+  select count(*) into n from public.late_fee_warnings where invoice_id in (inv_a, inv_other);
+  perform pg_temp.check('staff read their org warnings', n = 2);
+  begin
+    insert into public.late_fee_warnings (invoice_id, eligible_on)
+    select id, current_date from public.invoices
+    where id not in (select invoice_id from public.late_fee_warnings) limit 1;
+    perform pg_temp.check('staff cannot write warnings directly', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot write warnings directly', true);
+  end;
+
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.late_fee_warnings where invoice_id in (inv_a, inv_other);
+  perform pg_temp.check('org B cannot read org A warnings', n = 0);
+
+  reset role;
+  raise notice '--- confirm_payment and warning assertions passed ---';
+end;
+$$;
+
+-- ============================ keep one admin; the audit log is append-only
+do $$
+declare
+  admin_id   uuid := '00000000-0000-0000-0000-0000000000a1';
+  manager_id uuid := '00000000-0000-0000-0000-0000000000a2';
+  n int; refused boolean := false; row_id uuid;
+begin
+  set local role authenticated;
+  perform pg_temp.act_as(admin_id);
+  select count(*) into n from public.profiles
+  where org_id = public.current_org_id() and role = 'admin';
+  perform pg_temp.check('last-admin test starts with exactly one admin', n = 1);
+
+  begin
+    update public.profiles set role = 'manager' where id = admin_id;
+  exception when others then refused := sqlerrm like '%at least one admin%';
+  end;
+  perform pg_temp.check('the last admin cannot be demoted', refused);
+  perform pg_temp.check('the last admin is still an admin',
+    (select role from public.profiles where id = admin_id) = 'admin');
+
+  update public.profiles set role = 'admin' where id = manager_id;
+  update public.profiles set role = 'manager' where id = admin_id;
+  perform pg_temp.check('an admin can step down once another admin exists',
+    (select role from public.profiles where id = admin_id) = 'manager');
+
+  perform pg_temp.act_as(manager_id);  -- the admin now
+  insert into public.activity_log (actor_id, entity_type, action)
+  values (manager_id, 'test', 'seeded') returning id into row_id;
+  update public.activity_log set action = 'tampered' where id = row_id;
+  perform pg_temp.check('staff cannot edit the audit log',
+    (select action from public.activity_log where id = row_id) = 'seeded');
+  delete from public.activity_log where id = row_id;
+  perform pg_temp.check('staff cannot delete from the audit log',
+    (select count(*) from public.activity_log where id = row_id) = 1);
+  -- put the roles back for the blocks below
+  update public.profiles set role = 'admin' where id = admin_id;
+  update public.profiles set role = 'manager' where id = manager_id;
+  reset role;
+end;
+$$;
+
+-- ====================================================== notifications outbox
+do $$
+declare
+  admin_id uuid := '00000000-0000-0000-0000-0000000000a1';
+  tenant_a uuid := '00000000-0000-0000-0000-0000000000b1';
+  tenant_b uuid := '00000000-0000-0000-0000-0000000000b2';
+  lease_a uuid; pay uuid; wo uuid; n int; first_run int; second_run int;
+  refused boolean := false;
+begin
+  set local role authenticated;
+  -- the tenant reports a payment; staff refuse it → the tenant is told, with the reason
+  perform pg_temp.act_as(tenant_a);
+  select lt.lease_id into lease_a
+  from public.lease_tenants lt join public.profiles p on p.tenant_id = lt.tenant_id
+  where p.id = tenant_a limit 1;
+  insert into public.payments (lease_id, amount, reported_by_tenant, status, method)
+  values (lease_a, 50, true, 'pendiente', 'zelle') returning id into pay;
+  perform pg_temp.act_as(admin_id);
+  update public.payments set status = 'cancelado', void_reason = 'wrong amount' where id = pay;
+  select count(*) into n from public.notifications where entity_id = pay and kind = 'payment_rejected';
+  perform pg_temp.check('refusing a reported payment queues a notification', n >= 1);
+  perform pg_temp.check('the refusal carries the reason',
+    (select payload->>'reason' from public.notifications where entity_id = pay limit 1) = 'wrong amount');
+
+  -- a status change on the tenant's request → the tenant is told
+  select id into wo from public.work_orders where lease_id = lease_a order by created_at limit 1;
+  if wo is not null then
+    update public.work_orders
+    set status = (case when status = 'resuelta' then 'cerrada' else 'resuelta' end)::public.wo_status
+    where id = wo;
+  end if;
+  select count(*) into n from public.notifications where entity_id = wo and kind = 'work_order_status';
+  perform pg_temp.check('a repair status change queues a notification', wo is null or n >= 1);
+
+  -- fenced to the tenant it is for; the tenant may mark it read, nothing else
+  perform pg_temp.act_as(tenant_a);
+  select count(*) into n from public.notifications where entity_id = pay;
+  perform pg_temp.check('tenant reads their own notification', n >= 1);
+  update public.notifications set read_at = now() where entity_id = pay;
+  perform pg_temp.check('tenant can mark it read',
+    (select count(*) from public.notifications where entity_id = pay and read_at is null) = 0);
+  begin
+    update public.notifications set sent_at = null where entity_id = pay;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('tenant cannot touch delivery columns', refused);
+  perform pg_temp.act_as(tenant_b);
+  select count(*) into n from public.notifications where entity_id = pay;
+  perform pg_temp.check('another tenant cannot read it', n = 0);
+  reset role;
+
+  -- reminders are once per invoice and tenant; a claim marks rows sent
+  select public.queue_rent_reminders() into first_run;
+  select public.queue_rent_reminders() into second_run;
+  perform pg_temp.check('rent reminders are idempotent', second_run = 0);
+  perform (select count(*) from public.claim_notifications(1000));
+  select count(*) into n from public.notifications where sent_at is null;
+  perform pg_temp.check('claim_notifications marks every pending row sent', n = 0);
+  perform public.notification_result(
+    (select id from public.notifications where entity_id = pay limit 1), null);
+  select count(*) into n from public.notifications where entity_id = pay and sent_at is null;
+  perform pg_temp.check('a failed send releases the row', n >= 1);
+end;
+$$;
+
+-- ========================================== create_lease: one transaction
+do $$
+declare
+  admin_id  uuid := '00000000-0000-0000-0000-0000000000a1';
+  unit_v    uuid; t1 uuid; t2 uuid; new_lease uuid; n int;
+  refused   boolean := false;
+  terms     jsonb;
+begin
+  set local role authenticated;
+  perform pg_temp.act_as(admin_id);
+  select id into unit_v from public.units
+  where status = 'vacante' and org_id = public.current_org_id()
+  order by id limit 1;
+  select id into t1 from public.tenants order by id limit 1;
+  select id into t2 from public.tenants order by id desc limit 1;
+  perform pg_temp.check('create_lease test has a vacant unit and two tenants',
+    unit_v is not null and t1 is not null and t2 is not null and t1 <> t2);
+  terms := jsonb_build_object(
+    'start_date', current_date, 'end_date', current_date + 365,
+    'rent_amount', 1000, 'rent_due_day', 1, 'grace_days', 5,
+    'late_fee_type', 'percent', 'late_fee_percent', 10, 'late_fee_amount', 0,
+    'late_fee_over_cap_ack', false, 'deposit_amount', 1000);
+
+  begin
+    perform public.create_lease(unit_v, terms, t1, array[t2], array[t2], '[]'::jsonb);
+  exception when others then
+    refused := sqlerrm like '%one role%';
+    if not refused then raise notice 'create_lease raised: %', sqlerrm; end if;
+  end;
+  perform pg_temp.check('create_lease refuses one person in two roles', refused);
+  select count(*) into n from public.leases where unit_id = unit_v and status = 'activo';
+  perform pg_temp.check('a refused lease leaves nothing behind', n = 0);
+  perform pg_temp.check('a refused lease leaves the unit vacant',
+    (select status from public.units where id = unit_v) = 'vacante');
+
+  new_lease := public.create_lease(unit_v, terms, t1, array[t2], '{}',
+    '[{"item":"Rekey","item_key":"rekey","position":0}]'::jsonb);
+  select count(*) into n from public.lease_tenants where lease_id = new_lease;
+  perform pg_temp.check('create_lease links every party', n = 2);
+  perform pg_temp.check('create_lease occupies the unit',
+    (select status from public.units where id = unit_v) = 'ocupada');
+  select count(*) into n from public.unit_turnover_checklist where lease_id = new_lease;
+  perform pg_temp.check('create_lease seeds the turnover checklist', n = 1);
+  reset role;
 end;
 $$;
 

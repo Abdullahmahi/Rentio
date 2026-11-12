@@ -21,7 +21,7 @@
 
 
 -- ============================================================================
--- 1/18  20260919000100_schema
+-- 1/26  20260919000100_schema
 -- ============================================================================
 -- Rentio — core schema
 -- All money is numeric(12,2). Never float.
@@ -436,7 +436,7 @@ insert into public.settings (company_name, invoice_prefix) values ('Rentio', 'RE
 
 
 -- ============================================================================
--- 2/18  20260919000200_rls
+-- 2/26  20260919000200_rls
 -- ============================================================================
 -- Rentio — row level security. Deny by default, everywhere.
 --
@@ -834,7 +834,7 @@ create policy storage_tenant_write on storage.objects
 
 
 -- ============================================================================
--- 3/18  20260919000300_portal_views
+-- 3/26  20260919000300_portal_views
 -- ============================================================================
 -- The tenant portal needs the tenant's OWN unit number and building address:
 -- it is the payment reference on the Inicio screen and the whole of the
@@ -869,7 +869,7 @@ grant select on public.my_lease_details to authenticated;
 
 
 -- ============================================================================
--- 4/18  20260919000400_public_settings_address
+-- 4/26  20260919000400_public_settings_address
 -- ============================================================================
 -- The recibo PDF prints the landlord's letterhead — company name, address and
 -- bank details — and a tenant must be able to render their own receipt. The
@@ -905,7 +905,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 5/18  20260920000500_us_localization
+-- 5/26  20260920000500_us_localization
 -- ============================================================================
 -- Prompt 15 — the properties are in El Paso, Texas, not Mexico.
 -- Addresses become US addresses. No business logic changes here.
@@ -995,7 +995,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 6/18  20260920000501_drop_rfc
+-- 6/26  20260920000501_drop_rfc
 -- ============================================================================
 -- Prompt 20's cleanup, pulled forward: `rfc` was captured for Mexican tax
 -- invoicing (CFDI) that will never happen for a Texas landlord. Removing it
@@ -1025,7 +1025,7 @@ $$;
 
 
 -- ============================================================================
--- 7/18  20260920000600_us_payment_methods
+-- 7/26  20260920000600_us_payment_methods
 -- ============================================================================
 -- Prompt 16 — US payment rails.
 --
@@ -1110,7 +1110,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 8/18  20260920000700_texas_late_fees
+-- 8/26  20260920000700_texas_late_fees
 -- ============================================================================
 -- Prompt 17 — Texas Property Code §92.019 constrains residential late fees.
 --
@@ -1185,7 +1185,7 @@ alter table public.settings
 
 
 -- ============================================================================
--- 9/18  20260920000800_deposit_clock
+-- 9/26  20260920000800_deposit_clock
 -- ============================================================================
 -- Prompt 18 — Texas Property Code §92.103–92.109, security deposit returns.
 --
@@ -1253,7 +1253,7 @@ grant select on public.deposit_obligations to authenticated;
 
 
 -- ============================================================================
--- 10/18  20260920000900_texas_repairs_notices_turnover
+-- 10/26  20260920000900_texas_repairs_notices_turnover
 -- ============================================================================
 -- Prompt 19 — three smaller Texas Property Code obligations.
 
@@ -1403,7 +1403,7 @@ create policy turnover_admin_delete on public.unit_turnover_checklist
 
 
 -- ============================================================================
--- 11/18  20260920001000_late_fee_guard
+-- 11/26  20260920001000_late_fee_guard
 -- ============================================================================
 -- Prompt 17 said "do not let a manager bypass the 2-day rule anywhere in the
 -- UI". The gated "Apply late fee" button honoured it; "Add line" did not.
@@ -1476,7 +1476,7 @@ create trigger invoice_lines_enforce_late_fee_rules
 
 
 -- ============================================================================
--- 12/18  20260922001100_access_requests
+-- 12/26  20260922001100_access_requests
 -- ============================================================================
 -- A tenant with no invite needs somewhere to go.
 --
@@ -1540,7 +1540,7 @@ create policy access_requests_admin_delete on public.access_requests
 
 
 -- ============================================================================
--- 13/18  20260925001200_expenses
+-- 13/26  20260925001200_expenses
 -- ============================================================================
 -- Gastos: landlord expenses, entered by hand, one row per unit.
 -- The property is reached through units.property_id, like utility_charges.
@@ -1583,7 +1583,7 @@ create policy expenses_admin_delete on public.expenses
 
 
 -- ============================================================================
--- 14/18  20261024001300_super_admin_role
+-- 14/26  20261024001300_super_admin_role
 -- ============================================================================
 -- PortfolioAI staff: a role that spans every organization.
 --
@@ -1594,7 +1594,7 @@ alter type public.user_role add value if not exists 'super_admin';
 
 
 -- ============================================================================
--- 15/18  20261024001400_self_hosted_multi_tenant
+-- 15/26  20261024001400_self_hosted_multi_tenant
 -- ============================================================================
 -- Off Supabase, onto self-hosted Postgres + PostgREST, and multi-tenant.
 --
@@ -2131,7 +2131,7 @@ grant select on public.my_lease_details, public.public_settings to authenticated
 
 
 -- ============================================================================
--- 16/18  20261027001500_super_admin_acts_in_org
+-- 16/26  20261027001500_super_admin_acts_in_org
 -- ============================================================================
 -- super_admin: a real platform role, and a way to work inside a company.
 --
@@ -2303,7 +2303,7 @@ create trigger organizations_create_settings
 
 
 -- ============================================================================
--- 17/18  20261027001600_el_paso_dates
+-- 17/26  20261027001600_el_paso_dates
 -- ============================================================================
 -- Dates are El Paso dates. current_date was the server's UTC date, so every
 -- evening after 6pm Mountain time a receipt due "today" read as overdue,
@@ -2318,7 +2318,1329 @@ $$;
 
 
 -- ============================================================================
--- 18/18  DEMO DATA
+-- 18/26  20261028002100_confirm_payment
+-- ============================================================================
+-- B-013: confirming a payment was four browser writes with no transaction
+-- (status, allocations, invoice statuses, activity log). A failed insert or a
+-- not-yet-loaded invoice list left a payment confirmed with no allocations;
+-- two staff confirming at once double-allocated it.
+--
+-- One function, one transaction. Same allocation as allocateOldestFirst in
+-- src/lib/invoicing.ts (oldest due date first, drafts count, cancelled
+-- invoices never), same status rule as the old refreshInvoiceStatuses.
+-- Re-runnable: create or replace + idempotent grants.
+
+create or replace function public.confirm_payment(p_payment uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pay        public.payments%rowtype;
+  remaining  numeric(12,2);
+  applied    numeric(12,2);
+  inv        record;
+  touched    uuid[] := '{}';
+begin
+  -- Same rule as payments_staff_update: any staff member of the payment's
+  -- org (admin, manager, super_admin acting in that org). The platform view
+  -- (no org in the JWT) writes nothing.
+  if not public.is_staff() or public.current_org_id() is null then
+    raise exception 'Only staff can confirm payments.' using errcode = '42501';
+  end if;
+
+  -- The row lock serialises two people pressing Confirm at once: the second
+  -- waits, then sees 'confirmado' below.
+  select * into pay
+  from public.payments
+  where id = p_payment and org_id = public.current_org_id()
+  for update;
+
+  if not found then
+    raise exception 'Payment not found.' using errcode = 'P0002';
+  end if;
+  if pay.status = 'confirmado' then
+    raise exception 'This payment is already confirmed.' using errcode = 'P0001';
+  end if;
+  if pay.status <> 'pendiente' then
+    raise exception 'Only a pending payment can be confirmed.' using errcode = 'P0001';
+  end if;
+
+  -- Two different payments on one lease must not both see the same open
+  -- balance: serialise money moves per lease.
+  perform 1 from public.leases where id = pay.lease_id for update;
+
+  update public.payments
+  set status = 'confirmado',
+      confirmed_by = public.current_user_id(),
+      confirmed_at = now()
+  where id = pay.id;
+
+  remaining := pay.amount;
+  for inv in
+    select b.invoice_id, b.balance
+    from public.invoice_balances b
+    join public.invoices i on i.id = b.invoice_id
+    where i.lease_id = pay.lease_id
+      and i.status <> 'cancelado'
+      and b.balance > 0
+    order by i.due_date, i.created_at, i.id
+  loop
+    exit when remaining <= 0;
+    applied := least(remaining, inv.balance);
+    insert into public.payment_allocations (payment_id, invoice_id, amount, org_id)
+    values (pay.id, inv.invoice_id, applied, pay.org_id);
+    remaining := remaining - applied;
+    touched := touched || inv.invoice_id;
+  end loop;
+
+  -- Keep invoice.status honest. Drafts stay drafts until someone sends them.
+  update public.invoices i
+  set status = case
+        when b.paid >= b.total - 0.005 then 'pagado'::invoice_status
+        when b.paid > 0 then 'pagado_parcial'::invoice_status
+        else 'enviado'::invoice_status
+      end
+  from public.invoice_balances b
+  where b.invoice_id = i.id
+    and i.id = any (touched)
+    and i.status not in ('cancelado', 'borrador');
+
+  insert into public.activity_log (actor_id, entity_type, entity_id, action, meta, org_id)
+  values (
+    public.current_user_id(), 'payment', pay.id, 'confirm',
+    jsonb_build_object('amount', pay.amount, 'allocations', cardinality(touched)),
+    pay.org_id
+  );
+
+  return jsonb_build_object(
+    'allocations', cardinality(touched),
+    'applied', pay.amount - remaining,
+    'credit', remaining
+  );
+end;
+$$;
+
+revoke all on function public.confirm_payment(uuid) from public, anon;
+grant execute on function public.confirm_payment(uuid) to authenticated, service_role;
+
+
+-- ============================================================================
+-- 19/26  20261028002200_nightly_job
+-- ============================================================================
+-- The nightly job (execution.md A1, A3, A4; owner decisions D1, D2, D3).
+--
+--   today_el_paso()              "today" in SQL, always El Paso (TRD §8.1)
+--   generate_invoices(period)    the Generate button (staff, own org)
+--   generate_invoices_for_org()  the one place invoices are generated; the
+--                                button and nightly() both end up here
+--   queue_late_fee_warnings()    D3: warn before a fee is chargeable; fees
+--                                themselves are never added automatically
+--   late_fee_warnings_to_send()  what /api/jobs/nightly emails
+--   nightly()                    the scheduled entry point, returns counts
+--
+-- Also fixes the §92.019 guard's current_date (B-004). Re-runnable.
+
+-- ------------------------------------------------------------ today
+
+create or replace function public.today_el_paso()
+returns date
+language sql
+stable
+as $$
+  select (now() at time zone 'America/Denver')::date;
+$$;
+
+grant execute on function public.today_el_paso() to authenticated, service_role;
+
+-- --------------------------------------- §92.019 guard on El Paso dates
+-- Identical to 20260920001000 except current_date -> today_el_paso().
+
+create or replace function public.enforce_late_fee_rules()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  inv        record;
+  grace      int;
+  eligible   date;
+  existing   int;
+begin
+  if new.category <> 'recargo' then
+    return new;
+  end if;
+
+  select i.due_date, i.lease_id into inv
+  from public.invoices i where i.id = new.invoice_id;
+
+  if not found then
+    return new;
+  end if;
+
+  select greatest(l.grace_days, 2) into grace
+  from public.leases l where l.id = inv.lease_id;
+
+  eligible := inv.due_date + coalesce(grace, 2) + 1;
+
+  if public.today_el_paso() < eligible then
+    raise exception using
+      errcode = 'check_violation',
+      message = format(
+        'Texas Property Code 92.019: a late fee on this invoice cannot be charged before %s.',
+        to_char(eligible, 'MM/DD/YYYY')
+      );
+  end if;
+
+  select count(*) into existing
+  from public.invoice_lines il
+  where il.invoice_id = new.invoice_id
+    and il.category = 'recargo'
+    and il.id <> coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid);
+
+  if existing > 0 then
+    raise exception using
+      errcode = 'check_violation',
+      message = 'This invoice already has a late fee.';
+  end if;
+
+  return new;
+end;
+$$;
+
+-- ------------------------------------------------- invoice numbers per org
+-- The nightly job has no org in its JWT, so the prefix must come from the
+-- lease's org. The no-arg version (the browser's) now delegates here.
+
+create or replace function public.next_invoice_number_for_org(p_org uuid)
+returns text
+language sql
+volatile
+security definer
+set search_path = public
+as $$
+  select coalesce(
+           (select invoice_prefix from public.settings where org_id = p_org),
+           'REC')
+      || '-' || lpad(nextval('public.invoice_number_seq')::text, 5, '0');
+$$;
+
+create or replace function public.next_invoice_number()
+returns text
+language sql
+volatile
+security definer
+set search_path = public
+as $$
+  select public.next_invoice_number_for_org(public.current_org_id());
+$$;
+
+revoke all on function public.next_invoice_number_for_org(uuid) from public, anon, authenticated;
+grant execute on function public.next_invoice_number_for_org(uuid) to service_role;
+
+-- ---------------------------------------------------- invoice generation
+-- Rent + one line per assigned parking space, as drafts (D2). Utilities are
+-- not billed: the owner dropped them (app.receipts.index.tsx passed none).
+-- Billed: active leases that have started by the end of the period and
+-- either run into it or are past their end date (D1 month-to-month).
+-- (lease_id, period_month) is unique, so a second run, or two at once,
+-- creates nothing twice.
+
+create or replace function public.generate_invoices_for_org(p_period date, p_org uuid)
+returns table (created int, skipped int)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  period     date := date_trunc('month', p_period)::date;
+  period_end date := (date_trunc('month', p_period) + interval '1 month - 1 day')::date;
+  today      date := public.today_el_paso();
+  l          record;
+  inv_id     uuid;
+  rent_total numeric(12,2);
+begin
+  created := 0;
+  skipped := 0;
+
+  for l in
+    select le.*
+    from public.leases le
+    where le.org_id = p_org
+      and le.status in ('activo', 'por_vencer')
+      and le.start_date <= period_end
+      and (le.end_date >= period or le.end_date < today)
+    order by le.created_at, le.id
+  loop
+    if exists (select 1 from public.invoices where lease_id = l.id and period_month = period) then
+      skipped := skipped + 1;
+      continue;
+    end if;
+
+    select l.rent_amount + coalesce(sum(ps.monthly_fee), 0) into rent_total
+    from public.parking_spaces ps where ps.lease_id = l.id;
+
+    insert into public.invoices
+      (lease_id, org_id, period_month, invoice_number, issue_date, due_date, status, total)
+    values (
+      l.id, l.org_id, period, public.next_invoice_number_for_org(l.org_id), today,
+      -- the lease's due day, clamped to month end; never before move-in
+      greatest(least(period + (l.rent_due_day - 1), period_end), l.start_date),
+      'borrador', rent_total
+    )
+    on conflict (lease_id, period_month) do nothing
+    returning id into inv_id;
+
+    if inv_id is null then
+      skipped := skipped + 1;  -- a concurrent run won
+      continue;
+    end if;
+
+    insert into public.invoice_lines (invoice_id, org_id, description, category, quantity, amount)
+    select inv_id, l.org_id, 'Monthly rent', 'renta'::line_category, 1, l.rent_amount
+    union all
+    select inv_id, l.org_id, 'Parking ' || ps.label, 'estacionamiento', 1, ps.monthly_fee
+    from public.parking_spaces ps where ps.lease_id = l.id;
+
+    created := created + 1;
+  end loop;
+
+  if created > 0 then
+    insert into public.activity_log (actor_id, entity_type, entity_id, action, meta, org_id)
+    values (public.current_user_id(), 'invoice', null, 'generate_month',
+            jsonb_build_object('period', period, 'created', created), p_org);
+  end if;
+
+  return next;
+end;
+$$;
+
+revoke all on function public.generate_invoices_for_org(date, uuid) from public, anon, authenticated;
+grant execute on function public.generate_invoices_for_org(date, uuid) to service_role;
+
+-- What the Generate button calls: staff, own org only. The platform view
+-- (super_admin, no company picked) has no org and is refused (A-10).
+create or replace function public.generate_invoices(p_period date)
+returns table (created int, skipped int)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_staff() or public.current_org_id() is null then
+    raise exception 'Only staff can generate invoices.' using errcode = '42501';
+  end if;
+  return query select * from public.generate_invoices_for_org(p_period, public.current_org_id());
+end;
+$$;
+
+revoke all on function public.generate_invoices(date) from public, anon;
+grant execute on function public.generate_invoices(date) to authenticated, service_role;
+
+-- ------------------------------------------------- late-fee warnings (D3)
+
+create table if not exists public.late_fee_warnings (
+  invoice_id  uuid primary key references public.invoices (id) on delete cascade,
+  org_id      uuid not null default public.current_org_id() references public.organizations (id) on delete restrict,
+  eligible_on date not null,
+  sent_at     timestamptz,
+  channel     text check (channel in ('email', 'portal')),
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists late_fee_warnings_org_id_idx on public.late_fee_warnings (org_id);
+create index if not exists late_fee_warnings_unsent_idx on public.late_fee_warnings (invoice_id) where sent_at is null;
+
+drop trigger if exists org_from_parent on public.late_fee_warnings;
+create trigger org_from_parent before insert or update on public.late_fee_warnings
+  for each row execute function public.org_from_parent('invoices', 'invoice_id');
+
+alter table public.late_fee_warnings enable row level security;
+
+-- Read-only to people: rows are written by the nightly job (service role)
+-- and by the security-definer queue function, never through the API.
+drop policy if exists late_fee_warnings_select on public.late_fee_warnings;
+create policy late_fee_warnings_select on public.late_fee_warnings
+  for select to authenticated
+  using (
+    public.is_staff() or exists (
+      select 1 from public.invoices i
+      where i.id = invoice_id and i.lease_id in (select public.my_lease_ids())
+    )
+  );
+
+do $$
+declare
+  mine constant text := 'org_id = (select public.current_org_id())';
+  platform constant text :=
+    '((select public.is_super_admin()) and (select public.current_org_id()) is null)';
+begin
+  execute 'drop policy if exists org_isolation_select on public.late_fee_warnings';
+  execute 'drop policy if exists org_isolation_insert on public.late_fee_warnings';
+  execute 'drop policy if exists org_isolation_update on public.late_fee_warnings';
+  execute 'drop policy if exists org_isolation_delete on public.late_fee_warnings';
+  execute format('create policy org_isolation_select on public.late_fee_warnings as restrictive for select to authenticated using (%s or %s)', mine, platform);
+  execute format('create policy org_isolation_insert on public.late_fee_warnings as restrictive for insert to authenticated with check (%s)', mine);
+  execute format('create policy org_isolation_update on public.late_fee_warnings as restrictive for update to authenticated using (%s) with check (%s)', mine, mine);
+  execute format('create policy org_isolation_delete on public.late_fee_warnings as restrictive for delete to authenticated using (%s)', mine);
+end;
+$$;
+
+revoke all on public.late_fee_warnings from anon;
+grant select on public.late_fee_warnings to authenticated;
+grant select, insert, update, delete on public.late_fee_warnings to service_role;
+
+-- The lease's fee in dollars. Mirrors lateFeeAmount in src/lib/late-fee.ts.
+create or replace function public.lease_late_fee(l public.leases)
+returns numeric
+language sql
+immutable
+as $$
+  select round(
+    case when l.late_fee_type = 'percent'
+         then l.rent_amount * l.late_fee_percent / 100
+         else l.late_fee_amount end, 2);
+$$;
+
+-- A warning for every open, sent invoice whose last grace day is today
+-- (or was yesterday, so one missed run still warns; the fee is still only
+-- added by hand). Drafts are skipped: the tenant has not been billed yet.
+-- Leases with no late fee are skipped: there is nothing to warn about.
+-- The primary key makes it once per invoice, however often this runs.
+create or replace function public.queue_late_fee_warnings()
+returns int
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  today date := public.today_el_paso();
+  queued int;
+begin
+  insert into public.late_fee_warnings (invoice_id, org_id, eligible_on)
+  select i.id, i.org_id, i.due_date + greatest(l.grace_days, 2) + 1
+  from public.invoices i
+  join public.leases l on l.id = i.lease_id
+  join public.invoice_balances b on b.invoice_id = i.id
+  where i.status not in ('borrador', 'pagado', 'cancelado')
+    and b.balance > 0
+    and public.lease_late_fee(l) > 0
+    and i.due_date + greatest(l.grace_days, 2) between today - 1 and today
+  on conflict (invoice_id) do nothing;
+  get diagnostics queued = row_count;
+  return queued;
+end;
+$$;
+
+revoke all on function public.queue_late_fee_warnings() from public, anon, authenticated;
+grant execute on function public.queue_late_fee_warnings() to service_role;
+
+-- Everything the email needs, for warnings not yet sent.
+create or replace function public.late_fee_warnings_to_send()
+returns table (
+  invoice_id   uuid,
+  org_id       uuid,
+  eligible_on  date,
+  period_month date,
+  fee          numeric,
+  balance      numeric,
+  unit_number  text,
+  tenant_name  text,
+  tenant_email text,
+  locale       text,
+  company_name text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select w.invoice_id, w.org_id, w.eligible_on, i.period_month,
+         public.lease_late_fee(l), b.balance, u.unit_number,
+         t.full_name, nullif(trim(t.email), ''),
+         coalesce((select p.locale from public.profiles p
+                   where p.tenant_id = t.id and p.locale is not null limit 1), 'es-MX'),
+         coalesce(s.company_name, 'Rentio')
+  from public.late_fee_warnings w
+  join public.invoices i on i.id = w.invoice_id
+  join public.leases l on l.id = i.lease_id
+  join public.units u on u.id = l.unit_id
+  join public.invoice_balances b on b.invoice_id = i.id
+  left join lateral (
+    select tt.* from public.lease_tenants lt
+    join public.tenants tt on tt.id = lt.tenant_id
+    where lt.lease_id = l.id and lt.role = 'primary'
+    order by lt.created_at limit 1
+  ) t on true
+  left join public.settings s on s.org_id = w.org_id
+  where w.sent_at is null
+  order by w.created_at;
+$$;
+
+revoke all on function public.late_fee_warnings_to_send() from public, anon, authenticated;
+grant execute on function public.late_fee_warnings_to_send() to service_role;
+
+-- ---------------------------------------------------------------- nightly
+-- Invoices on the 1st, or any day the org has none for this month yet (so a
+-- missed run heals itself). Every step is idempotent, so a second call
+-- returns zeros.
+
+create or replace function public.nightly()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  today   date := public.today_el_paso();
+  period  date := date_trunc('month', public.today_el_paso())::date;
+  org     record;
+  made    int := 0;
+  skipped int := 0;
+  r       record;
+  queued  int;
+begin
+  for org in select id from public.organizations where status = 'active' loop
+    if extract(day from today) = 1
+       or not exists (select 1 from public.invoices where org_id = org.id and period_month = period) then
+      select * into r from public.generate_invoices_for_org(period, org.id);
+      made := made + r.created;
+      skipped := skipped + r.skipped;
+    end if;
+  end loop;
+
+  queued := public.queue_late_fee_warnings();
+
+  return jsonb_build_object(
+    'today', today,
+    'period', period,
+    'invoices_created', made,
+    'invoices_skipped', skipped,
+    'warnings_queued', queued
+  );
+end;
+$$;
+
+revoke all on function public.nightly() from public, anon, authenticated;
+grant execute on function public.nightly() to service_role;
+
+
+-- ============================================================================
+-- 20/26  20261028002300_record_and_void_payment
+-- ============================================================================
+-- B-013 continued: "Record payment" and "Void" were several browser writes
+-- each (payment, allocations, invoice statuses, activity log) with no
+-- transaction, like confirm was. Now one function each, one transaction.
+--
+--   refresh_invoice_statuses(ids)    internal: paid / partial / sent from balances
+--   apply_payment(payment, split)    internal: allocations + statuses; the one
+--                                    allocator confirm and record share
+--   confirm_payment(payment)         unchanged behaviour, now calls apply_payment
+--   record_payment(...)              staff: a confirmed payment, allocated
+--   void_payment(payment, reason)    admin: drop allocations, keep the row
+--
+-- Re-runnable: create or replace + idempotent grants.
+
+-- ------------------------------------------------ invoice statuses (internal)
+-- Keep invoice.status honest. Drafts stay drafts until someone sends them.
+-- Same rule as the old refreshInvoiceStatuses in app.payments.index.tsx.
+
+create or replace function public.refresh_invoice_statuses(p_invoices uuid[])
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.invoices i
+  set status = case
+        when b.paid >= b.total - 0.005 then 'pagado'::invoice_status
+        when b.paid > 0 then 'pagado_parcial'::invoice_status
+        else 'enviado'::invoice_status
+      end
+  from public.invoice_balances b
+  where b.invoice_id = i.id
+    and i.id = any (p_invoices)
+    and i.status not in ('cancelado', 'borrador');
+$$;
+
+revoke all on function public.refresh_invoice_statuses(uuid[]) from public, anon, authenticated;
+grant execute on function public.refresh_invoice_statuses(uuid[]) to service_role;
+
+-- ------------------------------------------------------ allocation (internal)
+-- The caller has checked who is asking and holds the payment and lease
+-- locks. p_allocations null: oldest due date first, drafts count, cancelled
+-- invoices never (allocateOldestFirst in src/lib/invoicing.ts). Otherwise
+-- the split the person typed, [{invoice_id, amount}], checked here: each
+-- invoice on the payment's lease, not cancelled, no more than its balance,
+-- and no more than the payment in total. What is left over is credit.
+
+create or replace function public.apply_payment(p_payment uuid, p_allocations jsonb default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pay        public.payments%rowtype;
+  remaining  numeric(12,2);
+  applied    numeric(12,2);
+  inv        record;
+  bal        numeric(12,2);
+  touched    uuid[] := '{}';
+begin
+  select * into pay from public.payments where id = p_payment;
+  remaining := pay.amount;
+
+  if p_allocations is null then
+    for inv in
+      select b.invoice_id, b.balance
+      from public.invoice_balances b
+      join public.invoices i on i.id = b.invoice_id
+      where i.lease_id = pay.lease_id
+        and i.status <> 'cancelado'
+        and b.balance > 0
+      order by i.due_date, i.created_at, i.id
+    loop
+      exit when remaining <= 0;
+      applied := least(remaining, inv.balance);
+      insert into public.payment_allocations (payment_id, invoice_id, amount, org_id)
+      values (pay.id, inv.invoice_id, applied, pay.org_id);
+      remaining := remaining - applied;
+      touched := touched || inv.invoice_id;
+    end loop;
+  else
+    if jsonb_typeof(p_allocations) <> 'array' then
+      raise exception 'Allocations must be a list.' using errcode = '22023';
+    end if;
+    for inv in
+      select x.invoice_id, round(x.amount, 2) as amount
+      from jsonb_to_recordset(p_allocations) as x (invoice_id uuid, amount numeric)
+    loop
+      continue when coalesce(inv.amount, 0) = 0;
+      if inv.amount < 0 then
+        raise exception 'An allocation cannot be negative.' using errcode = '22023';
+      end if;
+      select b.balance into bal
+      from public.invoice_balances b
+      join public.invoices i on i.id = b.invoice_id
+      where i.id = inv.invoice_id
+        and i.lease_id = pay.lease_id
+        and i.status <> 'cancelado';
+      if not found then
+        raise exception 'That invoice is not open on this lease.' using errcode = 'P0001';
+      end if;
+      if inv.amount > bal + 0.005 then
+        raise exception 'An allocation is more than the invoice balance.' using errcode = 'P0001';
+      end if;
+      if inv.amount > remaining + 0.005 then
+        raise exception 'The allocations add up to more than the payment.' using errcode = 'P0001';
+      end if;
+      insert into public.payment_allocations (payment_id, invoice_id, amount, org_id)
+      values (pay.id, inv.invoice_id, inv.amount, pay.org_id);
+      remaining := remaining - inv.amount;
+      touched := touched || inv.invoice_id;
+    end loop;
+  end if;
+
+  perform public.refresh_invoice_statuses(touched);
+
+  return jsonb_build_object(
+    'allocations', cardinality(touched),
+    'applied', pay.amount - remaining,
+    'credit', remaining
+  );
+end;
+$$;
+
+revoke all on function public.apply_payment(uuid, jsonb) from public, anon, authenticated;
+grant execute on function public.apply_payment(uuid, jsonb) to service_role;
+
+-- ---------------------------------------------------------- confirm_payment
+-- Same checks, locks, result and activity as 20261028002100; the allocation
+-- now lives in apply_payment.
+
+create or replace function public.confirm_payment(p_payment uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pay     public.payments%rowtype;
+  result  jsonb;
+begin
+  -- Same rule as payments_staff_update: any staff member of the payment's
+  -- org (admin, manager, super_admin acting in that org). The platform view
+  -- (no org in the JWT) writes nothing.
+  if not public.is_staff() or public.current_org_id() is null then
+    raise exception 'Only staff can confirm payments.' using errcode = '42501';
+  end if;
+
+  -- The row lock serialises two people pressing Confirm at once: the second
+  -- waits, then sees 'confirmado' below.
+  select * into pay
+  from public.payments
+  where id = p_payment and org_id = public.current_org_id()
+  for update;
+
+  if not found then
+    raise exception 'Payment not found.' using errcode = 'P0002';
+  end if;
+  if pay.status = 'confirmado' then
+    raise exception 'This payment is already confirmed.' using errcode = 'P0001';
+  end if;
+  if pay.status <> 'pendiente' then
+    raise exception 'Only a pending payment can be confirmed.' using errcode = 'P0001';
+  end if;
+
+  -- Two different payments on one lease must not both see the same open
+  -- balance: serialise money moves per lease.
+  perform 1 from public.leases where id = pay.lease_id for update;
+
+  update public.payments
+  set status = 'confirmado',
+      confirmed_by = public.current_user_id(),
+      confirmed_at = now()
+  where id = pay.id;
+
+  result := public.apply_payment(pay.id);
+
+  insert into public.activity_log (actor_id, entity_type, entity_id, action, meta, org_id)
+  values (
+    public.current_user_id(), 'payment', pay.id, 'confirm',
+    jsonb_build_object('amount', pay.amount, 'allocations', (result ->> 'allocations')::int),
+    pay.org_id
+  );
+
+  return result;
+end;
+$$;
+
+revoke all on function public.confirm_payment(uuid) from public, anon;
+grant execute on function public.confirm_payment(uuid) to authenticated, service_role;
+
+-- ----------------------------------------------------------- record_payment
+-- The "Record payment" dialog: staff take money in person, so it is
+-- confirmed on the spot. p_receipt_url is a path the app already uploaded.
+-- Returns apply_payment's counts plus the new payment's id.
+
+create or replace function public.record_payment(
+  p_lease       uuid,
+  p_amount      numeric,
+  p_paid_at     date,
+  p_method      public.payment_method,
+  p_reference   text default null,
+  p_notes       text default null,
+  p_receipt_url text default null,
+  p_allocations jsonb default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  lease   public.leases%rowtype;
+  pay_id  uuid;
+  result  jsonb;
+begin
+  -- Same rule as confirm_payment.
+  if not public.is_staff() or public.current_org_id() is null then
+    raise exception 'Only staff can record payments.' using errcode = '42501';
+  end if;
+
+  -- Serialise money moves per lease, as confirm_payment does.
+  select * into lease
+  from public.leases
+  where id = p_lease and org_id = public.current_org_id()
+  for update;
+
+  if not found then
+    raise exception 'Lease not found.' using errcode = 'P0002';
+  end if;
+  if coalesce(p_amount, 0) <= 0 then
+    raise exception 'The amount must be more than zero.' using errcode = '22023';
+  end if;
+
+  insert into public.payments
+    (lease_id, org_id, amount, paid_at, method, reference, notes, receipt_url,
+     status, recorded_by, confirmed_by, confirmed_at)
+  values (
+    lease.id, lease.org_id, p_amount, coalesce(p_paid_at, public.today_el_paso()),
+    coalesce(p_method, 'ach'), nullif(trim(p_reference), ''), nullif(trim(p_notes), ''),
+    nullif(p_receipt_url, ''),
+    'confirmado', public.current_user_id(), public.current_user_id(), now()
+  )
+  returning id into pay_id;
+
+  result := public.apply_payment(pay_id, p_allocations);
+
+  insert into public.activity_log (actor_id, entity_type, entity_id, action, meta, org_id)
+  values (
+    public.current_user_id(), 'payment', pay_id, 'create',
+    jsonb_build_object('amount', round(p_amount, 2), 'credit', (result ->> 'credit')::numeric),
+    lease.org_id
+  );
+
+  return result || jsonb_build_object('payment_id', pay_id);
+end;
+$$;
+
+revoke all on function public.record_payment(uuid, numeric, date, public.payment_method, text, text, text, jsonb) from public, anon;
+grant execute on function public.record_payment(uuid, numeric, date, public.payment_method, text, text, text, jsonb) to authenticated, service_role;
+
+-- ------------------------------------------------------------- void_payment
+-- Never deletes the payment (TRD §8.5): drops its allocations, marks it
+-- cancelado with the reason, restores the invoice statuses. Admin only, the
+-- same rule as payments_staff_update's with check (managers cannot void).
+-- There is no un-void here (security.md S-006).
+
+create or replace function public.void_payment(p_payment uuid, p_reason text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pay      public.payments%rowtype;
+  touched  uuid[];
+begin
+  if not public.is_admin() or public.current_org_id() is null then
+    raise exception 'Only an admin can void payments.' using errcode = '42501';
+  end if;
+  if coalesce(trim(p_reason), '') = '' then
+    raise exception 'A reason is required to void a payment.' using errcode = '22023';
+  end if;
+
+  -- Two admins voiding at once: the second waits, then sees 'cancelado'.
+  select * into pay
+  from public.payments
+  where id = p_payment and org_id = public.current_org_id()
+  for update;
+
+  if not found then
+    raise exception 'Payment not found.' using errcode = 'P0002';
+  end if;
+  if pay.status = 'cancelado' then
+    raise exception 'This payment is already voided.' using errcode = 'P0001';
+  end if;
+  if pay.status <> 'confirmado' then
+    raise exception 'Only a confirmed payment can be voided.' using errcode = 'P0001';
+  end if;
+
+  perform 1 from public.leases where id = pay.lease_id for update;
+
+  with gone as (
+    delete from public.payment_allocations where payment_id = pay.id returning invoice_id
+  )
+  select coalesce(array_agg(invoice_id), '{}') into touched from gone;
+
+  update public.payments
+  set status = 'cancelado',
+      void_reason = trim(p_reason)
+  where id = pay.id;
+
+  perform public.refresh_invoice_statuses(touched);
+
+  insert into public.activity_log (actor_id, entity_type, entity_id, action, meta, org_id)
+  values (
+    public.current_user_id(), 'payment', pay.id, 'void',
+    jsonb_build_object('reason', trim(p_reason), 'amount', pay.amount),
+    pay.org_id
+  );
+
+  return jsonb_build_object('allocations', cardinality(touched), 'amount', pay.amount);
+end;
+$$;
+
+revoke all on function public.void_payment(uuid, text) from public, anon;
+grant execute on function public.void_payment(uuid, text) to authenticated, service_role;
+
+
+-- ============================================================================
+-- 21/26  20261111000100_tenants_cannot_read_drafts
+-- ============================================================================
+-- Tenants must not see draft invoices. The nightly job drafts the month on
+-- the 1st for staff review; until staff send it, the tenant has nothing to
+-- pay. lease_balances and invoice_balances are security_invoker views, so
+-- this one policy also removes drafts from the tenant's balance and "Due on".
+
+drop policy if exists invoices_select on public.invoices;
+create policy invoices_select on public.invoices
+  for select to authenticated
+  using (
+    public.is_staff()
+    or (lease_id in (select public.my_lease_ids()) and status <> 'borrador')
+  );
+
+
+-- ============================================================================
+-- 22/26  20261111000200_create_lease
+-- ============================================================================
+-- A lease was five browser writes (lease, lease_tenants, turnover checklist,
+-- unit status, activity) with no transaction: a failed link insert left an
+-- orphan active lease on an occupied unit. One function, one transaction,
+-- like record_payment. The contract PDF upload stays in the browser; a lease
+-- without its file is still a lease.
+--
+-- p_terms carries the lease columns the wizard sets (start_date, end_date,
+-- rent_amount, rent_due_day, grace_days, late_fee_type, late_fee_percent,
+-- late_fee_amount, late_fee_over_cap_ack, deposit_amount). p_checklist is
+-- turnoverRowsFor() from src/lib/texas.ts: [{item, item_key, position}].
+-- The late-fee trigger and unique (lease_id, tenant_id) still apply inside.
+
+create or replace function public.create_lease(
+  p_unit       uuid,
+  p_terms      jsonb,
+  p_primary    uuid,
+  p_co_tenants uuid[] default '{}',
+  p_guarantors uuid[] default '{}',
+  p_checklist  jsonb  default '[]'
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_lease uuid;
+  people    uuid[] := array[p_primary] || coalesce(p_co_tenants, '{}') || coalesce(p_guarantors, '{}');
+begin
+  if not public.is_staff() or public.current_org_id() is null then
+    raise exception 'Only staff can create leases.' using errcode = '42501';
+  end if;
+  if not exists (
+    select 1 from public.units where id = p_unit and org_id = public.current_org_id()
+  ) then
+    raise exception 'That unit is not in your company.' using errcode = 'P0001';
+  end if;
+  if p_primary is null or array_position(people, null) is not null then
+    raise exception 'Every party on the lease must be a saved tenant.' using errcode = '22023';
+  end if;
+  if (select count(distinct x) from unnest(people) x) <> cardinality(people) then
+    raise exception 'A person can hold only one role on a lease.' using errcode = 'P0001';
+  end if;
+
+  insert into public.leases (
+    unit_id, start_date, end_date, rent_amount, rent_due_day, grace_days,
+    late_fee_type, late_fee_percent, late_fee_amount, late_fee_over_cap_ack,
+    deposit_amount, status
+  ) values (
+    p_unit,
+    (p_terms->>'start_date')::date,
+    (p_terms->>'end_date')::date,
+    coalesce((p_terms->>'rent_amount')::numeric, 0),
+    coalesce((p_terms->>'rent_due_day')::int, 1),
+    coalesce((p_terms->>'grace_days')::int, 0),
+    coalesce((p_terms->>'late_fee_type')::public.late_fee_type, 'percent'),
+    coalesce((p_terms->>'late_fee_percent')::numeric, 0),
+    coalesce((p_terms->>'late_fee_amount')::numeric, 0),
+    coalesce((p_terms->>'late_fee_over_cap_ack')::boolean, false),
+    coalesce((p_terms->>'deposit_amount')::numeric, 0),
+    'activo'
+  )
+  returning id into new_lease;
+
+  insert into public.lease_tenants (lease_id, tenant_id, role)
+  select new_lease, p_primary, 'primary'::public.lease_tenant_role
+  union all select new_lease, t, 'co_tenant'::public.lease_tenant_role
+    from unnest(coalesce(p_co_tenants, '{}')) t
+  union all select new_lease, t, 'guarantor'::public.lease_tenant_role
+    from unnest(coalesce(p_guarantors, '{}')) t;
+
+  -- §92.156: the 7-day rekey clock starts at possession, so the checklist
+  -- exists from the lease's first second.
+  insert into public.unit_turnover_checklist (unit_id, lease_id, item, item_key, position)
+  select p_unit, new_lease, c->>'item', c->>'item_key', coalesce((c->>'position')::int, 0)
+  from jsonb_array_elements(coalesce(p_checklist, '[]')) c;
+
+  update public.units set status = 'ocupada' where id = p_unit;
+
+  return new_lease;
+end;
+$$;
+
+revoke all on function public.create_lease(uuid, jsonb, uuid, uuid[], uuid[], jsonb) from public, anon;
+grant execute on function public.create_lease(uuid, jsonb, uuid, uuid[], uuid[], jsonb) to authenticated, service_role;
+
+
+-- ============================================================================
+-- 23/26  20261111000300_last_admin_and_append_only_log
+-- ============================================================================
+-- Two guards the audit found missing (audit-product-2026-10-28.md §1).
+--
+-- 1. A company always keeps one admin. Settings → Users let the only admin
+--    pick "Property manager" for themselves; nobody could reach Users again
+--    and the fix was SQL. Enforced here so every path (UI, API, a future
+--    import) is covered. Row-level BEFORE triggers see rows already changed
+--    by the same statement, so "demote every admin" refuses on the last one.
+-- 2. The audit log is append-only. Staff had update and delete on
+--    activity_log through the generic staff_update / admin_delete policies.
+
+create or replace function public.profiles_keep_one_admin()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if public.current_user_id() is null then
+    return new;  -- the app server's service connection
+  end if;
+  if old.role = 'admin'
+     and new.role is distinct from 'admin'
+     and old.org_id is not null
+     and not exists (
+       select 1 from public.profiles
+       where org_id = old.org_id and role = 'admin' and id <> old.id
+     ) then
+    raise exception 'A company needs at least one admin.' using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$$;
+
+-- Named to sort after profiles_restrict_role_changes: triggers on one event
+-- fire alphabetically, and a privilege refusal ("only platform staff") must
+-- win over this one.
+drop trigger if exists profiles_keep_one_admin on public.profiles;
+drop trigger if exists profiles_zz_keep_one_admin on public.profiles;
+create trigger profiles_zz_keep_one_admin
+  before update on public.profiles
+  for each row execute function public.profiles_keep_one_admin();
+
+drop policy if exists staff_update on public.activity_log;
+drop policy if exists admin_delete on public.activity_log;
+
+
+-- ============================================================================
+-- 24/26  20261112000100_notifications
+-- ============================================================================
+-- Tenants never heard back (audit-product-2026-10-28.md §2.1 #8): no
+-- "payment confirmed", no "payment rejected, and why", no repair update, no
+-- rent reminder. This is the outbox. Triggers queue one row per tenant party
+-- (guarantors excluded); the server drains it, emailing in the tenant's
+-- language or, with no address, leaving the row for the portal
+-- (channel = 'portal'). Idempotent through dedupe_key.
+--
+--   queue_notification(lease, kind, entity, salt, payload)  internal
+--   queue_rent_reminders()        nightly: open invoices due within 3 days
+--   claim_notifications(limit)    server: mark sent, return what to email
+--   notification_result(id, ch)   server: 'email' | 'portal' | null = release
+
+create table public.notifications (
+  id          uuid primary key default gen_random_uuid(),
+  org_id      uuid not null references public.organizations (id) on delete cascade,
+  tenant_id   uuid not null references public.tenants (id) on delete cascade,
+  lease_id    uuid references public.leases (id) on delete cascade,
+  kind        text not null check (kind in (
+                'payment_confirmed', 'payment_rejected',
+                'work_order_status', 'work_order_note', 'rent_reminder')),
+  entity_id   uuid,
+  dedupe_key  text not null unique,
+  payload     jsonb not null default '{}'::jsonb,
+  created_at  timestamptz not null default now(),
+  sent_at     timestamptz,
+  channel     text check (channel in ('email', 'portal')),
+  read_at     timestamptz
+);
+create index notifications_pending_idx on public.notifications (created_at) where sent_at is null;
+create index notifications_tenant_idx  on public.notifications (tenant_id, created_at desc);
+
+alter table public.notifications enable row level security;
+revoke all on public.notifications from anon, authenticated;
+grant select on public.notifications to authenticated;
+grant update (read_at) on public.notifications to authenticated;
+
+-- Tenants read their own, staff their company's. Only the triggers below
+-- and the server write rows; a tenant may mark their own as read.
+create policy notifications_select on public.notifications
+  for select to authenticated
+  using (
+    public.is_staff()
+    or tenant_id in (select p.tenant_id from public.profiles p where p.id = public.current_user_id())
+  );
+create policy notifications_tenant_read on public.notifications
+  for update to authenticated
+  using (tenant_id in (select p.tenant_id from public.profiles p where p.id = public.current_user_id()))
+  with check (tenant_id in (select p.tenant_id from public.profiles p where p.id = public.current_user_id()));
+
+do $$
+declare
+  mine constant text := 'org_id = (select public.current_org_id())';
+  platform constant text :=
+    '((select public.is_super_admin()) and (select public.current_org_id()) is null)';
+begin
+  execute format('create policy org_isolation_select on public.notifications as restrictive for select to authenticated using (%s or %s)', mine, platform);
+  execute format('create policy org_isolation_update on public.notifications as restrictive for update to authenticated using (%s) with check (%s)', mine, mine);
+end;
+$$;
+
+-- ----------------------------------------------------------- queue (internal)
+
+create or replace function public.queue_notification(
+  p_lease uuid, p_kind text, p_entity uuid, p_salt text, p_payload jsonb
+)
+returns int
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  n int;
+begin
+  insert into public.notifications (org_id, tenant_id, lease_id, kind, entity_id, dedupe_key, payload)
+  select l.org_id, lt.tenant_id, l.id, p_kind, p_entity,
+         p_kind || ':' || p_entity || ':' || lt.tenant_id || ':' || coalesce(p_salt, ''),
+         coalesce(p_payload, '{}'::jsonb)
+  from public.leases l
+  join public.lease_tenants lt on lt.lease_id = l.id and lt.role <> 'guarantor'
+  where l.id = p_lease
+  on conflict (dedupe_key) do nothing;
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+
+revoke all on function public.queue_notification(uuid, text, uuid, text, jsonb) from public, anon, authenticated;
+grant execute on function public.queue_notification(uuid, text, uuid, text, jsonb) to service_role;
+
+-- ---------------------------------------------------------------- triggers
+
+-- A tenant-reported payment confirmed or refused (the reason rides along).
+create or replace function public.notify_payment_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.reported_by_tenant
+     and new.status is distinct from old.status
+     and new.status in ('confirmado', 'cancelado') then
+    perform public.queue_notification(
+      new.lease_id,
+      case when new.status = 'confirmado' then 'payment_confirmed' else 'payment_rejected' end,
+      new.id, new.status::text,
+      jsonb_build_object('amount', new.amount, 'paid_at', new.paid_at,
+                         'method', new.method, 'reason', new.void_reason));
+  end if;
+  return null;
+end;
+$$;
+
+drop trigger if exists payments_notify_tenant on public.payments;
+create trigger payments_notify_tenant
+  after update on public.payments
+  for each row execute function public.notify_payment_change();
+
+-- A repair request moved. Property Meld's finding: updates along the way
+-- matter more to tenants than how fast the fix was.
+create or replace function public.notify_work_order_status()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.lease_id is not null and new.status is distinct from old.status then
+    perform public.queue_notification(
+      new.lease_id, 'work_order_status', new.id, new.status::text,
+      jsonb_build_object('title', new.title, 'status', new.status));
+  end if;
+  return null;
+end;
+$$;
+
+drop trigger if exists work_orders_notify_tenant on public.work_orders;
+create trigger work_orders_notify_tenant
+  after update on public.work_orders
+  for each row execute function public.notify_work_order_status();
+
+-- A note staff marked "visible to tenant".
+create or replace function public.notify_work_order_note()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  wo public.work_orders%rowtype;
+begin
+  if new.is_internal then return null; end if;
+  select * into wo from public.work_orders where id = new.work_order_id;
+  if wo.lease_id is not null then
+    perform public.queue_notification(
+      wo.lease_id, 'work_order_note', new.id, '',
+      jsonb_build_object('title', wo.title, 'body', left(new.body, 500)));
+  end if;
+  return null;
+end;
+$$;
+
+drop trigger if exists work_order_notes_notify_tenant on public.work_order_notes;
+create trigger work_order_notes_notify_tenant
+  after insert on public.work_order_notes
+  for each row execute function public.notify_work_order_note();
+
+-- ------------------------------------------------------------ rent reminders
+-- Open, sent invoices due within three days; once per invoice and tenant.
+-- ponytail: 3-day window hard-coded, make it a setting when a client asks.
+
+create or replace function public.queue_rent_reminders()
+returns int
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  today date := public.today_el_paso();
+  r record;
+  queued int := 0;
+begin
+  for r in
+    select i.id, i.lease_id, i.period_month, i.due_date, b.balance
+    from public.invoices i
+    join public.invoice_balances b on b.invoice_id = i.id
+    where i.status in ('enviado', 'pagado_parcial')
+      and b.balance > 0
+      and i.due_date between today and today + 3
+  loop
+    queued := queued + public.queue_notification(
+      r.lease_id, 'rent_reminder', r.id, '',
+      jsonb_build_object('period_month', r.period_month, 'due_date', r.due_date, 'balance', r.balance));
+  end loop;
+  return queued;
+end;
+$$;
+
+revoke all on function public.queue_rent_reminders() from public, anon, authenticated;
+grant execute on function public.queue_rent_reminders() to service_role;
+
+-- ------------------------------------------------------------------ drain
+-- Claim first (sent_at = now), so two overlapping runs never email twice.
+-- A failed send releases the row with notification_result(id, null).
+
+create or replace function public.claim_notifications(p_limit int default 100)
+returns table (
+  id           uuid,
+  kind         text,
+  payload      jsonb,
+  tenant_name  text,
+  tenant_email text,
+  locale       text,
+  company_name text,
+  unit_number  text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return query
+  with claimed as (
+    update public.notifications n
+    set sent_at = now()
+    where n.id in (
+      select p.id from public.notifications p
+      where p.sent_at is null
+      order by p.created_at
+      limit p_limit
+      for update skip locked
+    )
+    returning n.id, n.kind, n.payload, n.lease_id, n.tenant_id, n.org_id
+  )
+  select c.id, c.kind, c.payload, t.full_name, nullif(trim(t.email), ''),
+         coalesce((select p.locale from public.profiles p
+                   where p.tenant_id = t.id and p.locale is not null limit 1), 'es-MX'),
+         coalesce(s.company_name, 'Rentio'),
+         u.unit_number
+  from claimed c
+  join public.tenants t on t.id = c.tenant_id
+  left join public.leases l on l.id = c.lease_id
+  left join public.units u on u.id = l.unit_id
+  left join public.settings s on s.org_id = c.org_id;
+end;
+$$;
+
+create or replace function public.notification_result(p_id uuid, p_channel text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.notifications
+  set channel = p_channel,
+      sent_at = case when p_channel is null then null else sent_at end
+  where id = p_id;
+$$;
+
+revoke all on function public.claim_notifications(int) from public, anon, authenticated;
+grant execute on function public.claim_notifications(int) to service_role;
+revoke all on function public.notification_result(uuid, text) from public, anon, authenticated;
+grant execute on function public.notification_result(uuid, text) to service_role;
+
+
+-- ============================================================================
+-- 25/26  20261112000200_nightly_per_org
+-- ============================================================================
+-- nightly() ran every company in one transaction: one bad lease in org A
+-- aborted invoicing for org B (audit-product-2026-10-28.md §4.3). Each
+-- company now runs in its own sub-transaction; a failure is logged as a
+-- warning, counted in the summary, and the loop moves on. Late-fee warnings
+-- (one statement, all orgs) are unchanged.
+
+create or replace function public.nightly()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  today   date := public.today_el_paso();
+  period  date := date_trunc('month', public.today_el_paso())::date;
+  org     record;
+  made    int := 0;
+  skipped int := 0;
+  failed  uuid[] := '{}';
+  r       record;
+  queued  int;
+begin
+  for org in select id from public.organizations where status = 'active' loop
+    begin
+      if extract(day from today) = 1
+         or not exists (select 1 from public.invoices where org_id = org.id and period_month = period) then
+        select * into r from public.generate_invoices_for_org(period, org.id);
+        made := made + r.created;
+        skipped := skipped + r.skipped;
+      end if;
+    exception when others then
+      raise warning 'nightly: invoicing failed for org %: %', org.id, sqlerrm;
+      failed := failed || org.id;
+    end;
+  end loop;
+
+  queued := public.queue_late_fee_warnings();
+
+  return jsonb_build_object(
+    'today', today,
+    'period', period,
+    'invoices_created', made,
+    'invoices_skipped', skipped,
+    'orgs_failed', to_jsonb(failed),
+    'warnings_queued', queued
+  );
+end;
+$$;
+
+revoke all on function public.nightly() from public, anon, authenticated;
+grant execute on function public.nightly() to service_role;
+
+
+-- ============================================================================
+-- 26/26  DEMO DATA
 -- ============================================================================
 -- Rentio — demo data (El Paso, Texas).
 -- Safe to re-run: it clears the demo tables first.

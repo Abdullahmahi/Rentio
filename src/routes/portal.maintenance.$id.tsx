@@ -84,7 +84,7 @@ function PortalRequestDetail() {
     <div className="space-y-5">
       <Link
         to="/portal/maintenance"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+        className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
         {t("maintenance.backToList")}
@@ -92,7 +92,7 @@ function PortalRequestDetail() {
 
       <QueryState
         isLoading={portal.isLoading}
-        error={portal.error}
+        error={portal.error ?? notes.error ?? photos.error}
         isEmpty={!order && !portal.isLoading}
         onRetry={() => void portal.refetch()}
         skeleton={<RowsSkeleton count={4} />}
@@ -125,11 +125,11 @@ function PortalRequestDetail() {
 
             {photoUrls.length > 0 ? (
               <section className="grid grid-cols-2 gap-3">
-                {photoUrls.map((url) => (
+                {photoUrls.map((url, index) => (
                   <img
                     key={url}
                     src={url}
-                    alt=""
+                    alt={t("portal.photoAlt", { n: index + 1 })}
                     className="aspect-square w-full rounded-lg border border-border object-cover"
                   />
                 ))}

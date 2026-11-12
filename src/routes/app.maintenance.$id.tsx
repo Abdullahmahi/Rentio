@@ -27,7 +27,7 @@ import { REPAIR_WINDOW_DAYS, repairClock } from "@/lib/texas";
 import { formatDate } from "@/lib/format";
 import { leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { db } from "@/lib/db";
+import { db, invokeFn } from "@/lib/db";
 import { signedUrl } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type { Enums, TablesUpdate } from "@/lib/database.types";
@@ -176,6 +176,23 @@ function WorkOrderDetailPage() {
     },
     successKey: "maintenance.statusChanged",
     invalidate: [qk.workOrder(id), qk.workOrders, [...qk.workOrder(id), "timeline"]],
+    onSuccess: () => void invokeFn("send-notifications"),
+  });
+
+  // §92.056: a phone call or walk-in is not written notice. When the
+  // tenant's text or email arrives, staff record it here and the clock starts.
+  // (A portal request records it automatically.)
+  const recordNotice = useToastMutation({
+    mutationFn: async () => {
+      const { error } = await db
+        .from("work_orders")
+        .update({ written_notice_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+      await logActivity(actorId, "work_order", id, "written_notice", {});
+    },
+    successKey: "maintenance.noticeRecorded",
+    invalidate: [qk.workOrder(id), qk.workOrders, [...qk.workOrder(id), "timeline"]],
   });
 
   const saveVendor = useToastMutation({
@@ -210,7 +227,13 @@ function WorkOrderDetailPage() {
     },
     successKey: "maintenance.noteAdded",
     invalidate: [[...qk.workOrder(id), "notes"]],
-    onSuccess: () => setNoteBody(""),
+    onSuccess: () => {
+      setNoteBody("");
+      // Back to internal every time: one tenant-visible note must not make
+      // the next blunt one tenant-visible by default.
+      setNoteInternal(true);
+      if (!noteInternal) void invokeFn("send-notifications");
+    },
   });
 
   const data = order.data;
@@ -297,9 +320,19 @@ function WorkOrderDetailPage() {
             </div>
 
             {data.affects_health_safety && !data.written_notice_at ? (
-              <span className="inline-flex items-center rounded-full border border-danger/30 bg-danger/10 px-2.5 py-1 text-xs font-medium text-danger">
-                {t("maintenance.fields.healthSafety")}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center rounded-full border border-danger/30 bg-danger/10 px-2.5 py-1 text-xs font-medium text-danger">
+                  {t("maintenance.fields.healthSafety")}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={recordNotice.isPending}
+                  onClick={() => recordNotice.mutate(undefined)}
+                >
+                  {t("maintenance.recordNotice")}
+                </Button>
+              </div>
             ) : null}
             {/* §92.056 — the statutory repair window, counted from the
                 tenant's written notice. A portal order IS that notice. */}

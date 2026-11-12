@@ -82,17 +82,25 @@ export async function invite(
         ),
       });
     } else {
+      // Bilingual like the tenant invite: office staff in El Paso read Spanish too.
+      const roleEn = role === "admin" ? "Administrator" : "Property manager";
+      const roleEs = role === "admin" ? "Administrador" : "Administrador de propiedades";
       await sendEmail({
         to: address,
-        subject: `Your ${company} account`,
+        subject: `Your ${company} account · Tu cuenta de ${company}`,
         html: emailLayout(
-          `You have been invited to ${escapeHtml(company)}`,
+          `You have been invited to ${escapeHtml(company)} · Te invitaron a ${escapeHtml(company)}`,
           `<p>Hello ${name},</p>
-           <p>You have been given access with the role
-              <strong>${role === "admin" ? "Administrator" : "Property manager"}</strong>.
+           <p>You have been given access with the role <strong>${roleEn}</strong>.
               Sign up with this email address to get started.</p>
            ${button(link, "Set up my login")}
-           <p style="color:#6B655C">If you were not expecting this, ignore this message.</p>`,
+           <p style="color:#6B655C">If you were not expecting this, ignore this message.</p>
+           <hr style="border:none;border-top:1px solid #E7E3DD;margin:24px 0" />
+           <p>Hola ${name},</p>
+           <p>Tienes acceso con el rol de <strong>${roleEs}</strong>.
+              Regístrate con este correo para empezar.</p>
+           ${button(link, "Crear mi acceso")}
+           <p style="color:#6B655C">Si no esperabas este mensaje, puedes ignorarlo.</p>`,
           company,
         ),
       });

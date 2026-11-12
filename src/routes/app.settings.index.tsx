@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Moon, Shield, Sun, UserPlus } from "lucide-react";
+import { Download, Moon, Shield, Sun, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,8 +20,13 @@ import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { AdminOnly, useAuth } from "@/lib/auth";
 import { INTERNAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
+import { PALETTES, applyPalette, readPalette, type PaletteId } from "@/lib/palette";
 import { DEFAULT_STATE, PHONE_HINT, US_STATES, formatUsPhone } from "@/lib/us";
-import { LARGE_STRUCTURE_CAP_PERCENT, MINIMUM_GRACE_DAYS } from "@/lib/late-fee";
+import {
+  LARGE_STRUCTURE_CAP_PERCENT,
+  MINIMUM_GRACE_DAYS,
+  SMALL_STRUCTURE_CAP_PERCENT,
+} from "@/lib/late-fee";
 import {
   logActivity,
   qk,
@@ -30,7 +35,7 @@ import {
   useSettings,
   useToastMutation,
 } from "@/lib/queries";
-import { db, invokeFn } from "@/lib/db";
+import { apiFetch, db, invokeFn } from "@/lib/db";
 import { uploadFile } from "@/lib/storage";
 import { blankToNull, cn } from "@/lib/utils";
 import type { Enums } from "@/lib/database.types";
@@ -48,6 +53,22 @@ export const Route = createFileRoute("/app/settings/")({
 });
 
 const THEME_STORAGE_KEY = "rentio-theme";
+
+/** POSTs to a file-returning server route and saves what comes back. */
+async function downloadFrom(route: string, filename: string) {
+  const response = await apiFetch(route, { method: "POST" });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `HTTP ${response.status}`);
+  }
+  const disposition = response.headers.get("content-disposition") ?? "";
+  const url = URL.createObjectURL(await response.blob());
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = /filename="([^"]+)"/.exec(disposition)?.[1] ?? filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
 const ROLES: Enums<"user_role">[] = ["admin", "manager"];
 
 function SettingsPage() {
@@ -139,7 +160,14 @@ function SettingsPage() {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY) === "dark";
     setDark(stored);
     document.documentElement.classList.toggle("dark", stored);
+    setPalette(readPalette());
   }, []);
+
+  const [palette, setPalette] = useState<PaletteId>("harbor");
+  const choosePalette = (id: PaletteId) => {
+    applyPalette(id);
+    setPalette(id);
+  };
 
   const save = useToastMutation({
     mutationFn: async (patch: Record<string, unknown>) => {
@@ -206,6 +234,17 @@ function SettingsPage() {
       setInviteOpen(false);
       setInvite({ email: "", full_name: "", role: "manager" });
     },
+  });
+
+  const exportAll = useToastMutation({
+    mutationFn: () => downloadFrom("/api/fn/export-all", "rentio-export.zip"),
+    successKey: "settings.data.exported",
+    pendingKey: "settings.data.exporting",
+  });
+
+  const welcomeKit = useToastMutation({
+    mutationFn: () => downloadFrom("/api/fn/generate-welcome-kit", "tenant-welcome-kit.pdf"),
+    successKey: "settings.data.welcomeKitReady",
   });
 
   const { setLanguage } = useLanguagePreference(INTERNAL_DEFAULT_LANGUAGE);
@@ -349,6 +388,38 @@ function SettingsPage() {
                 {t("actions.save")}
               </Button>
             </form>
+
+            <div className="mt-4 max-w-2xl space-y-4 rounded-lg border border-border bg-surface p-5 shadow-subtle">
+              <h2 className="text-sm font-semibold">{t("settings.data.title")}</h2>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                <p className="text-sm text-muted-foreground">{t("settings.data.welcomeKitHint")}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0"
+                  disabled={welcomeKit.isPending}
+                  onClick={() => welcomeKit.mutate(undefined)}
+                >
+                  <Download className="size-4" aria-hidden />
+                  {t("settings.data.welcomeKit")}
+                </Button>
+              </div>
+              <AdminOnly>
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                  <p className="text-sm text-muted-foreground">{t("settings.data.hint")}</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="shrink-0"
+                    disabled={exportAll.isPending}
+                    onClick={() => exportAll.mutate(undefined)}
+                  >
+                    <Download className="size-4" aria-hidden />
+                    {t("settings.data.exportAll")}
+                  </Button>
+                </div>
+              </AdminOnly>
+            </div>
           </TabsContent>
 
           {/* --------------------------------- payment instructions */}
@@ -497,6 +568,16 @@ function SettingsPage() {
                 label={t("contracts.fields.lateFeePercent")}
                 htmlFor="default-late-fee-pct"
                 hint={t("settings.fields.lateFeePercentHint")}
+                // §92.019: 12% for four units or fewer, 10% above that. The
+                // wizard refuses per lease; this warns on the company default.
+                error={
+                  Number(invoicing.default_late_fee_percent) > SMALL_STRUCTURE_CAP_PERCENT
+                    ? t("settings.fields.lateFeePercentOverCap", {
+                        small: SMALL_STRUCTURE_CAP_PERCENT,
+                        large: LARGE_STRUCTURE_CAP_PERCENT,
+                      })
+                    : undefined
+                }
               >
                 <div className="relative max-w-40">
                   <Input
@@ -566,13 +647,20 @@ function SettingsPage() {
                             {t(`roles.${profile.role}`)}
                           </p>
                         </div>
+                        {/* Your own role is locked: the database also refuses
+                            to demote a company's last admin. */}
                         <Select
                           value={profile.role}
+                          disabled={profile.id === actorId}
                           onValueChange={(value) =>
                             changeRole.mutate({ id: profile.id, role: value as Enums<"user_role"> })
                           }
                         >
-                          <SelectTrigger className="w-44" aria-label={t("settings.fields.role")}>
+                          <SelectTrigger
+                            className="w-44"
+                            aria-label={t("settings.fields.role")}
+                            title={profile.id === actorId ? t("settings.ownRoleLocked") : undefined}
+                          >
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -621,6 +709,52 @@ function SettingsPage() {
                   {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
                   {t(dark ? "theme.light" : "theme.dark")}
                 </Button>
+              </div>
+              <div>
+                <p className="text-sm font-medium" id="palette-label">
+                  {t("theme.palette.title")}
+                </p>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {t("theme.palette.description")}
+                </p>
+                <div
+                  role="radiogroup"
+                  aria-labelledby="palette-label"
+                  className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2"
+                >
+                  {PALETTES.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={palette === option.id}
+                      onClick={() => choosePalette(option.id)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg border p-3 text-left transition-colors",
+                        palette === option.id
+                          ? "border-primary ring-2 ring-primary/20"
+                          : "border-border bg-surface hover:bg-muted",
+                      )}
+                    >
+                      <span
+                        aria-hidden
+                        className="flex h-9 w-12 shrink-0 overflow-hidden rounded-md border border-border"
+                      >
+                        <span className="w-1/2" style={{ background: option.primary }} />
+                        <span className="w-1/4" style={{ background: option.tint }} />
+                        <span className="w-1/4" style={{ background: option.background }} />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium">
+                          {t(`theme.palette.options.${option.id}.name`)}
+                        </span>
+                        <span className="block text-xs text-muted-foreground">
+                          {t(`theme.palette.options.${option.id}.description`)}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </section>
           </TabsContent>

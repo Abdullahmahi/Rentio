@@ -104,6 +104,7 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
   const [contractFile, setContractFile] = useState<File | null>(null);
   const [inlineTenantOpen, setInlineTenantOpen] = useState(false);
   const [inlineTenant, setInlineTenant] = useState({ full_name: "", email: "", phone: "" });
+  const [inlineNameMissing, setInlineNameMissing] = useState(false);
   const [inlineTarget, setInlineTarget] = useState<"primary" | "co" | "guarantor">("primary");
 
   const [terms, setTerms] = useState<Terms>({
@@ -228,10 +229,11 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
     mutationFn: async () => {
       if (!unitId || !primary) throw new Error("incomplete");
 
-      const { data: lease, error: leaseError } = await db
-        .from("leases")
-        .insert({
-          unit_id: unitId,
+      // Lease, parties, turnover checklist and unit status in one
+      // transaction (create_lease). A failed step leaves nothing behind.
+      const { data: leaseId, error: leaseError } = await db.rpc("create_lease", {
+        p_unit: unitId,
+        p_terms: {
           start_date: terms.start_date,
           end_date: terms.end_date,
           rent_amount: terms.rent_amount === "" ? 0 : terms.rent_amount,
@@ -242,34 +244,18 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
           late_fee_amount: terms.late_fee_amount === "" ? 0 : terms.late_fee_amount,
           late_fee_over_cap_ack: terms.late_fee_over_cap_ack,
           deposit_amount: terms.deposit_amount === "" ? 0 : terms.deposit_amount,
-          status: "activo",
-        })
-        .select("id")
-        .single();
+        },
+        p_primary: primary,
+        p_co_tenants: coTenants,
+        p_guarantors: guarantors,
+        p_checklist: turnoverRowsFor(unitId, "").map(({ item, item_key, position }) => ({
+          item,
+          item_key,
+          position,
+        })),
+      });
       if (leaseError) throw leaseError;
-
-      const links = [
-        { lease_id: lease.id, tenant_id: primary, role: "primary" as const },
-        ...coTenants.map((tenantId) => ({
-          lease_id: lease.id,
-          tenant_id: tenantId,
-          role: "co_tenant" as const,
-        })),
-        ...guarantors.map((tenantId) => ({
-          lease_id: lease.id,
-          tenant_id: tenantId,
-          role: "guarantor" as const,
-        })),
-      ];
-      const { error: linkError } = await db.from("lease_tenants").insert(links);
-      if (linkError) throw linkError;
-
-      // §92.156 starts a 7-day rekey clock the moment the tenant takes
-      // possession, so the checklist exists from the lease's first second.
-      const { error: checklistError } = await db
-        .from("unit_turnover_checklist")
-        .insert(turnoverRowsFor(unitId, lease.id));
-      if (checklistError) throw checklistError;
+      const lease = { id: leaseId };
 
       if (contractFile) {
         const path = await uploadFile("contracts", lease.id, contractFile);
@@ -282,12 +268,6 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
           uploaded_by: actorId,
         });
       }
-
-      const { error: unitError } = await db
-        .from("units")
-        .update({ status: "ocupada" })
-        .eq("id", unitId);
-      if (unitError) throw unitError;
 
       await logActivity(actorId, "lease", lease.id, "create", { unitId, primary });
       return lease.id;
@@ -354,7 +334,7 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
 
   const Chip = ({ tenantId, onRemove }: { tenantId: string; onRemove: () => void }) => (
     <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 text-xs font-medium">
-      {tenantById.get(tenantId)?.full_name ?? tenantId}
+      {tenantById.get(tenantId)?.full_name ?? t("contracts.unknownTenant")}
       <button
         type="button"
         onClick={onRemove}
@@ -467,7 +447,10 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
                 <Combobox
                   className="flex-1"
                   options={tenantOptions.filter(
-                    (option) => option.value !== primary && !coTenants.includes(option.value),
+                    (option) =>
+                      option.value !== primary &&
+                      !coTenants.includes(option.value) &&
+                      !guarantors.includes(option.value),
                   )}
                   value={pendingCo}
                   onChange={(value) => {
@@ -512,7 +495,10 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
                 <Combobox
                   className="flex-1"
                   options={tenantOptions.filter(
-                    (option) => option.value !== primary && !guarantors.includes(option.value),
+                    (option) =>
+                      option.value !== primary &&
+                      !guarantors.includes(option.value) &&
+                      !coTenants.includes(option.value),
                   )}
                   value={pendingGuarantor}
                   onChange={(value) => {
@@ -821,17 +807,25 @@ export function LeaseWizard({ open, onOpenChange, seed, onCreated }: LeaseWizard
         description={t("contracts.inlineTenantDescription")}
         pending={createTenant.isPending}
         onSubmit={() => {
-          if (!inlineTenant.full_name.trim()) return;
+          if (!inlineTenant.full_name.trim()) {
+            setInlineNameMissing(true);
+            return;
+          }
           createTenant.mutate(inlineTenant);
         }}
       >
-        <Field label={t("tenants.fields.fullName")} htmlFor="inline-name">
+        <Field
+          label={t("tenants.fields.fullName")}
+          htmlFor="inline-name"
+          error={inlineNameMissing ? t("tenants.errors.nameRequired") : undefined}
+        >
           <Input
             id="inline-name"
             value={inlineTenant.full_name}
-            onChange={(event) =>
-              setInlineTenant({ ...inlineTenant, full_name: event.target.value })
-            }
+            onChange={(event) => {
+              setInlineNameMissing(false);
+              setInlineTenant({ ...inlineTenant, full_name: event.target.value });
+            }}
           />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">

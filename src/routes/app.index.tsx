@@ -505,7 +505,11 @@ function DashboardPage() {
             value={formatMoney(current.collected)}
             countTo={current.collected}
             format={formatMoney}
-            note={t("dashboard.ofInvoiced", { amount: formatMoney(current.invoiced) })}
+            note={
+              current.invoiced > 0
+                ? t("dashboard.ofInvoiced", { amount: formatMoney(current.invoiced) })
+                : t("dashboard.noInvoicesYet")
+            }
             bar={current.invoiced > 0 ? current.collected / current.invoiced : 0}
           />
           <Kpi
@@ -730,20 +734,30 @@ function DashboardPage() {
                 <p className="mt-3 text-sm text-muted-foreground">{t("payments.emptyTitle")}</p>
               ) : (
                 <ul className="mt-3 divide-y divide-border">
-                  {recentPayments.data?.map((payment) => (
-                    <li
-                      key={payment.id}
-                      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm">{t(`paymentMethod.${payment.method}`)}</p>
-                        <p className="numeric text-xs text-muted-foreground">
-                          {formatDate(payment.paid_at)}
-                        </p>
-                      </div>
-                      <MoneyText value={Number(payment.amount)} />
-                    </li>
-                  ))}
+                  {recentPayments.data?.map((payment) => {
+                    // Whose payment: tenant and unit, not just "Zelle · 10/10" (D4).
+                    const context = contexts.find((row) => row.lease.id === payment.lease_id);
+                    const who = [context?.primaryTenant?.full_name, context?.unit?.unit_number]
+                      .filter(Boolean)
+                      .join(" · ");
+                    return (
+                      <li
+                        key={payment.id}
+                        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm">
+                            {who || t(`paymentMethod.${payment.method}`)}
+                          </p>
+                          <p className="numeric text-xs text-muted-foreground">
+                            {who ? `${t(`paymentMethod.${payment.method}`)} · ` : ""}
+                            {formatDate(payment.paid_at)}
+                          </p>
+                        </div>
+                        <MoneyText value={Number(payment.amount)} />
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </section>

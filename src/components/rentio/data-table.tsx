@@ -54,7 +54,7 @@ export function DataTable<T>({
   searchValue,
   onRowClick,
   loading = false,
-  pageSize = 10,
+  pageSize = 25,
   emptyMessage,
   selectedIds,
   onSelectionChange,
@@ -275,29 +275,31 @@ export function DataTable<T>({
           />
         ) : null}
       </div>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-sm text-muted-foreground">
-        <span className="min-w-0 truncate">
-          {t("table.page", { current: safePage, total: totalPages })}
-        </span>
-        <div className="flex shrink-0 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={safePage <= 1}
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
-          >
-            {t("table.previous")}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={safePage >= totalPages}
-            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-          >
-            {t("table.next")}
-          </Button>
+      {totalPages > 1 ? (
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-sm text-muted-foreground">
+          <span className="min-w-0 truncate">
+            {t("table.page", { current: safePage, total: totalPages })}
+          </span>
+          <div className="flex shrink-0 gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage <= 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+            >
+              {t("table.previous")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            >
+              {t("table.next")}
+            </Button>
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
