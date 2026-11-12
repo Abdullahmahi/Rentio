@@ -21,13 +21,17 @@ applied() { $PSQL "$DATABASE_URL" -At -v ON_ERROR_STOP=1 -c "select ($1)"; }
 # The file goes in on stdin (so it works through docker exec), wrapped in
 # one transaction; ON_ERROR_STOP exits before the commit on any error.
 apply() {
-  if [ "$(applied "$2")" = "t" ]; then
-    echo "skip  $1"
-  else
+  state="$(applied "$2" 2>&1 || true)"
+  case "$state" in
+    t) echo "skip  $1"; return ;;
+    f) ;;
+    *) echo "cannot reach the database (is PSQL pointed at the Postgres container, not PostgREST?):"; echo "$state"; exit 1 ;;
+  esac
+  {
     echo "apply $1"
     { echo "begin;"; cat "supabase/migrations/$1"; echo "commit;"; } \
       | $PSQL "$DATABASE_URL" -v ON_ERROR_STOP=1 -q
-  fi
+  }
 }
 
 apply 20261028002100_confirm_payment.sql \
