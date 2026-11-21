@@ -447,6 +447,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      notifications: {
+        Row: {
+          id: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id: string | null;
+          kind: string;
+          entity_id: string | null;
+          dedupe_key: string;
+          payload: Json;
+          created_at: string;
+          sent_at: string | null;
+          channel: string | null;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id?: string | null;
+          kind: string;
+          entity_id?: string | null;
+          dedupe_key: string;
+          payload?: Json;
+          created_at?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          tenant_id?: string;
+          lease_id?: string | null;
+          kind?: string;
+          entity_id?: string | null;
+          dedupe_key?: string;
+          payload?: Json;
+          created_at?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          read_at?: string | null;
+        };
+        Relationships: [];
+      };
       organizations: {
         Row: {
           id: string;
@@ -957,6 +1002,54 @@ export type Database = {
         };
         Relationships: [];
       };
+      vendors: {
+        Row: {
+          id: string;
+          org_id: string;
+          company_name: string;
+          contact_name: string | null;
+          phone: string | null;
+          email: string | null;
+          trade: string | null;
+          insurance_expires_on: string | null;
+          w9_on_file: boolean;
+          notes: string | null;
+          active: boolean;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          company_name: string;
+          contact_name?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          trade?: string | null;
+          insurance_expires_on?: string | null;
+          w9_on_file?: boolean;
+          notes?: string | null;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          company_name?: string;
+          contact_name?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          trade?: string | null;
+          insurance_expires_on?: string | null;
+          w9_on_file?: boolean;
+          notes?: string | null;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       work_order_notes: {
         Row: {
           id: string;
@@ -1042,6 +1135,7 @@ export type Database = {
           affects_health_safety: boolean;
           written_notice_at: string | null;
           org_id: string;
+          vendor_id: string | null;
         };
         Insert: {
           id?: string;
@@ -1064,6 +1158,7 @@ export type Database = {
           affects_health_safety?: boolean;
           written_notice_at?: string | null;
           org_id?: string;
+          vendor_id?: string | null;
         };
         Update: {
           id?: string;
@@ -1086,6 +1181,7 @@ export type Database = {
           affects_health_safety?: boolean;
           written_notice_at?: string | null;
           org_id?: string;
+          vendor_id?: string | null;
         };
         Relationships: [];
       };

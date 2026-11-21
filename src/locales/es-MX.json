@@ -26,7 +26,8 @@
     },
     "requests": "Solicitudes de acceso",
     "expenses": "Gastos",
-    "serviceRequests": "Solicitudes de servicio"
+    "serviceRequests": "Solicitudes de servicio",
+    "vendors": "Proveedores"
   },
   "pages": {
     "dashboard": {
@@ -1448,6 +1449,59 @@
       "amountRequired": "Escribe un monto mayor a cero.",
       "dateRequired": "Elige una fecha.",
       "descriptionRequired": "Describe el gasto."
+    }
+  },
+  "vendors": {
+    "title": "Proveedores",
+    "description": "Las empresas que contratas para reparaciones: contactos, seguro y W-9.",
+    "new": "Agregar proveedor",
+    "edit": "Editar proveedor",
+    "saved": "Proveedor guardado.",
+    "errors": {
+      "companyRequired": "Escribe el nombre de la empresa."
+    },
+    "fields": {
+      "company": "Empresa",
+      "contact": "Contacto",
+      "phone": "Teléfono",
+      "email": "Correo",
+      "trade": "Oficio",
+      "insurance": "Vence el seguro",
+      "w9": "W-9 en archivo",
+      "w9Short": "W-9",
+      "notes": "Notas",
+      "active": "Activo"
+    },
+    "trades": {
+      "plumbing": "Plomería",
+      "electrical": "Electricidad",
+      "hvac": "Aire acondicionado y calefacción",
+      "appliances": "Electrodomésticos",
+      "locksmith": "Cerrajería",
+      "cleaning": "Limpieza",
+      "landscaping": "Jardinería",
+      "pest_control": "Control de plagas",
+      "roofing": "Techos",
+      "painting": "Pintura",
+      "general": "Reparaciones generales"
+    },
+    "insurance": {
+      "expired": "Venció {{date}}",
+      "expiring": "Vence {{date}}"
+    },
+    "yes": "Sí",
+    "no": "No",
+    "inactive": "Inactivo",
+    "deactivate": "Desactivar",
+    "reactivate": "Reactivar",
+    "showInactive": "Mostrar proveedores inactivos",
+    "emptyTitle": "Aún no hay proveedores",
+    "emptyDescription": "Agrega a los plomeros, electricistas y demás empresas que llamas, y luego asígnalos a las órdenes de trabajo.",
+    "picker": {
+      "placeholder": "Elige un proveedor",
+      "clear": "Quitar proveedor",
+      "fallbackName": "Proveedor (fuera del directorio)",
+      "fallbackHint": "Elige un proveedor arriba o deja este nombre como está."
     }
   }
 }
