@@ -1052,6 +1052,13 @@
     "telefono": "Teléfono",
     "personal": "En persona"
   },
+  "portalPreview": {
+    "open": "Ver el portal como este inquilino",
+    "banner": "Viendo como {{name}}, solo lectura",
+    "exit": "Salir de la vista previa",
+    "noLogin": "Primero invita a este inquilino al portal. No hay nada que mostrar hasta que tenga acceso al portal.",
+    "failed": "No se pudo abrir la vista previa. Inténtalo de nuevo."
+  },
   "portal": {
     "balanceDue": "Saldo pendiente",
     "dueOn": "Vence el {{date}}",

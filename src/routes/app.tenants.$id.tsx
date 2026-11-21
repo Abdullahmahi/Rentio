@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { CheckCircle2, Mail, Users, Wrench } from "lucide-react";
+import { CheckCircle2, Eye, Mail, Users, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import {
 import { formatDate } from "@/lib/format";
 import { currentLeaseFor, isActive, leaseContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
-import { db, invokeFn } from "@/lib/db";
+import { apiFetch, db, invokeFn } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -51,6 +51,25 @@ function TenantDetailPage() {
   const portfolio = usePortfolio();
   const actorId = useActorId();
   const [inviteError, setInviteError] = useState<string | null>(null);
+  const [opening, setOpening] = useState(false);
+
+  /** Read-only portal as this tenant. The server sets a signed HttpOnly
+   *  cookie; the full page load makes the portal ask for the tenant view. */
+  const openPreview = async () => {
+    setOpening(true);
+    try {
+      const response = await apiFetch("/api/portal-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tenant_id: id }),
+      });
+      if (response.ok) return window.location.assign("/portal");
+      toast.error(t(response.status === 409 ? "portalPreview.noLogin" : "portalPreview.failed"));
+    } catch {
+      toast.error(t("portalPreview.failed"));
+    }
+    setOpening(false);
+  };
 
   const tenant = portfolio.data?.tenants.find((row) => row.id === id);
 
@@ -223,50 +242,58 @@ function TenantDetailPage() {
               title={tenant.full_name}
               description={[tenant.email, tenant.phone].filter(Boolean).join(" · ")}
               actions={
-                portalProfile.data?.clerk_user_id ? (
-                  <span className="inline-flex items-center gap-2 rounded-lg border border-success/25 bg-success/10 px-3 py-2 text-sm font-medium text-success">
-                    <CheckCircle2 className="size-4" />
-                    {t("tenants.portalActiveSince", {
-                      date: formatDate(portalProfile.data.created_at),
-                    })}
-                  </span>
-                ) : portalProfile.data ? (
-                  // Invited, but they have not signed in yet. Same mutation resends.
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm font-medium text-warning">
-                      {t("tenants.portalInvitedPending", {
+                <div className="flex flex-wrap items-start justify-end gap-2">
+                  {portalProfile.data ? (
+                    <Button variant="outline" onClick={() => void openPreview()} disabled={opening}>
+                      <Eye className="size-4" />
+                      {t("portalPreview.open")}
+                    </Button>
+                  ) : null}
+                  {portalProfile.data?.clerk_user_id ? (
+                    <span className="inline-flex items-center gap-2 rounded-lg border border-success/25 bg-success/10 px-3 py-2 text-sm font-medium text-success">
+                      <CheckCircle2 className="size-4" />
+                      {t("tenants.portalActiveSince", {
                         date: formatDate(portalProfile.data.created_at),
                       })}
                     </span>
-                    <Button
-                      variant="outline"
-                      onClick={() => invite.mutate(undefined)}
-                      disabled={invite.isPending || !tenant.email}
-                    >
-                      {t("tenants.resendInvite")}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-right">
-                    <Button
-                      onClick={() => {
-                        setInviteError(null);
-                        if (!tenant.email)
-                          return setInviteError(t("tenants.errors.emailRequiredForInvite"));
-                        invite.mutate(undefined);
-                      }}
-                      disabled={invite.isPending}
-                    >
-                      <Mail className="size-4" />
-                      {t("tenants.invite")}
-                    </Button>
-                    {inviteError ? (
-                      <p role="alert" className="mt-1.5 text-xs text-danger">
-                        {inviteError}
-                      </p>
-                    ) : null}
-                  </div>
-                )
+                  ) : portalProfile.data ? (
+                    // Invited, but they have not signed in yet. Same mutation resends.
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm font-medium text-warning">
+                        {t("tenants.portalInvitedPending", {
+                          date: formatDate(portalProfile.data.created_at),
+                        })}
+                      </span>
+                      <Button
+                        variant="outline"
+                        onClick={() => invite.mutate(undefined)}
+                        disabled={invite.isPending || !tenant.email}
+                      >
+                        {t("tenants.resendInvite")}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-right">
+                      <Button
+                        onClick={() => {
+                          setInviteError(null);
+                          if (!tenant.email)
+                            return setInviteError(t("tenants.errors.emailRequiredForInvite"));
+                          invite.mutate(undefined);
+                        }}
+                        disabled={invite.isPending}
+                      >
+                        <Mail className="size-4" />
+                        {t("tenants.invite")}
+                      </Button>
+                      {inviteError ? (
+                        <p role="alert" className="mt-1.5 text-xs text-danger">
+                          {inviteError}
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
               }
             />
 

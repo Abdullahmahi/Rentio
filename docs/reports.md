@@ -297,3 +297,15 @@ Source: `../audit-product-2026-10-28.md` §2.1 #5, #8, #11; §4.4; §3.2 #12. "E
 **Not verified**: a real send (no Resend key locally). Nothing committed.
 
 **Owner questions from today**: (1) deposit letter default language, above; (2) portal payment-method order now Zelle · cash · money order · check · ACH with Zelle preselected (research §3, El Paso) — confirm or reorder in `portal.report-payment.tsx:25`.
+
+## 2026-11-21 · View portal as tenant (read-only preview), issue #29
+
+**Changed**
+- `/api/portal-preview` (POST/DELETE): staff of the tenant's own company (super_admin: the company they act in) start a preview; sets a signed HttpOnly cookie (tenant, org, staff, 30 min) and logs `portal_preview` in `activity_log`. 409 when the tenant has no portal login yet.
+- `requireSession`: when the portal sends `x-rentio-preview: 1` and the cookie is valid for this staff member in this company, the session becomes the tenant's (JWT minted server-side, RLS unchanged) and every non-GET except `storage/sign` and `generate-invoice-pdf` is refused `preview_read_only`.
+- Portal: banner "Viewing as <name>, read-only · Exit preview" (EN + es-MX); report payment, new request, profile edit, manage login and sign-out disabled; language choice is not saved to the tenant's profile.
+- Tenant detail: "View portal as this tenant" button (shown once the tenant has a portal profile).
+
+**Checks**: `bun test` 94 pass (20 new) · `bunx tsc --noEmit` clean · `bun run lint` 0 errors · `bun run build` OK. No migration.
+
+**Not verified**: in a browser against a real Clerk login.

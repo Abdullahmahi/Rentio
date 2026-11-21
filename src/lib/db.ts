@@ -10,6 +10,10 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   const token = typeof window === "undefined" ? null : await getToken();
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
+  // Asks for the read-only tenant view if staff started a portal preview
+  // (src/lib/server/session.ts). Without that signed cookie it changes nothing.
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/portal"))
+    headers.set("x-rentio-preview", "1");
   return fetch(input, { ...init, headers });
 }
 

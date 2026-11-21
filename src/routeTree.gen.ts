@@ -26,6 +26,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as VslRouteImport } from './routes/vsl'
 import { Route as ApiMeRouteImport } from './routes/api.me'
 import { Route as ApiOrgRouteImport } from './routes/api.org'
+import { Route as ApiPortalPreviewRouteImport } from './routes/api.portal-preview'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
@@ -153,6 +154,11 @@ const ApiMeRoute = ApiMeRouteImport.update({
 const ApiOrgRoute = ApiOrgRouteImport.update({
   id: '/api/org',
   path: '/api/org',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPortalPreviewRoute = ApiPortalPreviewRouteImport.update({
+  id: '/api/portal-preview',
+  path: '/api/portal-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -392,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
+  '/api/portal-preview': typeof ApiPortalPreviewRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -452,6 +459,7 @@ export interface FileRoutesByTo {
   '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
+  '/api/portal-preview': typeof ApiPortalPreviewRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -515,6 +523,7 @@ export interface FileRoutesById {
   '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
+  '/api/portal-preview': typeof ApiPortalPreviewRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -579,6 +588,7 @@ export interface FileRouteTypes {
     | '/vsl'
     | '/api/me'
     | '/api/org'
+    | '/api/portal-preview'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -639,6 +649,7 @@ export interface FileRouteTypes {
     | '/vsl'
     | '/api/me'
     | '/api/org'
+    | '/api/portal-preview'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -701,6 +712,7 @@ export interface FileRouteTypes {
     | '/vsl'
     | '/api/me'
     | '/api/org'
+    | '/api/portal-preview'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -764,6 +776,7 @@ export interface RootRouteChildren {
   VslRoute: typeof VslRoute
   ApiMeRoute: typeof ApiMeRoute
   ApiOrgRoute: typeof ApiOrgRoute
+  ApiPortalPreviewRoute: typeof ApiPortalPreviewRoute
   ApiFilesSplatRoute: typeof ApiFilesSplatRoute
   ApiFnExportAllRoute: typeof ApiFnExportAllRoute
   ApiFnGenerateDepositDispositionRoute: typeof ApiFnGenerateDepositDispositionRoute
@@ -899,6 +912,13 @@ declare module '@tanstack/react-router' {
       path: '/api/org'
       fullPath: '/api/org'
       preLoaderRoute: typeof ApiOrgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/portal-preview': {
+      id: '/api/portal-preview'
+      path: '/api/portal-preview'
+      fullPath: '/api/portal-preview'
+      preLoaderRoute: typeof ApiPortalPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -1298,6 +1318,7 @@ const rootRouteChildren: RootRouteChildren = {
   VslRoute: VslRoute,
   ApiMeRoute: ApiMeRoute,
   ApiOrgRoute: ApiOrgRoute,
+  ApiPortalPreviewRoute: ApiPortalPreviewRoute,
   ApiFilesSplatRoute: ApiFilesSplatRoute,
   ApiFnExportAllRoute: ApiFnExportAllRoute,
   ApiFnGenerateDepositDispositionRoute: ApiFnGenerateDepositDispositionRoute,
