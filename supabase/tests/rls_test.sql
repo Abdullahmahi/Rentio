@@ -72,12 +72,13 @@ declare
   manager_id uuid := '00000000-0000-0000-0000-0000000000a2';
   tenant_a   uuid := '00000000-0000-0000-0000-0000000000b1';
   tenant_b   uuid := '00000000-0000-0000-0000-0000000000b2';
-  lease_a uuid; lease_b uuid; wo_b uuid; pay_id uuid;
+  lease_a uuid; lease_b uuid; wo_b uuid; pay_id uuid; wo_t public.work_orders%rowtype; unit_b uuid;
   n int;
 begin
   select lt.lease_id into lease_a from public.lease_tenants lt join public.profiles p on p.tenant_id = lt.tenant_id where p.id = tenant_a limit 1;
   select lt.lease_id into lease_b from public.lease_tenants lt join public.profiles p on p.tenant_id = lt.tenant_id where p.id = tenant_b limit 1;
   perform pg_temp.check('fixture: two distinct leases', lease_a is not null and lease_b is not null and lease_a <> lease_b);
+  select unit_id into unit_b from public.leases where id = lease_b;
 
   -- =============================================== staff sees everything
   set local role authenticated;
@@ -214,6 +215,30 @@ begin
   exception when insufficient_privilege or check_violation or no_data_found then
     perform pg_temp.check('tenant cannot forge work order source', true);
   end;
+
+  -- A tenant may describe the problem; every staff-only column is reset.
+  insert into public.work_orders
+    (unit_id, lease_id, source, category, priority, title, description,
+     status, cost, vendor_name, vendor_phone, resolved_at, affects_health_safety,
+     written_notice_at, created_at, folio)
+  select unit_b, lease_a,
+         'portal', 'plomeria', 'alta', 'leak', 'kitchen sink',
+         'resuelta', 9999, 'Forged Vendor', '555', now(), true,
+         now() - interval '30 days', now() - interval '30 days', 'OT-FORGED'
+  returning * into wo_t;
+  perform pg_temp.check('tenant work order keeps what they described',
+    wo_t.category = 'plomeria' and wo_t.priority = 'alta' and wo_t.description = 'kitchen sink');
+  perform pg_temp.check('tenant work order status is server-defaulted', wo_t.status = 'nueva');
+  perform pg_temp.check('tenant work order cost/vendor are server-defaulted',
+    wo_t.cost is null and wo_t.vendor_name is null and wo_t.vendor_phone is null and wo_t.resolved_at is null);
+  perform pg_temp.check('tenant work order cannot self-flag health/safety', not wo_t.affects_health_safety);
+  perform pg_temp.check('tenant work order cannot backdate written notice',
+    wo_t.created_at > now() - interval '1 minute' and wo_t.written_notice_at = wo_t.created_at);
+  perform pg_temp.check('tenant work order cannot forge its folio', wo_t.folio <> 'OT-FORGED');
+  perform pg_temp.check('tenant work order is filed under the lease unit',
+    wo_t.unit_id = (select unit_id from public.leases where id = lease_a));
+  perform pg_temp.check('tenant work order records the reporting tenant',
+    wo_t.reported_by_tenant = (select tenant_id from public.profiles where id = tenant_a));
 
   -- ==================== prompt 19 tables stay entirely staff-only
   -- Both hold internal records. A notice reaches the tenant as a delivered
