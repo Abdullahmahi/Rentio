@@ -31,7 +31,10 @@ import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
 import { Route as PortalProfileRouteImport } from './routes/portal.profile'
 import { Route as PortalReportPaymentRouteImport } from './routes/portal.report-payment'
+import { Route as SignTokenRouteImport } from './routes/sign.$token'
 import { Route as ApiFilesSplatRouteImport } from './routes/api.files.$'
+import { Route as ApiFnEsignManageRouteImport } from './routes/api.fn.esign-manage'
+import { Route as ApiFnEsignSendRouteImport } from './routes/api.fn.esign-send'
 import { Route as ApiFnExportAllRouteImport } from './routes/api.fn.export-all'
 import { Route as ApiFnGenerateDepositDispositionRouteImport } from './routes/api.fn.generate-deposit-disposition'
 import { Route as ApiFnGenerateInvoicePdfRouteImport } from './routes/api.fn.generate-invoice-pdf'
@@ -43,6 +46,7 @@ import { Route as ApiFnSendStaffInviteRouteImport } from './routes/api.fn.send-s
 import { Route as ApiFnSendTenantInviteRouteImport } from './routes/api.fn.send-tenant-invite'
 import { Route as ApiFnSubmitAccessRequestRouteImport } from './routes/api.fn.submit-access-request'
 import { Route as ApiJobsNightlyRouteImport } from './routes/api.jobs.nightly'
+import { Route as ApiSignTokenRouteImport } from './routes/api.sign.$token'
 import { Route as ApiStorageActionRouteImport } from './routes/api.storage.$action'
 import { Route as AppContractsIndexRouteImport } from './routes/app.contracts.index'
 import { Route as AppContractsIdRouteImport } from './routes/app.contracts.$id'
@@ -69,6 +73,7 @@ import { Route as PortalMaintenanceIdRouteImport } from './routes/portal.mainten
 import { Route as PortalReceiptsIndexRouteImport } from './routes/portal.receipts.index'
 import { Route as PortalReceiptsIdRouteImport } from './routes/portal.receipts.$id'
 import { Route as RestV1SplatRouteImport } from './routes/rest.v1.$'
+import { Route as AppContractsIdSignRouteImport } from './routes/app.contracts.$id_.sign'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -180,9 +185,24 @@ const PortalReportPaymentRoute = PortalReportPaymentRouteImport.update({
   path: '/report-payment',
   getParentRoute: () => PortalRoute,
 } as any)
+const SignTokenRoute = SignTokenRouteImport.update({
+  id: '/sign/$token',
+  path: '/sign/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFilesSplatRoute = ApiFilesSplatRouteImport.update({
   id: '/api/files/$',
   path: '/api/files/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFnEsignManageRoute = ApiFnEsignManageRouteImport.update({
+  id: '/api/fn/esign-manage',
+  path: '/api/fn/esign-manage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFnEsignSendRoute = ApiFnEsignSendRouteImport.update({
+  id: '/api/fn/esign-send',
+  path: '/api/fn/esign-send',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFnExportAllRoute = ApiFnExportAllRouteImport.update({
@@ -241,6 +261,11 @@ const ApiFnSubmitAccessRequestRoute =
 const ApiJobsNightlyRoute = ApiJobsNightlyRouteImport.update({
   id: '/api/jobs/nightly',
   path: '/api/jobs/nightly',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSignTokenRoute = ApiSignTokenRouteImport.update({
+  id: '/api/sign/$token',
+  path: '/api/sign/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiStorageActionRoute = ApiStorageActionRouteImport.update({
@@ -373,6 +398,11 @@ const RestV1SplatRoute = RestV1SplatRouteImport.update({
   path: '/rest/v1/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppContractsIdSignRoute = AppContractsIdSignRouteImport.update({
+  id: '/contracts/$id_/sign',
+  path: '/contracts/$id/sign',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -395,9 +425,12 @@ export interface FileRoutesByFullPath {
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
+  '/sign/$token': typeof SignTokenRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/api/files/$': typeof ApiFilesSplatRoute
+  '/api/fn/esign-manage': typeof ApiFnEsignManageRoute
+  '/api/fn/esign-send': typeof ApiFnEsignSendRoute
   '/api/fn/export-all': typeof ApiFnExportAllRoute
   '/api/fn/generate-deposit-disposition': typeof ApiFnGenerateDepositDispositionRoute
   '/api/fn/generate-invoice-pdf': typeof ApiFnGenerateInvoicePdfRoute
@@ -409,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/api/fn/send-tenant-invite': typeof ApiFnSendTenantInviteRoute
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
+  '/api/sign/$token': typeof ApiSignTokenRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
@@ -435,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/app/units/': typeof AppUnitsIndexRoute
   '/portal/maintenance/': typeof PortalMaintenanceIndexRoute
   '/portal/receipts/': typeof PortalReceiptsIndexRoute
+  '/app/contracts/$id/sign': typeof AppContractsIdSignRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -455,9 +490,12 @@ export interface FileRoutesByTo {
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
+  '/sign/$token': typeof SignTokenRoute
   '/app': typeof AppIndexRoute
   '/portal': typeof PortalIndexRoute
   '/api/files/$': typeof ApiFilesSplatRoute
+  '/api/fn/esign-manage': typeof ApiFnEsignManageRoute
+  '/api/fn/esign-send': typeof ApiFnEsignSendRoute
   '/api/fn/export-all': typeof ApiFnExportAllRoute
   '/api/fn/generate-deposit-disposition': typeof ApiFnGenerateDepositDispositionRoute
   '/api/fn/generate-invoice-pdf': typeof ApiFnGenerateInvoicePdfRoute
@@ -469,6 +507,7 @@ export interface FileRoutesByTo {
   '/api/fn/send-tenant-invite': typeof ApiFnSendTenantInviteRoute
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
+  '/api/sign/$token': typeof ApiSignTokenRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
@@ -495,6 +534,7 @@ export interface FileRoutesByTo {
   '/app/units': typeof AppUnitsIndexRoute
   '/portal/maintenance': typeof PortalMaintenanceIndexRoute
   '/portal/receipts': typeof PortalReceiptsIndexRoute
+  '/app/contracts/$id/sign': typeof AppContractsIdSignRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -518,9 +558,12 @@ export interface FileRoutesById {
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
+  '/sign/$token': typeof SignTokenRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/api/files/$': typeof ApiFilesSplatRoute
+  '/api/fn/esign-manage': typeof ApiFnEsignManageRoute
+  '/api/fn/esign-send': typeof ApiFnEsignSendRoute
   '/api/fn/export-all': typeof ApiFnExportAllRoute
   '/api/fn/generate-deposit-disposition': typeof ApiFnGenerateDepositDispositionRoute
   '/api/fn/generate-invoice-pdf': typeof ApiFnGenerateInvoicePdfRoute
@@ -532,6 +575,7 @@ export interface FileRoutesById {
   '/api/fn/send-tenant-invite': typeof ApiFnSendTenantInviteRoute
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
+  '/api/sign/$token': typeof ApiSignTokenRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
@@ -558,6 +602,7 @@ export interface FileRoutesById {
   '/app/units/': typeof AppUnitsIndexRoute
   '/portal/maintenance/': typeof PortalMaintenanceIndexRoute
   '/portal/receipts/': typeof PortalReceiptsIndexRoute
+  '/app/contracts/$id_/sign': typeof AppContractsIdSignRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -582,9 +627,12 @@ export interface FileRouteTypes {
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
+    | '/sign/$token'
     | '/app/'
     | '/portal/'
     | '/api/files/$'
+    | '/api/fn/esign-manage'
+    | '/api/fn/esign-send'
     | '/api/fn/export-all'
     | '/api/fn/generate-deposit-disposition'
     | '/api/fn/generate-invoice-pdf'
@@ -596,6 +644,7 @@ export interface FileRouteTypes {
     | '/api/fn/send-tenant-invite'
     | '/api/fn/submit-access-request'
     | '/api/jobs/nightly'
+    | '/api/sign/$token'
     | '/api/storage/$action'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
@@ -622,6 +671,7 @@ export interface FileRouteTypes {
     | '/app/units/'
     | '/portal/maintenance/'
     | '/portal/receipts/'
+    | '/app/contracts/$id/sign'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -642,9 +692,12 @@ export interface FileRouteTypes {
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
+    | '/sign/$token'
     | '/app'
     | '/portal'
     | '/api/files/$'
+    | '/api/fn/esign-manage'
+    | '/api/fn/esign-send'
     | '/api/fn/export-all'
     | '/api/fn/generate-deposit-disposition'
     | '/api/fn/generate-invoice-pdf'
@@ -656,6 +709,7 @@ export interface FileRouteTypes {
     | '/api/fn/send-tenant-invite'
     | '/api/fn/submit-access-request'
     | '/api/jobs/nightly'
+    | '/api/sign/$token'
     | '/api/storage/$action'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
@@ -682,6 +736,7 @@ export interface FileRouteTypes {
     | '/app/units'
     | '/portal/maintenance'
     | '/portal/receipts'
+    | '/app/contracts/$id/sign'
   id:
     | '__root__'
     | '/'
@@ -704,9 +759,12 @@ export interface FileRouteTypes {
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
+    | '/sign/$token'
     | '/app/'
     | '/portal/'
     | '/api/files/$'
+    | '/api/fn/esign-manage'
+    | '/api/fn/esign-send'
     | '/api/fn/export-all'
     | '/api/fn/generate-deposit-disposition'
     | '/api/fn/generate-invoice-pdf'
@@ -718,6 +776,7 @@ export interface FileRouteTypes {
     | '/api/fn/send-tenant-invite'
     | '/api/fn/submit-access-request'
     | '/api/jobs/nightly'
+    | '/api/sign/$token'
     | '/api/storage/$action'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
@@ -744,6 +803,7 @@ export interface FileRouteTypes {
     | '/app/units/'
     | '/portal/maintenance/'
     | '/portal/receipts/'
+    | '/app/contracts/$id_/sign'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -764,7 +824,10 @@ export interface RootRouteChildren {
   VslRoute: typeof VslRoute
   ApiMeRoute: typeof ApiMeRoute
   ApiOrgRoute: typeof ApiOrgRoute
+  SignTokenRoute: typeof SignTokenRoute
   ApiFilesSplatRoute: typeof ApiFilesSplatRoute
+  ApiFnEsignManageRoute: typeof ApiFnEsignManageRoute
+  ApiFnEsignSendRoute: typeof ApiFnEsignSendRoute
   ApiFnExportAllRoute: typeof ApiFnExportAllRoute
   ApiFnGenerateDepositDispositionRoute: typeof ApiFnGenerateDepositDispositionRoute
   ApiFnGenerateInvoicePdfRoute: typeof ApiFnGenerateInvoicePdfRoute
@@ -776,6 +839,7 @@ export interface RootRouteChildren {
   ApiFnSendTenantInviteRoute: typeof ApiFnSendTenantInviteRoute
   ApiFnSubmitAccessRequestRoute: typeof ApiFnSubmitAccessRequestRoute
   ApiJobsNightlyRoute: typeof ApiJobsNightlyRoute
+  ApiSignTokenRoute: typeof ApiSignTokenRoute
   ApiStorageActionRoute: typeof ApiStorageActionRoute
   RestV1SplatRoute: typeof RestV1SplatRoute
 }
@@ -936,11 +1000,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalReportPaymentRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/sign/$token': {
+      id: '/sign/$token'
+      path: '/sign/$token'
+      fullPath: '/sign/$token'
+      preLoaderRoute: typeof SignTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/files/$': {
       id: '/api/files/$'
       path: '/api/files/$'
       fullPath: '/api/files/$'
       preLoaderRoute: typeof ApiFilesSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/fn/esign-manage': {
+      id: '/api/fn/esign-manage'
+      path: '/api/fn/esign-manage'
+      fullPath: '/api/fn/esign-manage'
+      preLoaderRoute: typeof ApiFnEsignManageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/fn/esign-send': {
+      id: '/api/fn/esign-send'
+      path: '/api/fn/esign-send'
+      fullPath: '/api/fn/esign-send'
+      preLoaderRoute: typeof ApiFnEsignSendRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/fn/export-all': {
@@ -1018,6 +1103,13 @@ declare module '@tanstack/react-router' {
       path: '/api/jobs/nightly'
       fullPath: '/api/jobs/nightly'
       preLoaderRoute: typeof ApiJobsNightlyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sign/$token': {
+      id: '/api/sign/$token'
+      path: '/api/sign/$token'
+      fullPath: '/api/sign/$token'
+      preLoaderRoute: typeof ApiSignTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/storage/$action': {
@@ -1202,6 +1294,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestV1SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/contracts/$id_/sign': {
+      id: '/app/contracts/$id_/sign'
+      path: '/contracts/$id/sign'
+      fullPath: '/app/contracts/$id/sign'
+      preLoaderRoute: typeof AppContractsIdSignRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -1227,6 +1326,7 @@ interface AppRouteChildren {
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
   AppTenantsIndexRoute: typeof AppTenantsIndexRoute
   AppUnitsIndexRoute: typeof AppUnitsIndexRoute
+  AppContractsIdSignRoute: typeof AppContractsIdSignRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1251,6 +1351,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsIndexRoute: AppSettingsIndexRoute,
   AppTenantsIndexRoute: AppTenantsIndexRoute,
   AppUnitsIndexRoute: AppUnitsIndexRoute,
+  AppContractsIdSignRoute: AppContractsIdSignRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -1298,7 +1399,10 @@ const rootRouteChildren: RootRouteChildren = {
   VslRoute: VslRoute,
   ApiMeRoute: ApiMeRoute,
   ApiOrgRoute: ApiOrgRoute,
+  SignTokenRoute: SignTokenRoute,
   ApiFilesSplatRoute: ApiFilesSplatRoute,
+  ApiFnEsignManageRoute: ApiFnEsignManageRoute,
+  ApiFnEsignSendRoute: ApiFnEsignSendRoute,
   ApiFnExportAllRoute: ApiFnExportAllRoute,
   ApiFnGenerateDepositDispositionRoute: ApiFnGenerateDepositDispositionRoute,
   ApiFnGenerateInvoicePdfRoute: ApiFnGenerateInvoicePdfRoute,
@@ -1310,6 +1414,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFnSendTenantInviteRoute: ApiFnSendTenantInviteRoute,
   ApiFnSubmitAccessRequestRoute: ApiFnSubmitAccessRequestRoute,
   ApiJobsNightlyRoute: ApiJobsNightlyRoute,
+  ApiSignTokenRoute: ApiSignTokenRoute,
   ApiStorageActionRoute: ApiStorageActionRoute,
   RestV1SplatRoute: RestV1SplatRoute,
 }

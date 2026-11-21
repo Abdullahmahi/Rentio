@@ -17,6 +17,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable, type DataTableColumn } from "@/components/rentio/data-table";
+import { AgreementsPanel } from "@/components/rentio/agreements-panel";
 import { DocumentsPanel } from "@/components/rentio/documents-panel";
 import { EmptyState } from "@/components/rentio/empty-state";
 import { Field, FormDialog } from "@/components/rentio/form-dialog";
@@ -70,7 +71,13 @@ import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 
+const TABS = ["summary", "invoices", "payments", "parking", "compliance", "documents"] as const;
+type Tab = (typeof TABS)[number];
+
 export const Route = createFileRoute("/app/contracts/$id")({
+  // ?tab=documents opens the agreements (the applications flow lands there).
+  validateSearch: (search: Record<string, unknown>): { tab?: Tab } =>
+    TABS.includes(search["tab"] as Tab) ? { tab: search["tab"] as Tab } : {},
   head: () => ({
     meta: [
       { title: pageTitle(i18n.t("pages.detail.contract")) },
@@ -91,6 +98,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 function ContractDetailPage() {
   const { id } = Route.useParams();
+  const { tab = "summary" } = Route.useSearch();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const portfolio = usePortfolio();
@@ -566,7 +574,17 @@ function ContractDetailPage() {
               </div>
             </section>
 
-            <Tabs defaultValue="summary">
+            <Tabs
+              value={tab}
+              onValueChange={(value) =>
+                void navigate({
+                  to: "/app/contracts/$id",
+                  params: { id },
+                  search: value === "summary" ? {} : { tab: value as Tab },
+                  replace: true,
+                })
+              }
+            >
               <TabsList className="flex-wrap">
                 <TabsTrigger value="summary">{t("units.tabs.summary")}</TabsTrigger>
                 <TabsTrigger value="invoices">{t("nav.receipts")}</TabsTrigger>
@@ -1011,8 +1029,12 @@ function ContractDetailPage() {
                 </section>
               </TabsContent>
 
-              <TabsContent value="documents" className="mt-4">
-                <DocumentsPanel ownerType="lease" ownerId={id} bucket="contracts" />
+              <TabsContent value="documents" className="mt-4 space-y-6">
+                <AgreementsPanel leaseId={id} />
+                <section className="rounded-lg border border-border bg-surface p-5 shadow-subtle">
+                  <h2 className="mb-3 text-base font-semibold">{t("esign.files")}</h2>
+                  <DocumentsPanel ownerType="lease" ownerId={id} bucket="contracts" />
+                </section>
               </TabsContent>
             </Tabs>
 
