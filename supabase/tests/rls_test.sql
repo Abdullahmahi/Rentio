@@ -72,12 +72,13 @@ declare
   manager_id uuid := '00000000-0000-0000-0000-0000000000a2';
   tenant_a   uuid := '00000000-0000-0000-0000-0000000000b1';
   tenant_b   uuid := '00000000-0000-0000-0000-0000000000b2';
-  lease_a uuid; lease_b uuid; wo_b uuid; pay_id uuid;
+  lease_a uuid; lease_b uuid; wo_b uuid; pay_id uuid; wo_t public.work_orders%rowtype; unit_b uuid;
   n int;
 begin
   select lt.lease_id into lease_a from public.lease_tenants lt join public.profiles p on p.tenant_id = lt.tenant_id where p.id = tenant_a limit 1;
   select lt.lease_id into lease_b from public.lease_tenants lt join public.profiles p on p.tenant_id = lt.tenant_id where p.id = tenant_b limit 1;
   perform pg_temp.check('fixture: two distinct leases', lease_a is not null and lease_b is not null and lease_a <> lease_b);
+  select unit_id into unit_b from public.leases where id = lease_b;
 
   -- =============================================== staff sees everything
   set local role authenticated;
@@ -215,6 +216,30 @@ begin
     perform pg_temp.check('tenant cannot forge work order source', true);
   end;
 
+  -- A tenant may describe the problem; every staff-only column is reset.
+  insert into public.work_orders
+    (unit_id, lease_id, source, category, priority, title, description,
+     status, cost, vendor_name, vendor_phone, resolved_at, affects_health_safety,
+     written_notice_at, created_at, folio)
+  select unit_b, lease_a,
+         'portal', 'plomeria', 'alta', 'leak', 'kitchen sink',
+         'resuelta', 9999, 'Forged Vendor', '555', now(), true,
+         now() - interval '30 days', now() - interval '30 days', 'OT-FORGED'
+  returning * into wo_t;
+  perform pg_temp.check('tenant work order keeps what they described',
+    wo_t.category = 'plomeria' and wo_t.priority = 'alta' and wo_t.description = 'kitchen sink');
+  perform pg_temp.check('tenant work order status is server-defaulted', wo_t.status = 'nueva');
+  perform pg_temp.check('tenant work order cost/vendor are server-defaulted',
+    wo_t.cost is null and wo_t.vendor_name is null and wo_t.vendor_phone is null and wo_t.resolved_at is null);
+  perform pg_temp.check('tenant work order cannot self-flag health/safety', not wo_t.affects_health_safety);
+  perform pg_temp.check('tenant work order cannot backdate written notice',
+    wo_t.created_at > now() - interval '1 minute' and wo_t.written_notice_at = wo_t.created_at);
+  perform pg_temp.check('tenant work order cannot forge its folio', wo_t.folio <> 'OT-FORGED');
+  perform pg_temp.check('tenant work order is filed under the lease unit',
+    wo_t.unit_id = (select unit_id from public.leases where id = lease_a));
+  perform pg_temp.check('tenant work order records the reporting tenant',
+    wo_t.reported_by_tenant = (select tenant_id from public.profiles where id = tenant_a));
+
   -- ==================== prompt 19 tables stay entirely staff-only
   -- Both hold internal records. A notice reaches the tenant as a delivered
   -- document; the turnover checklist is none of their business.
@@ -262,13 +287,11 @@ begin
   select count(*) into n from public.unit_turnover_checklist;
   perform pg_temp.check('staff CAN read the turnover checklist', n > 0);
 
+  -- Owner rule (#50): staff do everything in their company, voids included.
   select id into pay_id from public.payments where status = 'confirmado' limit 1;
-  begin
-    update public.payments set status = 'cancelado', void_reason = 'test' where id = pay_id;
-    perform pg_temp.check('manager cannot void a payment', false);
-  exception when insufficient_privilege or check_violation then
-    perform pg_temp.check('manager cannot void a payment', true);
-  end;
+  update public.payments set status = 'cancelado', void_reason = 'test' where id = pay_id;
+  get diagnostics n = row_count;
+  perform pg_temp.check('manager CAN void a payment', n = 1);
 
   begin
     delete from public.properties where true;
@@ -279,6 +302,7 @@ begin
   end;
 
   perform pg_temp.act_as(admin_id);
+  select id into pay_id from public.payments where status = 'confirmado' limit 1;
   update public.payments set status = 'cancelado', void_reason = 'test' where id = pay_id;
   get diagnostics n = row_count;
   perform pg_temp.check('admin CAN void a payment', n = 1);
@@ -607,18 +631,15 @@ begin
   result := public.record_payment(pay.lease_id, 10, current_date, 'cash');
   perform pg_temp.check('manager CAN record a payment', exists (
     select 1 from public.payments where id = (result ->> 'payment_id')::uuid and status = 'confirmado'));
-  begin
-    perform public.void_payment(pay.id, 'manager');
-    perform pg_temp.check('manager cannot void a payment (rpc)', false);
-  exception when insufficient_privilege then
-    perform pg_temp.check('manager cannot void a payment (rpc)', true);
-  end;
-
-  perform pg_temp.act_as(admin_id);
-  perform public.void_payment(pay.id, 'rls test');
-  perform pg_temp.check('admin CAN void a payment (rpc)',
+  perform public.void_payment(pay.id, 'manager');
+  perform pg_temp.check('manager CAN void a payment (rpc)',
     (select status from public.payments where id = pay.id) = 'cancelado'
     and not exists (select 1 from public.payment_allocations where payment_id = pay.id));
+
+  perform pg_temp.act_as(admin_id);
+  perform public.void_payment((result ->> 'payment_id')::uuid, 'rls test');
+  perform pg_temp.check('admin CAN void a payment (rpc)',
+    (select status from public.payments where id = (result ->> 'payment_id')::uuid) = 'cancelado');
   begin
     perform public.void_payment(pay.id, 'twice');
     perform pg_temp.check('second void is refused', false);
@@ -635,10 +656,10 @@ begin
     perform pg_temp.check('staff cannot call apply_payment() directly', true);
   end;
   begin
-    perform public.nightly();
-    perform pg_temp.check('staff cannot call nightly()', false);
+    perform public.nightly((select id from public.organizations order by created_at limit 1));
+    perform pg_temp.check('staff cannot call nightly(org)', false);
   exception when insufficient_privilege then
-    perform pg_temp.check('staff cannot call nightly()', true);
+    perform pg_temp.check('staff cannot call nightly(org)', true);
   end;
   begin
     perform public.generate_invoices_for_org(current_date, (select org_id from public.profiles where id = admin_b));
@@ -789,16 +810,73 @@ begin
   reset role;
 
   -- reminders are once per invoice and tenant; a claim marks rows sent
-  select public.queue_rent_reminders() into first_run;
-  select public.queue_rent_reminders() into second_run;
+  select coalesce(sum(public.queue_rent_reminders(o.id)), 0) into first_run from public.organizations o;
+  select coalesce(sum(public.queue_rent_reminders(o.id)), 0) into second_run from public.organizations o;
   perform pg_temp.check('rent reminders are idempotent', second_run = 0);
-  perform (select count(*) from public.claim_notifications(1000));
+  perform (select count(*) from public.organizations o, lateral public.claim_notifications(o.id, 1000));
   select count(*) into n from public.notifications where sent_at is null;
   perform pg_temp.check('claim_notifications marks every pending row sent', n = 0);
   perform public.notification_result(
     (select id from public.notifications where entity_id = pay limit 1), null);
   select count(*) into n from public.notifications where entity_id = pay and sent_at is null;
   perform pg_temp.check('a failed send releases the row', n >= 1);
+end;
+$$;
+
+-- ============================================ automations: flags and run log
+do $$
+declare
+  admin_id uuid := '00000000-0000-0000-0000-0000000000a1';
+  tenant_a uuid := '00000000-0000-0000-0000-0000000000b1';
+  admin_b  uuid := '00000000-0000-0000-0000-0000000000c1';
+  org_a uuid; lease_a uuid; pay uuid; n int; run_id uuid;
+begin
+  select org_id into org_a from public.profiles where id = admin_id;
+
+  -- a run row for org A, written the way the server does (service role)
+  insert into public.job_runs (org_id, trigger, started_at, summary)
+  values (org_a, 'cron', now(), '{"invoices_created": 3}') returning id into run_id;
+
+  set local role authenticated;
+  perform pg_temp.act_as(admin_id);
+  select count(*) into n from public.job_runs where id = run_id;
+  perform pg_temp.check('staff read their company run log', n = 1);
+  perform pg_temp.act_as(tenant_a);
+  select count(*) into n from public.job_runs where id = run_id;
+  perform pg_temp.check('a tenant cannot read the run log', n = 0);
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.job_runs where id = run_id;
+  perform pg_temp.check('another company cannot read the run log', n = 0);
+
+  -- payment emails switched off: refusing a reported payment queues nothing
+  perform pg_temp.act_as(admin_id);
+  update public.settings set auto_payment_emails = false where org_id = org_a;
+  perform pg_temp.act_as(tenant_a);
+  select lt.lease_id into lease_a
+  from public.lease_tenants lt join public.profiles p on p.tenant_id = lt.tenant_id
+  where p.id = tenant_a limit 1;
+  insert into public.payments (lease_id, amount, reported_by_tenant, status, method)
+  values (lease_a, 60, true, 'pendiente', 'cash') returning id into pay;
+  perform pg_temp.act_as(admin_id);
+  update public.payments set status = 'cancelado', void_reason = 'test' where id = pay;
+  select count(*) into n from public.notifications where entity_id = pay;
+  perform pg_temp.check('payment emails off: nothing is queued', n = 0);
+  update public.settings set auto_payment_emails = true where org_id = org_a;
+  reset role;
+
+  -- rent reminders switched off: the nightly queue is empty for that company
+  update public.settings set auto_rent_reminder = false where org_id = org_a;
+  perform pg_temp.check('rent reminders off: nothing is queued',
+    (select count(*) from public.notifications where kind = 'rent_reminder' and org_id = org_a
+       and created_at > now() - interval '1 second') = 0
+    and public.queue_rent_reminders(org_a) >= 0);
+  select count(*) into n from public.notifications
+  where kind = 'rent_reminder' and org_id = org_a and created_at >= now();
+  perform pg_temp.check('rent reminders off: still nothing after the queue runs', n = 0);
+  update public.settings set auto_rent_reminder = true where org_id = org_a;
+
+  perform pg_temp.check('nightly() reports per company',
+    jsonb_typeof(public.nightly(org_a) -> 'orgs') = 'array');
 end;
 $$;
 
@@ -908,7 +986,7 @@ declare
   t_a uuid := (select tenant_id from public.profiles where id = tenant_a);
   lease_a uuid; lease_b uuid; draft uuid; req_a uuid; req_b uuid; req_d uuid; signer_a uuid;
   hash text := repeat('a', 64);
-  n int; refused boolean; claimed boolean;
+  n int; refused boolean; claimed boolean; col text;
 begin
   select lt.lease_id into lease_a from public.lease_tenants lt where lt.tenant_id = t_a limit 1;
   select id into lease_b from public.leases where org_id = org_b limit 1;
@@ -938,9 +1016,12 @@ begin
   perform pg_temp.check('esign: org B staff cannot read org A requests', n = 0);
   select count(*) into n from public.signature_signers where request_id = req_a;
   perform pg_temp.check('esign: org B staff cannot read org A signers', n = 0);
-  update public.signature_requests set status = 'voided' where id = req_a;
-  get diagnostics n = row_count;
-  perform pg_temp.check('esign: org B staff cannot void org A requests', n = 0);
+  refused := false;
+  begin
+    perform public.cancel_signature_request(req_a);
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: org B staff cannot cancel org A requests', refused);
 
   perform pg_temp.act_as(admin_a);
   select count(*) into n from public.signature_requests where id in (req_a, req_b);
@@ -972,12 +1053,32 @@ begin
   exception when insufficient_privilege then refused := true;
   end;
   perform pg_temp.check('esign: tenant cannot read token_hash', refused);
-  update public.signature_requests set status = 'completed' where id = req_a;
-  get diagnostics n = row_count;
-  perform pg_temp.check('esign: tenant cannot update a request', n = 0);
-  update public.signature_signers set signed_at = now() where id = signer_a;
-  get diagnostics n = row_count;
-  perform pg_temp.check('esign: tenant cannot update a signer', n = 0);
+  refused := false;
+  begin
+    update public.signature_requests set status = 'completed' where id = req_a;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: tenant cannot update a request', refused);
+  refused := false;
+  begin
+    update public.signature_signers set signed_at = now() where id = signer_a;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: tenant cannot update a signer', refused);
+  refused := false;
+  begin
+    perform public.cancel_signature_request(req_a);
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: tenant cannot cancel a request', refused);
+  foreach col in array array['ip', 'user_agent', 'signature_data', 'consent_at', 'consent_text_sha256'] loop
+    refused := false;
+    begin
+      execute format('select %I from public.signature_signers where id = $1', col) using signer_a;
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('esign: tenant cannot read a signer''s ' || col, refused);
+  end loop;
   refused := false;
   begin
     insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
@@ -1020,10 +1121,15 @@ begin
     values (req_d, 'Tenant A', 'a@example.com', t_a, 1, 72, 72, 200, 50, repeat('4', 64), now() + interval '14 days');
   perform pg_temp.check('esign: no claim while a signer is pending',
     not public.claim_signature_finalisation(req_d));
-  update public.signature_signers
-    set signed_at = now(), signature_kind = 'typed', signature_data = 'Tenant A',
-        consent_at = now(), consent_version = 'v1'
-    where request_id = req_d;
+  perform pg_temp.check('esign: signing before consent is refused', not public.sign_signature(
+    (select id from public.signature_signers where request_id = req_d), 'typed', 'Tenant A', '203.0.113.7', 'UA'));
+  perform public.record_signature_consent(
+    (select id from public.signature_signers where request_id = req_d), 'v2', 'en', repeat('c', 64));
+  perform pg_temp.check('esign: signing after consent works', public.sign_signature(
+    (select id from public.signature_signers where request_id = req_d), 'typed', 'Tenant A', '203.0.113.7', 'UA'));
+  perform pg_temp.check('esign: consent keeps its own time, language and text hash', (
+    select consent_at <= signed_at and consent_locale = 'en' and consent_text_sha256 = repeat('c', 64)
+    from public.signature_signers where request_id = req_d));
   claimed := public.claim_signature_finalisation(req_d);
   perform pg_temp.check('esign: the first finaliser gets the claim', claimed);
   perform pg_temp.check('esign: a second finaliser is refused the claim',
@@ -1056,15 +1162,17 @@ begin
   -- No admin-only gate: a manager sends.
   set local role authenticated;
   perform pg_temp.act_as(manager_id);
-  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
-    values (lease_a, 'Manager sends', lease_a || '/m.pdf', hash, 1, now() + interval '14 days') returning id into req;
-  insert into public.signature_signers (request_id, name, email, tenant_id, page, x, y, w, h, token_hash, token_expires_at)
-    values (req, 'Tenant A', 'a@example.com', t_a, 1, 72, 72, 200, 50, repeat('5', 64), now() + interval '14 days')
-    returning id into s1;
-  insert into public.signature_signers (request_id, name, email, page, x, y, w, h, token_hash, token_expires_at, required)
-    values (req, 'Optional', 'o@example.com', 1, 72, 200, 200, 50, repeat('6', 64), now() + interval '14 days', false)
-    returning id into s2;
+  s1 := gen_random_uuid(); s2 := gen_random_uuid();
+  req := public.send_signature_request(gen_random_uuid(), lease_a, 'Manager sends', null, hash, 1,
+    now() + interval '14 days', jsonb_build_array(
+      jsonb_build_object('id', s1, 'name', 'Tenant A', 'email', 'a@example.com', 'tenant_id', t_a,
+        'page', 1, 'x', 72, 'y', 72, 'w', 200, 'h', 50, 'token_hash', repeat('5', 64)),
+      jsonb_build_object('id', s2, 'name', 'Optional', 'email', 'o@example.com', 'required', false,
+        'page', 1, 'x', 72, 'y', 200, 'w', 200, 'h', 50, 'token_hash', repeat('6', 64))));
   perform pg_temp.check('esign: a manager can send for signature', req is not null);
+  perform pg_temp.check('esign: send files the original at the request''s own path',
+    (select original_path from public.signature_requests where id = req)
+      = lease_a || '/esign-' || req || '-original.pdf');
 
   perform pg_temp.act_as(tenant_a);
   refused := false;
@@ -1078,9 +1186,8 @@ begin
   reset role;
   perform set_config('request.jwt.claim.sub', '', true);
   perform set_config('request.jwt.claim.org_id', '', true);
-  update public.signature_signers
-    set signed_at = now(), signature_kind = 'drawn', signature_data = 'x', consent_at = now(), consent_version = 'v2'
-    where id = s1;
+  perform public.record_signature_consent(s1, 'v2', 'es-MX', repeat('c', 64));
+  perform public.sign_signature(s1, 'drawn', 'x', null, null);
   perform pg_temp.check('esign: an unsigned optional signer does not block finalising',
     public.claim_signature_finalisation(req));
   update public.signature_requests set finalizing_at = null where id = req;
@@ -1099,9 +1206,276 @@ begin
   refused := false;
   begin
     update public.signature_signers set declined_at = now() where id = s1;
-  exception when check_violation then refused := true;
+  exception when check_violation or insufficient_privilege then refused := true;
   end;
   perform pg_temp.check('esign: a signer cannot be both signed and declined', refused);
+  reset role;
+end;
+$$;
+
+-- ===================== e-sign: staff cannot forge, revive or rewrite (#73 review)
+do $$
+declare
+  admin_a  uuid := '00000000-0000-0000-0000-0000000000a1';
+  admin_b  uuid := '00000000-0000-0000-0000-0000000000c1';
+  tenant_a uuid := '00000000-0000-0000-0000-0000000000b1';
+  t_a uuid := (select tenant_id from public.profiles where id = tenant_a);
+  lease_a uuid; req uuid; req2 uuid; req3 uuid;
+  s1 uuid := gen_random_uuid(); s2 uuid := gen_random_uuid(); s3 uuid := gen_random_uuid();
+  hash text := repeat('d', 64);
+  refused boolean; ok boolean; changed text; col text; stmt text;
+begin
+  select lt.lease_id into lease_a from public.lease_tenants lt where lt.tenant_id = t_a limit 1;
+  set local role authenticated;
+  perform pg_temp.act_as(admin_a);
+  req := public.send_signature_request(gen_random_uuid(), lease_a, 'Hardening', null, hash, 1,
+    now() + interval '14 days', jsonb_build_array(
+      jsonb_build_object('id', s1, 'name', 'Tenant A', 'email', 'a@example.com', 'tenant_id', t_a,
+        'page', 1, 'x', 72, 'y', 72, 'w', 200, 'h', 50, 'token_hash', repeat('7', 64))));
+
+  -- Every evidence column, and the request's state, is out of staff reach.
+  foreach stmt in array array[
+    format('update public.signature_signers set signed_at = now() where id = %L', s1),
+    format('update public.signature_signers set signature_data = %L where id = %L', 'forged', s1),
+    format('update public.signature_signers set ip = %L where id = %L', '1.2.3.4', s1),
+    format('update public.signature_signers set user_agent = %L where id = %L', 'forged', s1),
+    format('update public.signature_signers set consent_at = now(), consent_version = %L where id = %L', 'x', s1),
+    format('update public.signature_signers set token_hash = %L where id = %L', repeat('8', 64), s1),
+    format('update public.signature_requests set status = %L where id = %L', 'sent', req),
+    format('update public.signature_requests set original_path = %L where id = %L', lease_a || '/swap.pdf', req),
+    format('insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at) values (%L, %L, %L, %L, 1, now())', lease_a, 'direct', lease_a || '/x.pdf', hash),
+    format('delete from public.signature_signers where id = %L', s1)
+  ] loop
+    refused := false;
+    begin
+      execute stmt;
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('esign: staff refused: ' || left(stmt, 60), refused);
+  end loop;
+  foreach col in array array['ip', 'user_agent', 'signature_data', 'consent_at', 'consent_version'] loop
+    refused := false;
+    begin
+      execute format('select %I from public.signature_signers where id = $1', col) using s1;
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('esign: staff cannot read ' || col, refused);
+  end loop;
+
+  -- Send is pinned to the caller's org and the lease's own tenants.
+  perform pg_temp.act_as(admin_b);
+  refused := false;
+  begin
+    perform public.send_signature_request(gen_random_uuid(), lease_a, 'Cross', null, hash, 1, now() + interval '1 day',
+      jsonb_build_array(jsonb_build_object('id', gen_random_uuid(), 'name', 'X', 'email', 'x@example.com',
+        'page', 1, 'x', 1, 'y', 1, 'w', 1, 'h', 1, 'token_hash', repeat('9', 64))));
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: org B staff cannot send on an org A lease', refused);
+  refused := false;
+  begin
+    perform public.resend_signature_link(s1, repeat('9', 64), now() + interval '1 day');
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: org B staff cannot resend an org A link', refused);
+  perform pg_temp.act_as(admin_a);
+  refused := false;
+  begin
+    perform public.send_signature_request(gen_random_uuid(), lease_a, 'Stranger', null, hash, 1, now() + interval '1 day',
+      jsonb_build_array(jsonb_build_object('id', gen_random_uuid(), 'name', 'X', 'email', 'x@example.com',
+        'tenant_id', (select id from public.tenants where id <> t_a and id not in
+          (select tenant_id from public.lease_tenants where lease_id = lease_a) limit 1),
+        'page', 1, 'x', 1, 'y', 1, 'w', 1, 'h', 1, 'token_hash', repeat('a', 63) || 'b')));
+  exception when invalid_parameter_value then refused := true;
+  end;
+  perform pg_temp.check('esign: a tenant signer must be on the lease', refused);
+
+  perform pg_temp.act_as(tenant_a);
+  refused := false;
+  begin
+    perform public.send_signature_request(gen_random_uuid(), lease_a, 'Tenant', null, hash, 1, now(), '[]');
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: a tenant cannot send', refused);
+  foreach stmt in array array[
+    format('select public.record_signature_consent(%L, %L, %L, %L)', s1, 'v', 'en', hash),
+    format('select public.sign_signature(%L, %L, %L, null, null)', s1, 'typed', 'x')
+  ] loop
+    refused := false;
+    begin
+      execute stmt;
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('esign: signing functions are service-only: ' || left(stmt, 40), refused);
+  end loop;
+
+  -- Resend rotates the hash; cancel is terminal and burns every link.
+  perform pg_temp.act_as(admin_a);
+  perform pg_temp.check('esign: resend works while open',
+    public.resend_signature_link(s1, repeat('e', 64), now() + interval '20 days'));
+  reset role;
+  perform pg_temp.check('esign: resend replaced the hash',
+    (select token_hash from public.signature_signers where id = s1) = repeat('e', 64));
+  set local role authenticated;
+  perform pg_temp.act_as(admin_a);
+  perform pg_temp.check('esign: cancel returns the lease', public.cancel_signature_request(req) = lease_a);
+  perform pg_temp.check('esign: cancelling twice is a no-op', public.cancel_signature_request(req) is null);
+  perform pg_temp.check('esign: a cancelled link cannot be resent',
+    not public.resend_signature_link(s1, repeat('f', 64), now() + interval '20 days'));
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  perform pg_temp.check('esign: cancel is voided and burns the link hash', (
+    select r.status = 'voided' and s.token_hash <> repeat('e', 64) and s.token_expires_at <= now()
+    from public.signature_requests r join public.signature_signers s on s.request_id = r.id
+    where r.id = req));
+  perform pg_temp.check('esign: no consent or signature on a cancelled request',
+    not public.record_signature_consent(s1, 'v2', 'en', hash) and not public.sign_signature(s1, 'typed', 'x', null, null));
+  refused := false;
+  begin
+    update public.signature_requests set status = 'sent' where id = req;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: even the service cannot revive a cancelled request', refused);
+
+  -- Signed is final, for the service too; an expired link cannot sign.
+  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+    values (lease_a, 'Final', lease_a || '/f.pdf', hash, 1, now() + interval '14 days') returning id into req2;
+  insert into public.signature_signers (id, request_id, name, email, page, x, y, w, h, token_hash, token_expires_at)
+    values (s2, req2, 'T', 't@example.com', 1, 1, 1, 1, 1, repeat('0', 63) || '1', now() + interval '14 days');
+  perform public.record_signature_consent(s2, 'v2', 'en', hash);
+  perform public.sign_signature(s2, 'typed', 'x', '203.0.113.7', 'UA');
+  foreach changed in array array['signature_data', 'ip', 'signed_at', 'consent_at'] loop
+    refused := false;
+    begin
+      execute format('update public.signature_signers set %I = %s where id = %L', changed,
+        case when changed in ('signed_at', 'consent_at') then 'now() + interval ''1 hour''' else quote_literal('forged') end, s2);
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('esign: a given signature is final: ' || changed, refused);
+  end loop;
+  perform pg_temp.check('esign: signing twice is refused', not public.sign_signature(s2, 'typed', 'y', null, null));
+  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+    values (lease_a, 'Expired', lease_a || '/e.pdf', hash, 1, now() + interval '14 days') returning id into req3;
+  insert into public.signature_signers (id, request_id, name, email, page, x, y, w, h, token_hash, token_expires_at)
+    values (s3, req3, 'T', 't@example.com', 1, 1, 1, 1, 1, repeat('0', 63) || '2', now() - interval '1 second');
+  perform pg_temp.check('esign: an expired link cannot consent or sign',
+    not public.record_signature_consent(s3, 'v2', 'en', hash) and not public.sign_signature(s3, 'typed', 'x', null, null));
+  perform public.complete_signature_request(req2, lease_a || '/signed-x.pdf', hash, 'F.pdf', '{}');
+  refused := false;
+  begin
+    update public.signature_requests set signed_sha256 = repeat('0', 64) where id = req2;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: a completed request is frozen', refused);
+end;
+$$;
+
+-- ================= automations: company A's run never touches company B
+-- Issue #13/#14. The server runs the pipeline as service_role (RLS off), so
+-- the org filter inside each function is the only thing keeping companies
+-- apart. Company B gets one of everything the pipeline acts on; company A
+-- runs every step; B must be byte-for-byte unchanged.
+
+create or replace function pg_temp.org_fingerprint(o uuid) returns text
+language sql as $$
+  select md5(concat_ws('|',
+    (select string_agg(i::text, ',' order by i.id) from public.invoices i where i.org_id = o),
+    (select string_agg(l::text, ',' order by l.id) from public.invoice_lines l
+       join public.invoices i on i.id = l.invoice_id where i.org_id = o),
+    (select string_agg(n::text, ',' order by n.id) from public.notifications n where n.org_id = o),
+    (select string_agg(w::text, ',' order by w.invoice_id) from public.late_fee_warnings w where w.org_id = o),
+    (select string_agg(j::text, ',' order by j.id) from public.job_runs j where j.org_id = o)));
+$$;
+
+do $$
+declare
+  org_a uuid := (select id from public.organizations order by created_at limit 1);
+  org_b uuid := (select id from public.organizations where slug = 'other-co');
+  prop_b uuid; unit_b2 uuid; lease_b2 uuid; tenant_b2 uuid; inv_late uuid; inv_soon uuid;
+  tenant_a uuid; lease_a uuid;
+  before_b text; n int; bad int;
+begin
+  perform pg_temp.check('fixture: company B exists', org_b is not null and org_b <> org_a);
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+
+  -- Company B: a lease with no invoice this month, an overdue invoice on its
+  -- last grace day, one due tomorrow, a pending email, a pending warning.
+  select id into prop_b from public.properties where org_id = org_b limit 1;
+  insert into public.units (property_id, unit_number) values (prop_b, 'B2') returning id into unit_b2;
+  insert into public.tenants (org_id, full_name, email) values (org_b, 'B Two', 'b2@example.com')
+    returning id into tenant_b2;
+  insert into public.leases (unit_id, start_date, end_date, rent_amount, late_fee_type, late_fee_amount)
+    values (unit_b2, public.today_el_paso() - 60, public.today_el_paso() + 300, 900, 'fixed', 50)
+    returning id into lease_b2;
+  insert into public.lease_tenants (lease_id, tenant_id) values (lease_b2, tenant_b2);
+  insert into public.invoices (lease_id, period_month, due_date, status, total)
+    values (lease_b2, '2001-01-01', public.today_el_paso() - 5, 'enviado', 900) returning id into inv_late;
+  insert into public.invoices (lease_id, period_month, due_date, status, total)
+    values (lease_b2, '2001-02-01', public.today_el_paso() + 1, 'enviado', 900) returning id into inv_soon;
+  insert into public.notifications (org_id, tenant_id, lease_id, kind, dedupe_key)
+    values (org_b, tenant_b2, lease_b2, 'rent_reminder', 'isolation-test-b');
+  insert into public.late_fee_warnings (invoice_id, org_id, eligible_on)
+    values (inv_soon, org_b, public.today_el_paso() + 3);
+
+  -- Company A has a pending email of its own, so A's claim is not vacuous.
+  select lt.tenant_id, lt.lease_id into tenant_a, lease_a
+  from public.lease_tenants lt join public.leases l on l.id = lt.lease_id
+  where l.org_id = org_a limit 1;
+  insert into public.notifications (org_id, tenant_id, lease_id, kind, dedupe_key)
+    values (org_a, tenant_a, lease_a, 'rent_reminder', 'isolation-test-a');
+
+  before_b := pg_temp.org_fingerprint(org_b);
+
+  -- Company A runs every step of the pipeline, the way the server does.
+  perform public.nightly(org_a);
+  select count(*) filter (where org_id <> org_a) into bad from public.late_fee_warnings_to_send(org_a);
+  perform pg_temp.check('A: late-fee warnings to send are only A''s', bad = 0);
+  perform public.queue_rent_reminders(org_a);
+  select count(*), count(*) filter (where org_id <> org_a) into n, bad
+  from public.claim_notifications(org_a, 1000);
+  perform pg_temp.check('A: claim returns only A''s notifications', bad = 0);
+  perform pg_temp.check('A: claim did pick up A''s pending email', n >= 1);
+  insert into public.job_runs (org_id, trigger, started_at) values (org_a, 'manual', now());
+
+  perform pg_temp.check('A''s run changed nothing of company B',
+    pg_temp.org_fingerprint(org_b) = before_b);
+  perform pg_temp.check('A''s run drafted no invoice for B''s lease',
+    not exists (select 1 from public.invoices where lease_id = lease_b2
+                and period_month = date_trunc('month', public.today_el_paso())::date));
+  perform pg_temp.check('A''s run queued no warning or reminder for B',
+    not exists (select 1 from public.late_fee_warnings where invoice_id = inv_late)
+    and not exists (select 1 from public.notifications where org_id = org_b and entity_id = inv_soon));
+  perform pg_temp.check('A''s run left B''s pending email unsent',
+    (select sent_at from public.notifications where dedupe_key = 'isolation-test-b') is null);
+
+  -- Not vacuous: the same rows are there for B's own run to find.
+  perform pg_temp.check('B: its own claim finds its pending email',
+    exists (select 1 from public.claim_notifications(org_b, 1000) c
+            where c.org_id = org_b and c.tenant_email = 'b2@example.com'));
+  perform public.queue_late_fee_warnings(org_b);
+  perform pg_temp.check('B: its own queue finds its overdue invoice',
+    exists (select 1 from public.late_fee_warnings where invoice_id = inv_late));
+
+  -- The all-companies versions are gone, so nothing can call them by mistake.
+  perform pg_temp.check('no global nightly() / claim / queue functions remain',
+    to_regprocedure('public.nightly()') is null
+    and to_regprocedure('public.claim_notifications(integer)') is null
+    and to_regprocedure('public.queue_rent_reminders()') is null
+    and to_regprocedure('public.queue_late_fee_warnings()') is null
+    and to_regprocedure('public.late_fee_warnings_to_send()') is null);
+
+  -- And a person still cannot call the per-company ones through the API.
+  set local role authenticated;
+  perform pg_temp.act_as('00000000-0000-0000-0000-0000000000a1');
+  begin
+    perform public.claim_notifications(org_b, 1);
+    perform pg_temp.check('staff cannot call claim_notifications(org)', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot call claim_notifications(org)', true);
+  end;
+  reset role;
 end;
 $$;
 
@@ -1301,8 +1675,10 @@ begin
 
   perform pg_temp.check('approved stays approved until a signature request goes out',
     (select status from public.applications where id = app_a) = 'approved');
-  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
-    values (lease_a, 'Lease', lease_a || '/lease.pdf', repeat('a', 64), 1, now() + interval '14 days');
+  perform public.send_signature_request(gen_random_uuid(), lease_a, 'Lease', null, repeat('a', 64), 1,
+    now() + interval '14 days', jsonb_build_array(jsonb_build_object('id', gen_random_uuid(),
+      'name', 'Applicant A', 'email', 'applicant.a@example.com', 'tenant_id', (res ->> 'tenant_id')::uuid,
+      'page', 1, 'x', 72, 'y', 72, 'w', 200, 'h', 50, 'token_hash', repeat('4', 63) || '5')));
   perform pg_temp.check('sending the lease for signature marks the application lease_sent',
     (select status from public.applications where id = app_a) = 'lease_sent');
 

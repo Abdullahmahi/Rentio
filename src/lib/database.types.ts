@@ -471,6 +471,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      job_runs: {
+        Row: {
+          id: string;
+          org_id: string;
+          trigger: string;
+          actor_id: string | null;
+          started_at: string;
+          finished_at: string;
+          summary: Json;
+          error: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id: string;
+          trigger: string;
+          actor_id?: string | null;
+          started_at: string;
+          finished_at?: string;
+          summary?: Json;
+          error?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          trigger?: string;
+          actor_id?: string | null;
+          started_at?: string;
+          finished_at?: string;
+          summary?: Json;
+          error?: string | null;
+        };
+        Relationships: [];
+      };
       late_fee_warnings: {
         Row: {
           invoice_id: string;
@@ -994,6 +1027,13 @@ export type Database = {
           nsf_fee: number;
           default_late_fee_percent: number;
           org_id: string;
+          auto_invoice_day: number;
+          auto_invoice_send: boolean;
+          auto_rent_reminder: boolean;
+          auto_rent_reminder_days: number;
+          auto_late_fee_warning: boolean;
+          auto_payment_emails: boolean;
+          auto_repair_emails: boolean;
         };
         Insert: {
           id?: string;
@@ -1019,6 +1059,13 @@ export type Database = {
           nsf_fee?: number;
           default_late_fee_percent?: number;
           org_id?: string;
+          auto_invoice_day?: number;
+          auto_invoice_send?: boolean;
+          auto_rent_reminder?: boolean;
+          auto_rent_reminder_days?: number;
+          auto_late_fee_warning?: boolean;
+          auto_payment_emails?: boolean;
+          auto_repair_emails?: boolean;
         };
         Update: {
           id?: string;
@@ -1044,6 +1091,13 @@ export type Database = {
           nsf_fee?: number;
           default_late_fee_percent?: number;
           org_id?: string;
+          auto_invoice_day?: number;
+          auto_invoice_send?: boolean;
+          auto_rent_reminder?: boolean;
+          auto_rent_reminder_days?: number;
+          auto_late_fee_warning?: boolean;
+          auto_payment_emails?: boolean;
+          auto_repair_emails?: boolean;
         };
         Relationships: [];
       };
@@ -1137,6 +1191,8 @@ export type Database = {
           required: boolean;
           declined_at: string | null;
           decline_reason: string | null;
+          consent_locale: string | null;
+          consent_text_sha256: string | null;
         };
         Insert: {
           id?: string;
@@ -1167,6 +1223,8 @@ export type Database = {
           required?: boolean;
           declined_at?: string | null;
           decline_reason?: string | null;
+          consent_locale?: string | null;
+          consent_text_sha256?: string | null;
         };
         Update: {
           id?: string;
@@ -1197,6 +1255,8 @@ export type Database = {
           required?: boolean;
           declined_at?: string | null;
           decline_reason?: string | null;
+          consent_locale?: string | null;
+          consent_text_sha256?: string | null;
         };
         Relationships: [];
       };
@@ -1641,6 +1701,39 @@ export type Database = {
       };
       activate_lease: { Args: { p_lease: string }; Returns: undefined };
       claim_signature_finalisation: { Args: { p_request: string }; Returns: boolean };
+      send_signature_request: {
+        Args: {
+          p_id: string;
+          p_lease: string;
+          p_title: string;
+          p_message: string | null;
+          p_sha: string;
+          p_page_count: number;
+          p_expires_at: string;
+          p_signers: Json;
+        };
+        Returns: string;
+      };
+      resend_signature_link: {
+        Args: { p_signer: string; p_token_hash: string; p_expires_at: string };
+        Returns: boolean;
+      };
+      mark_signature_emailed: { Args: { p_signer: string }; Returns: undefined };
+      cancel_signature_request: { Args: { p_request: string }; Returns: string | null };
+      record_signature_consent: {
+        Args: { p_signer: string; p_version: string; p_locale: string; p_text_sha: string };
+        Returns: boolean;
+      };
+      sign_signature: {
+        Args: {
+          p_signer: string;
+          p_kind: string;
+          p_data: string;
+          p_ip: string | null;
+          p_user_agent: string | null;
+        };
+        Returns: boolean;
+      };
       decline_signature: { Args: { p_signer: string; p_reason: string | null }; Returns: boolean };
       complete_signature_request: {
         Args: {
@@ -1666,12 +1759,13 @@ export type Database = {
         Args: { p_period: string };
         Returns: { created: number; skipped: number }[];
       };
-      nightly: { Args: Record<string, never>; Returns: Json };
-      queue_rent_reminders: { Args: Record<string, never>; Returns: number };
+      nightly: { Args: { p_org_id: string }; Returns: Json };
+      queue_rent_reminders: { Args: { p_org_id: string }; Returns: number };
       claim_notifications: {
-        Args: { p_limit?: number };
+        Args: { p_org_id: string; p_limit?: number };
         Returns: {
           id: string;
+          org_id: string;
           kind: string;
           payload: Json;
           tenant_name: string | null;
@@ -1683,7 +1777,7 @@ export type Database = {
       };
       notification_result: { Args: { p_id: string; p_channel: string | null }; Returns: undefined };
       late_fee_warnings_to_send: {
-        Args: Record<string, never>;
+        Args: { p_org_id: string };
         Returns: {
           invoice_id: string;
           org_id: string;

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Clock, Download, FileCheck2, Loader2, Mail, PenLine, X } from "lucide-react";
+import { Check, Clock, FileCheck2, Loader2, Mail, PenLine, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import "@fontsource/caveat/400.css";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,6 @@ interface Agreement {
   };
   others: { name: string; signed: boolean }[];
   pdf_url: string | null;
-  signed_pdf_url: string | null;
   error?: string;
 }
 
@@ -445,6 +444,22 @@ function SignatureSheet({
     setHasInk(false);
   };
 
+  // Consent is recorded the moment it is ticked, in the language shown.
+  // Switching language asks for it again.
+  const locale = language === "en" ? "en" : "es-MX";
+  useEffect(() => setConsent(false), [locale]);
+  const tick = async (checked: boolean) => {
+    setConsent(false);
+    if (!checked) return;
+    setFailed(false);
+    try {
+      await post(token, { action: "consent", locale });
+      setConsent(true);
+    } catch {
+      setFailed(true);
+    }
+  };
+
   const hasSignature = mode === "drawn" ? hasInk : typed.trim().length > 0;
   const ready = consent && hasSignature && readToEnd;
 
@@ -458,14 +473,7 @@ function SignatureSheet({
         mode === "drawn"
           ? canvasRef.current!.toDataURL("image/png")
           : await typedSignaturePng(typed.trim(), ink);
-      onDone(
-        await post(token, {
-          kind: mode,
-          data,
-          consent: true,
-          locale: language === "en" ? "en" : "es-MX",
-        }),
-      );
+      onDone(await post(token, { kind: mode, data }));
     } catch {
       setFailed(true);
     } finally {
@@ -552,7 +560,7 @@ function SignatureSheet({
           id="esign-consent"
           className="mt-0.5 size-[22px]"
           checked={consent}
-          onCheckedChange={(checked) => setConsent(checked === true)}
+          onCheckedChange={(checked) => void tick(checked === true)}
         />
         <span className="text-sm leading-5">{t("esign.consent.short")}</span>
       </label>
@@ -700,15 +708,6 @@ function Signed({ agreement }: { agreement: Agreement }) {
             ) : null}
           </div>
         </div>
-        {agreement.signed_pdf_url ? (
-          <a
-            href={agreement.signed_pdf_url}
-            className="flex min-h-12 items-center justify-center gap-2 border-t border-border font-semibold text-primary"
-          >
-            <Download className="size-4" />
-            {t("esign.sign.download")}
-          </a>
-        ) : null}
       </section>
 
       <ul className="space-y-4 text-base">

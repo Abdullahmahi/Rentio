@@ -2,8 +2,9 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BRAND_NAME } from "@/lib/brand";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { UserRound, WalletCards, Wrench } from "lucide-react";
+import { Eye, UserRound, WalletCards, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/lib/auth";
 import { RentioMark } from "@/components/rentio/rentio-mark";
 import i18n, { PORTAL_DEFAULT_LANGUAGE } from "@/lib/i18n";
 import { useLanguagePreference, usePublicSettings } from "@/lib/queries";
@@ -37,6 +38,7 @@ export function PortalShell() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border bg-surface">
+        <PreviewBanner />
         <div className="mx-auto grid h-16 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4">
           <CompanyMark />
           <nav className="flex items-center gap-1">
@@ -103,6 +105,33 @@ export function PortalShell() {
           );
         })}
       </nav>
+    </div>
+  );
+}
+
+/** Staff viewing the portal as a tenant. Always visible; exit goes back to
+ *  that tenant's page with a full load, so /app gets the staff session again. */
+function PreviewBanner() {
+  const { t } = useTranslation();
+  const { preview } = useAuth();
+  if (!preview) return null;
+  const exit = async () => {
+    await fetch("/api/portal-preview", { method: "DELETE" }).catch(() => undefined);
+    window.location.assign(`/app/tenants/${preview.tenantId}`);
+  };
+  return (
+    <div
+      role="status"
+      className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-warning/30 bg-warning/10 px-4 py-2 text-center text-sm font-medium text-warning"
+    >
+      <span className="inline-flex items-center gap-2">
+        <Eye className="size-4 shrink-0" />
+        {t("portalPreview.banner", { name: preview.tenantName })}
+      </span>
+      <span aria-hidden>·</span>
+      <button type="button" onClick={() => void exit()} className="underline underline-offset-2">
+        {t("portalPreview.exit")}
+      </button>
     </div>
   );
 }

@@ -169,7 +169,7 @@ Secrets: `CLERK_SECRET_KEY`, `POSTGREST_JWT_SECRET`, `RESEND_API_KEY`, `RESEND_F
   - `i18n.test.ts` enforces two-way key parity, no empty values, matching `{{placeholders}}`, and that every literal `t("…")` key exists.
 - **Design:** read `design-system/rentio/MASTER.md`.
   - Tokens are CSS variables in `styles.css`, written as `oklch(from #hex …)`. Dark mode is the `.dark` class.
-  - Inter for body and numbers (`numeric` utility); Source Serif 4 on h1–h3 only.
+  - Plus Jakarta Sans for body and headings; `numeric` utility for numbers.
   - Contrast is measured with `scripts/validate_palette.js`, never eyeballed.
 
 ## 8. Invariants (break one and the change is wrong)

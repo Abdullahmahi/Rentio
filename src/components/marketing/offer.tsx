@@ -8,7 +8,12 @@ import { BookingLink } from "@/components/marketing/booking-link";
 import { Container } from "@/components/marketing/ui/container";
 import { SectionHeading } from "@/components/marketing/section-heading";
 import { ItemStatusBadge, type ItemStatus } from "@/components/marketing/item-status";
-import { PRICE_VARS } from "@/lib/marketing";
+import { PLANS, usd, type PlanKey } from "@/lib/marketing";
+
+const PLAN_KEYS: PlanKey[] = ["core", "aiTeam"];
+
+/** AI Team's agents: services our team sets up, so always "done", never "live". */
+const AGENTS = ["receptionist", "maintenance", "rent", "leasing", "renewals", "backOffice"];
 
 type Item = {
   key: string;
@@ -131,23 +136,49 @@ export function Offer({ cta }: { cta?: ReactNode | undefined } = {}) {
                   {t("offer.valueFigure")}
                 </p>
                 <p className="text-xs text-muted-foreground">{t("offer.valueNote")}</p>
-                <Separator />
-                <p className="text-sm font-medium">{t("offer.priceLabel")}</p>
-                <p className="flex items-baseline gap-2">
-                  <span className="text-4xl font-semibold numeric">{PRICE_VARS.monthlyPrice}</span>
-                  <span className="text-sm text-muted-foreground">{t("offer.priceUnit")}</span>
-                </p>
-                <p className="text-sm">{t("offer.setup", PRICE_VARS)}</p>
-                {cta === undefined ? (
-                  <BookingLink size="lg" className="w-full">
-                    {t("offer.cta")}
-                  </BookingLink>
-                ) : (
-                  cta
-                )}
-                <p className="text-xs text-muted-foreground">{t("offer.qualifier", PRICE_VARS)}</p>
               </CardContent>
             </Card>
+
+            {PLAN_KEYS.map((plan) => (
+              <Card key={plan} className="border-primary/40 py-6 shadow-sm">
+                <CardContent className="flex flex-col gap-4 px-6">
+                  <p className="font-heading text-lg font-semibold">
+                    {t(`offer.plans.${plan}.name`)}
+                  </p>
+                  <p className="flex items-baseline gap-2">
+                    <span className="text-4xl font-semibold numeric">
+                      {usd(PLANS[plan].monthly)}
+                    </span>
+                    <span className="text-sm text-muted-foreground">{t("offer.priceUnit")}</span>
+                  </p>
+                  <p className="text-sm">
+                    {t(`offer.plans.${plan}.setup`, { fee: usd(PLANS[plan].setup) })}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{t(`offer.plans.${plan}.body`)}</p>
+                  {plan === "aiTeam" ? (
+                    <div>
+                      <p className="text-sm font-medium">{t("offer.plans.aiTeam.agentsLabel")}</p>
+                      <ul className="mt-2 space-y-2">
+                        {AGENTS.map((agent) => (
+                          <li key={agent} className="flex flex-wrap items-center gap-2 text-sm">
+                            {t(`offer.agents.${agent}`)}
+                            <ItemStatusBadge status="done" />
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {cta === undefined ? (
+                    <BookingLink size="lg" className="w-full">
+                      {t("offer.cta")}
+                    </BookingLink>
+                  ) : (
+                    cta
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+            <p className="text-xs text-muted-foreground">{t("offer.qualifier")}</p>
 
             <Card className="bg-accent py-5 text-accent-foreground ring-0">
               <CardContent className="flex gap-3 px-5">

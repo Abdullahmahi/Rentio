@@ -48,10 +48,21 @@ export async function putObject(
   bucket: Bucket,
   objectPath: string,
   bytes: Uint8Array,
+  options: { exclusive?: boolean } = {},
 ) {
   const file = fileFor(orgId, bucket, objectPath);
   await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, bytes);
+  // exclusive: fail rather than overwrite (an e-sign original is written once).
+  await writeFile(file, bytes, { flag: options.exclusive ? "wx" : "w" });
+}
+
+/**
+ * E-sign evidence: the original as sent (esign-…) and the signed copies
+ * (signed-…). Only the server writes these; uploads and removes refuse them
+ * for everyone, staff included.
+ */
+export function isSealed(objectPath: string) {
+  return /^(esign|signed)-/i.test(objectPath.split("/").at(-1) ?? "");
 }
 
 export async function getObject(orgId: string, bucket: Bucket, objectPath: string) {
@@ -124,6 +135,7 @@ export async function mayAccess(
   objectPath: string,
   mode: "read" | "write",
 ) {
+  if (mode === "write" && isSealed(objectPath)) return false;
   if (session.isStaff) return Boolean(session.profile.org_id);
   const owner = objectPath.split("/")[0] ?? "";
   // Applicants: their own application's files (<application_id>/<file>),

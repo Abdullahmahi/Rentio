@@ -2,9 +2,16 @@ import { randomUUID } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { LINK_DAYS, parseSigners, signLink } from "@/lib/esign";
 import { siteUrl } from "@/lib/server/email";
-import { companyName, emailSigningLink, inspectPdf, newToken, sha256Hex } from "@/lib/server/esign";
+import {
+  companyName,
+  emailSigningLink,
+  inspectPdf,
+  newToken,
+  originalPath,
+  sha256Hex,
+} from "@/lib/server/esign";
 import { fail, requireSession } from "@/lib/server/session";
-import { getObject } from "@/lib/server/storage";
+import { getObject, putObject, removeObject } from "@/lib/server/storage";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
 
@@ -79,27 +86,15 @@ export const Route = createFileRoute("/api/fn/esign-send")({
             profiles?.find((row) => row.tenant_id === tenantId)?.locale === "en" ? "en" : "es-MX";
 
           const expiresAt = new Date(Date.now() + LINK_DAYS * 86_400_000).toISOString();
-          const { data: created, error: requestError } = await db
-            .from("signature_requests")
-            .insert({
-              lease_id: leaseId,
-              title,
-              message,
-              original_path: path,
-              original_sha256: sha256Hex(bytes),
-              page_count: pages.length,
-              created_by: session.profile.id,
-              expires_at: expiresAt,
-            })
-            .select("id")
-            .single();
-          if (requestError) throw requestError;
+          const requestId = randomUUID();
+          // The request's own copy, written once (never overwritten) at a
+          // path staff uploads refuse; its hash is checked before every use.
+          await putObject(orgId, "contracts", originalPath(leaseId, requestId), bytes, {
+            exclusive: true,
+          });
 
-          // Ids minted here and no RETURNING: token_hash is outside the
-          // caller's column grant, so nothing reads the rows back.
           const rows = signers.map((signer) => ({
             id: randomUUID(),
-            request_id: created.id,
             name: signer.name,
             email: signer.email,
             tenant_id: signer.tenantId,
@@ -109,12 +104,27 @@ export const Route = createFileRoute("/api/fn/esign-send")({
             page: signer.page,
             ...signer.box,
             ...newToken(),
-            token_expires_at: expiresAt,
           }));
-          const { error: signersError } = await db
-            .from("signature_signers")
-            .insert(rows.map(({ token: _token, hash, ...row }) => ({ ...row, token_hash: hash })));
-          if (signersError) throw signersError;
+          // One staff-only function files the request and its signers; staff
+          // have no direct write on either table.
+          const { error: sendError } = await db.rpc("send_signature_request", {
+            p_id: requestId,
+            p_lease: leaseId,
+            p_title: title,
+            p_message: message,
+            p_sha: sha256Hex(bytes),
+            p_page_count: pages.length,
+            p_expires_at: expiresAt,
+            p_signers: rows.map(({ token: _token, hash, ...row }) => ({
+              ...row,
+              token_hash: hash,
+            })),
+          });
+          if (sendError) {
+            await removeObject(orgId, "contracts", originalPath(leaseId, requestId));
+            throw sendError;
+          }
+          const created = { id: requestId };
 
           const company = await companyName(orgId);
           const result = [];
@@ -130,11 +140,7 @@ export const Route = createFileRoute("/api/fn/esign-send")({
               expiresAt,
               message,
             });
-            if (emailed)
-              await db
-                .from("signature_signers")
-                .update({ emailed_at: new Date().toISOString() })
-                .eq("id", row.id);
+            if (emailed) await db.rpc("mark_signature_emailed", { p_signer: row.id });
             result.push({
               id: row.id,
               name: row.name,

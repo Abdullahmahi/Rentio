@@ -20,7 +20,7 @@
     "headlineEmphasis": "La ley de Texas está en el formulario.",
     "subhead": "La oficina bilingüe para administradores de propiedades en Texas con 50–500 unidades. Ambos portales en inglés y español, los plazos del §92 contados por ti, y nuestro equipo migra tus unidades, inquilinos y contratos en 30 días, o no pagas hasta que esté listo.",
     "primaryCta": "Agenda un recorrido de 30 minutos",
-    "priceLine": "{{monthlyPrice}}/mes · todo incluido · {{setupFee}} de instalación",
+    "priceLine": "Core {{corePrice}}/mes + {{coreSetup}} de instalación · Equipo de IA {{aiTeamPrice}}/mes + {{aiTeamSetup}} de instalación",
     "secondaryCta": "Ver el precio y qué incluye",
     "imageAlt": "El portal de inquilinos de {{brand}} en español en un celular, con el saldo pendiente y un botón para reportar un pago",
     "chips": {
@@ -63,7 +63,7 @@
     "eyebrow": "Lo hace nuestro equipo · instalado por nosotros",
     "headingLead": "El",
     "headingEmphasis": "turno de noche",
-    "subhead": "Nuestro equipo instala y opera un servicio bilingüe fuera de horario para tu empresa: la línea telefónica, la recepción de mantenimiento, la respuesta por texto a llamadas perdidas y los recordatorios de cargos por atraso. Está incluido en el precio mensual.",
+    "subhead": "Nuestro equipo instala y opera un servicio bilingüe fuera de horario para tu empresa: la línea telefónica, la recepción de mantenimiento, la respuesta por texto a llamadas perdidas y los recordatorios de cargos por atraso. Está incluido en el plan Equipo de IA.",
     "items": {
       "voice": {
         "title": "Línea telefónica bilingüe fuera de horario",
@@ -195,12 +195,12 @@
   },
   "offer": {
     "eyebrow": "Qué incluye",
-    "headingLead": "Un solo precio.",
+    "headingLead": "Dos planes.",
     "headingEmphasis": "Todo lo que hacemos, marcado según lo que ya funciona.",
     "subhead": "Dos etiquetas. Disponible hoy es software que ya está en Rentio. Lo hace nuestro equipo es lo que instalamos y operamos para tu empresa.",
     "groups": {
       "software": "Software",
-      "ai": "IA · el turno de noche",
+      "ai": "IA · el turno de noche (plan Equipo de IA)",
       "people": "Personas",
       "money": "Dinero y dueños"
     },
@@ -292,7 +292,7 @@
     "valueLabel": "Comprados por separado, las personas, el sitio web y el turno de noche cuestan cerca de",
     "valueFigure": "$8,000+ al año",
     "valueNote": "para una empresa de 200 unidades, sin contar el software. Precios de mercado de nuestra investigación de precios 2026.",
-    "priceUnit": "al mes, todo el software de Rentio + IA",
+    "priceUnit": "al mes",
     "qualifier": "Hecho para empresas de Texas que administran de 50 a 500 unidades.",
     "cta": "Agenda un recorrido",
     "guarantee": {
@@ -301,8 +301,27 @@
       "exitTitle": "Fácil de salir.",
       "exit": "Después de los primeros 6 meses, vete el mes que quieras. Exportamos cada unidad, inquilino, contrato y pago por ti en 2 días hábiles."
     },
-    "priceLabel": "Tu precio",
-    "setup": "{{setupFee}} de instalación única: migración, capacitación y sitio web"
+    "plans": {
+      "core": {
+        "name": "Core",
+        "body": "El software de Rentio, las herramientas de dinero y dueños, y la migración, la capacitación y la persona con nombre de nuestro equipo.",
+        "setup": "{{fee}} de instalación única: migración, capacitación y sitio web"
+      },
+      "aiTeam": {
+        "name": "Equipo de IA",
+        "body": "Todo lo de Core, más agentes de IA que nuestro equipo instala y opera para tu empresa.",
+        "setup": "{{fee}} de instalación única: migración, capacitación, sitio web y tus agentes de IA",
+        "agentsLabel": "Agentes de IA"
+      }
+    },
+    "agents": {
+      "receptionist": "Recepcionista",
+      "maintenance": "Mantenimiento",
+      "rent": "Cobranza de renta",
+      "leasing": "Arrendamiento",
+      "renewals": "Renovaciones y salidas",
+      "backOffice": "Administración"
+    }
   },
   "faq": {
     "headingLead": "Lo que nos preguntan",
@@ -318,7 +337,7 @@
       },
       "ai": {
         "q": "¿La línea de IA ya funciona?",
-        "a": "Sí. Nuestro equipo instala tu línea fuera de horario en inglés y español durante la incorporación. Registra las solicitudes para tu equipo; nunca cambia un saldo, perdona un cargo ni envía un aviso legal."
+        "a": "Sí. En el plan Equipo de IA, nuestro equipo instala tu línea fuera de horario en inglés y español durante la incorporación. Registra las solicitudes para tu equipo; nunca cambia un saldo, perdona un cargo ni envía un aviso legal."
       },
       "spanish": {
         "q": "¿Es solo en español?",
@@ -334,19 +353,19 @@
       },
       "doors": {
         "q": "¿Cuántas unidades necesito?",
-        "a": "Rentio está hecho para 50 a 500 unidades; lo ideal es de 80 a 500. El precio es el mismo, {{monthlyPrice}} al mes, sin importar el tamaño. Con menos de 50 unidades, te diremos en la llamada que TurboTenant te sale más barato."
+        "a": "Rentio está hecho para 50 a 500 unidades; lo ideal es de 80 a 500. El precio es el mismo sin importar el tamaño: {{corePrice}} al mes en Core, {{aiTeamPrice}} al mes en Equipo de IA. Con menos de 50 unidades, te diremos en la llamada que TurboTenant te sale más barato."
       },
       "cost": {
         "q": "¿Cuánto cuesta?",
-        "a": "{{monthlyPrice}} al mes por el software, el turno de noche con IA que instala nuestro equipo y una persona con nombre. {{setupFee}} una sola vez por la migración, la capacitación y tu sitio web. Sin cargos por unidad y sin cargos del portal para inquilinos."
+        "a": "Dos planes. Core cuesta {{corePrice}} al mes por el software y una persona con nombre, más {{coreSetup}} una sola vez por la migración, la capacitación y tu sitio web. Equipo de IA cuesta {{aiTeamPrice}} al mes y suma los agentes de IA que nuestro equipo instala y opera por ti, más {{aiTeamSetup}} una sola vez. Sin cargos por unidad y sin cargos del portal para inquilinos."
       },
       "setupFee": {
         "q": "¿Por qué hay un cargo de instalación?",
-        "a": "Los {{setupFee}} cubren el trabajo que hacemos por ti una sola vez: pasar tus datos, configurar Rentio y tu línea de IA para tu empresa y capacitar a tu equipo."
+        "a": "El cargo de instalación ({{coreSetup}} en Core, {{aiTeamSetup}} en Equipo de IA) cubre el trabajo que hacemos por ti una sola vez: pasar tus datos, configurar Rentio para tu empresa (y tus agentes de IA en Equipo de IA) y capacitar a tu equipo."
       },
       "hiddenFees": {
         "q": "¿Hay cargos ocultos por pagos, evaluación de inquilinos o firma electrónica?",
-        "a": "No. No cobramos ni un dólar extra además de {{monthlyPrice}} al mes. Sin cargos por unidad, sin cargos por pago, sin extras."
+        "a": "No. No cobramos ni un dólar extra además del precio mensual de tu plan. Sin cargos por unidad, sin cargos por pago, sin extras."
       },
       "contract": {
         "q": "¿De cuánto es el contrato? ¿Puedo cancelar?",

@@ -22,6 +22,8 @@ import { APP_TIMEZONE } from "@/lib/format";
 import { fitInside, signLink, type Box } from "@/lib/esign";
 import { button, emailLayout, escapeHtml, sendEmail, siteUrl } from "@/lib/server/email";
 import { serviceDb } from "@/lib/server/session";
+import en from "@/locales/en.json";
+import esMX from "@/locales/es-MX.json";
 import { getObject, putObject } from "@/lib/server/storage";
 
 // ------------------------------------------------------------------ tokens
@@ -42,11 +44,45 @@ export function hashToken(token: string) {
   return TOKEN.test(token) ? sha256Hex(token) : null;
 }
 
-/** First hop of X-Forwarded-For (the proxy appends; the client is first). */
-export function clientIp(request: Request) {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+/**
+ * The signer's IP for the legal record. The client controls everything in
+ * X-Forwarded-For except what our own proxy appended, so:
+ *   CLIENT_IP_HEADER set  read that one header (the NAME of a header your
+ *                         edge sets and overwrites, e.g. cf-connecting-ip)
+ *   otherwise             the right-most X-Forwarded-For entry: the address
+ *                         Traefik (Coolify) saw connect to it.
+ */
+export function clientIp(request: Request, env: Record<string, string | undefined> = process.env) {
+  const trusted = env["CLIENT_IP_HEADER"]?.trim();
+  if (trusted) return request.headers.get(trusted)?.trim() || null;
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim();
   return forwarded || request.headers.get("x-real-ip")?.trim() || null;
 }
+
+// ------------------------------------------------------------------ consent
+
+/** The disclosure exactly as the signer page renders it, per language. */
+export function consentText(locale: string, company: string) {
+  const consent = (locale === "en" ? en : esMX).esign.consent;
+  const fill = (text: string) => text.replaceAll("{{company}}", company);
+  return [
+    consent.short,
+    ...(["scope", "paper", "withdraw", "system", "email", "effect"] as const).map((key) =>
+      fill(consent.items[key]),
+    ),
+  ].join("\n");
+}
+
+/** The PDF exactly as sent, or a throw: a swapped file is never shown or stamped. */
+export function assertOriginal(bytes: Uint8Array | null, sha: string) {
+  if (!bytes || sha256Hex(bytes) !== sha)
+    throw new Error("esign: the original PDF does not match what was sent");
+  return bytes;
+}
+
+/** The request's own copy of what was sent. Staff uploads cannot write it. */
+export const originalPath = (leaseId: string, requestId: string) =>
+  `${leaseId}/esign-${requestId}-original.pdf`;
 
 // --------------------------------------------------------------- formatting
 
@@ -114,6 +150,8 @@ export interface RecordSigner {
   user_agent: string | null;
   consent_at: string | null;
   consent_version: string | null;
+  consent_locale: string | null;
+  consent_text_sha256: string | null;
   signature_kind: string | null;
 }
 
@@ -154,8 +192,9 @@ export function recordLines(input: RecordInput): RecordLine[] {
       { text: `Opened: ${denverStamp(signer.viewed_at)}` },
       { text: `Signed: ${denverStamp(signer.signed_at)} (${signer.signature_kind ?? "-"})` },
       {
-        text: `Consented to sign electronically: ${denverStamp(signer.consent_at)} (${signer.consent_version ?? "-"})`,
+        text: `Consented to sign electronically: ${denverStamp(signer.consent_at)} (${signer.consent_version ?? "-"}, ${signer.consent_locale ?? "-"})`,
       },
+      { text: `Disclosure text shown (SHA-256): ${signer.consent_text_sha256 ?? "-"}` },
       { text: `IP address: ${signer.ip ?? "-"}` },
       { text: `Device: ${signer.user_agent ?? "-"}`, gap: 10 },
     );
@@ -368,8 +407,10 @@ export async function finaliseIfComplete(requestId: string, orgId: string) {
     .order("position");
   if (signersError) throw signersError;
 
-  const original = await getObject(orgId, "contracts", request.original_path);
-  if (!original) throw new Error("original PDF is missing");
+  const original = assertOriginal(
+    await getObject(orgId, "contracts", request.original_path),
+    request.original_sha256,
+  );
   const company = await companyName(orgId);
   const completedAt = signers
     .map((signer) => signer.signed_at ?? "")

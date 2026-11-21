@@ -1,14 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CONSENT_VERSION } from "@/lib/esign";
 import {
+  assertOriginal,
   clientIp,
   companyName,
+  consentText,
   finaliseIfComplete,
   hashToken,
   notifyDecline,
+  sha256Hex,
 } from "@/lib/server/esign";
 import { serviceDb } from "@/lib/server/session";
-import { signedUrl } from "@/lib/server/storage";
+import { getObject, signedUrl } from "@/lib/server/storage";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
 
@@ -21,7 +24,8 @@ const json = (body: unknown, status = 200) => Response.json(body, { status });
  * signer's email, IP or signature.
  *
  *   GET   → the agreement to read (marks it opened)
- *   POST  { kind: "drawn"|"typed", data (PNG), consent: true, locale } → signs
+ *   POST  { action: "consent", locale } → records consent (when the box is ticked)
+ *   POST  { kind: "drawn"|"typed", data (PNG) } → signs (consent recorded first)
  *   POST  { action: "decline", reason? } → declines (closes the request)
  */
 async function resolve(token: string) {
@@ -46,15 +50,29 @@ async function resolve(token: string) {
 
 type Resolved = NonNullable<Awaited<ReturnType<typeof resolve>>>;
 
+/** Every link expires, a signed one included: it is not a standing key to the lease. */
 function stateOf({ signer, request }: Resolved) {
   if (request.status === "voided") return "voided";
-  if (request.status === "completed") return "completed";
-  if (signer.signed_at) return "signed";
-  if (request.status === "declined" || signer.declined_at) return "declined";
   const now = Date.now();
   if (new Date(signer.token_expires_at).getTime() < now) return "expired";
   if (new Date(request.expires_at).getTime() < now) return "expired";
+  if (request.status === "completed") return "completed";
+  if (signer.signed_at) return "signed";
+  if (request.status === "declined" || signer.declined_at) return "declined";
   return "open";
+}
+
+/** The original, re-hashed against what was sent. Null when it was swapped or lost. */
+async function verifiedOriginal({ request, orgId }: Resolved) {
+  try {
+    return assertOriginal(
+      await getObject(orgId, "contracts", request.original_path),
+      request.original_sha256,
+    );
+  } catch (caught) {
+    console.error("esign original", request.id, caught);
+    return null;
+  }
 }
 
 async function describe(found: Resolved) {
@@ -84,7 +102,9 @@ async function describe(found: Resolved) {
         .eq("org_id", orgId)
         .maybeSingle()
     : { data: null };
-  const readable = state === "open" || state === "signed" || state === "completed";
+  // Only an open link shows the document. Once signed the page says so and
+  // nothing more: the signed copy is in the portal, the email and with staff.
+  const readable = state === "open" && (await verifiedOriginal(found)) !== null;
   return {
     state,
     company,
@@ -104,10 +124,6 @@ async function describe(found: Resolved) {
       .filter((row) => row.id !== signer.id)
       .map((row) => ({ name: row.name, signed: Boolean(row.signed_at) })),
     pdf_url: readable ? signedUrl(orgId, "contracts", request.original_path, 3600) : null,
-    signed_pdf_url:
-      state === "completed" && request.signed_path
-        ? signedUrl(orgId, "contracts", request.signed_path, 3600)
-        : null,
   };
 }
 
@@ -203,8 +219,23 @@ export const Route = createFileRoute("/api/sign/$token")({
           return json(await describe((await resolve(params.token)) ?? found));
         }
 
-        const locale = body.locale === "en" ? "en" : "es-MX";
-        if (body.consent !== true) return json({ error: "consent is required" }, 400);
+        if (body.action === "consent") {
+          // Ticked before signing, so it gets its own time, plus the exact
+          // disclosure text shown (hash) and its language.
+          const locale = body.locale === "en" ? "en" : "es-MX";
+          const { data: recorded, error } = await serviceDb().rpc("record_signature_consent", {
+            p_signer: signer.id,
+            p_version: CONSENT_VERSION,
+            p_locale: locale,
+            p_text_sha: sha256Hex(consentText(locale, await companyName(orgId))),
+          });
+          if (error) return json({ error: "could not record that" }, 500);
+          if (!recorded) return json({ error: "closed", ...(await describe(found)) }, 409);
+          return json(await describe(found));
+        }
+
+        if (!(await verifiedOriginal(found)))
+          return json({ error: "this document changed; ask the sender for a new link" }, 409);
         // Typed signatures are rendered to a PNG in the browser with the
         // bundled cursive face, so both kinds arrive as an image.
         if (
@@ -213,28 +244,18 @@ export const Route = createFileRoute("/api/sign/$token")({
           !isPngDataUrl(body.data)
         )
           return json({ error: "a signature is required" }, 400);
-        const data = body.data;
+        if (!signer.consent_at) return json({ error: "consent is required" }, 400);
 
-        const now = new Date().toISOString();
-        const { data: signed, error } = await serviceDb()
-          .from("signature_signers")
-          .update({
-            signed_at: now,
-            viewed_at: signer.viewed_at ?? now,
-            signature_kind: body.kind as string,
-            signature_data: data,
-            consent_at: now,
-            consent_version: `${CONSENT_VERSION}:${locale}`,
-            ip: clientIp(http),
-            user_agent: http.headers.get("user-agent")?.slice(0, 500) ?? null,
-          })
-          .eq("id", signer.id)
-          .eq("org_id", orgId)
-          .is("signed_at", null)
-          .is("declined_at", null)
-          .select("id");
+        // Locks the request row: a cancel or decline cannot land in between.
+        const { data: signed, error } = await serviceDb().rpc("sign_signature", {
+          p_signer: signer.id,
+          p_kind: body.kind,
+          p_data: body.data,
+          p_ip: clientIp(http),
+          p_user_agent: http.headers.get("user-agent")?.slice(0, 500) ?? null,
+        });
         if (error) return json({ error: "could not save the signature" }, 500);
-        if (!signed.length) return json({ error: "already signed" }, 409);
+        if (!signed) return json({ error: "closed", ...(await describe(found)) }, 409);
 
         await finaliseQuietly(request.id, orgId);
         return json(await describe((await resolve(params.token)) ?? found));

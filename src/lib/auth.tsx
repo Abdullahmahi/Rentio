@@ -13,6 +13,7 @@ import type { Tables, Enums } from "@/lib/database.types";
 
 type Profile = Tables<"profiles">;
 type Role = Enums<"user_role">;
+type Preview = { tenantId: string; tenantName: string };
 
 interface AuthValue {
   /** The Clerk login. Signed in is not the same as having access: see `profile`. */
@@ -34,6 +35,9 @@ interface AuthValue {
   isStaff: boolean;
   /** PortfolioAI staff. `profile.org_id` is the company they are acting in, if any. */
   isSuperAdmin: boolean;
+  /** Staff viewing the portal as this tenant, read-only. `profile` is then
+   *  the tenant's, so every portal query sees exactly what they see. */
+  preview: Preview | null;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -50,7 +54,7 @@ const AuthContext = createContext<AuthValue | null>(null);
 export const clerkAppearance = {
   variables: {
     colorPrimary: "#1B4D3E",
-    fontFamily: "Inter Variable, Inter, system-ui, sans-serif",
+    fontFamily: "'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', system-ui, sans-serif",
     borderRadius: "0.625rem",
   },
   options: { elevation: "flush", unsafe_disableDevelopmentModeWarnings: true },
@@ -81,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { user: clerkUser } = useUser();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [accessError, setAccessError] = useState<AuthValue["accessError"]>(null);
+  const [preview, setPreview] = useState<Preview | null>(null);
   // Which login the current `profile` was actually fetched for. Without this
   // there is a window where the login has changed but the profile still
   // belongs to the previous user, and a consumer cannot tell "no profile
@@ -91,8 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await apiFetch("/api/me");
       if (response.ok) {
-        const body = (await response.json()) as { profile: Profile };
+        const body = (await response.json()) as { profile: Profile; preview?: Preview | null };
         setProfile(body.profile);
+        setPreview(body.preview ?? null);
         setAccessError(null);
         return;
       }
@@ -137,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Drop the acting-company cookie (super_admin) before the session goes,
     // so the next sign-in on this browser starts in the platform view.
     await fetch("/api/org", { method: "DELETE" }).catch(() => undefined);
+    await fetch("/api/portal-preview", { method: "DELETE" }).catch(() => undefined);
     await clerkSignOut();
     setProfile(null);
   }, [clerkSignOut]);
@@ -159,10 +166,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isManager: role === "manager",
       isStaff: role === "admin" || role === "manager" || role === "super_admin",
       isSuperAdmin: role === "super_admin",
+      preview,
       signOut,
       refreshProfile: loadProfile,
     };
-  }, [userId, clerkUser, profile, loading, accessError, signOut, loadProfile, patchProfile]);
+  }, [
+    userId,
+    clerkUser,
+    profile,
+    preview,
+    loading,
+    accessError,
+    signOut,
+    loadProfile,
+    patchProfile,
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

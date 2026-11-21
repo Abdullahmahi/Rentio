@@ -8,6 +8,7 @@
     "properties": "Propiedades",
     "units": "Unidades",
     "parking": "Estacionamiento",
+    "automations": "Automatizaciones",
     "tenants": "Inquilinos",
     "contracts": "Contratos",
     "receipts": "Recibos",
@@ -45,6 +46,10 @@
     "parking": {
       "title": "Estacionamiento",
       "description": "Administra los espacios de estacionamiento asignados."
+    },
+    "automations": {
+      "title": "Automatizaciones",
+      "description": "Lo que Rentio hace por su cuenta, cada noche."
     },
     "tenants": {
       "title": "Inquilinos",
@@ -193,6 +198,58 @@
     "overdue": "Vencido",
     "paid": "Pagado",
     "open": "Abierto"
+  },
+  "automations": {
+    "title": "Automatizaciones",
+    "description": "Lo que Rentio hace por su cuenta, cada noche. Los cambios aplican a partir de la próxima corrida.",
+    "runNow": "Correr ahora",
+    "running": "Corriendo las tareas de esta noche…",
+    "ranNow": "Listo. Los conteos de arriba son de esta corrida.",
+    "ranWithErrors": "Terminó con {{count}} errores. Abre el historial para ver los detalles.",
+    "save": "Guardar cambios",
+    "saved": "Automatizaciones guardadas. Aplican a partir de la próxima corrida.",
+    "lastRun": {
+      "ok": "Corrió {{when}} · todo salió bien",
+      "failed": "Corrió {{when}} · algo falló",
+      "never": "Todavía no ha corrido",
+      "neverHint": "La tarea nocturna aún no corre para esta empresa. Presiona Correr ahora o espera a esta noche.",
+      "counts": "{{invoices}} recibos generados · {{reminders}} recordatorios de renta · {{warnings}} avisos de cargo tardío · {{updates}} avisos a inquilinos · {{errors}} errores",
+      "next": "Corre cada noche alrededor de las 11 pm",
+      "history": "Ver las últimas 30 corridas",
+      "hide": "Ocultar el historial",
+      "trigger": { "cron": "nocturna", "manual": "a mano" }
+    },
+    "panel": {
+      "title": "Lo que corre cada noche",
+      "description": "Apaga cualquiera cuando quieras. Los días se cuentan en hora de El Paso. Los inquilinos siempre reciben los correos en su idioma."
+    },
+    "invoices": {
+      "title": "Recibos mensuales",
+      "description": "Rentio genera el recibo de renta del mes para cada contrato activo. Los borradores no se muestran al inquilino hasta que se envían.",
+      "dayBefore": "Generar el día",
+      "dayAfter": "de cada mes",
+      "dayLabel": "Día del mes para generar los recibos",
+      "drafts": "Dejarlos como borradores para revisarlos",
+      "send": "Enviarlos a los inquilinos automáticamente"
+    },
+    "reminder": {
+      "title": "Recordatorio de renta",
+      "description": "Un correo amable antes del vencimiento, con el saldo y cómo pagar. Dice \"pagar tu renta no tiene costo\".",
+      "daysAfter": "días antes del vencimiento",
+      "daysLabel": "Días antes del vencimiento"
+    },
+    "lateFee": {
+      "title": "Aviso de cargo por pago tardío",
+      "description": "Avisa al inquilino que podría cobrarse un cargo si la renta no llega. La fecha la fija la ley de Texas — el vencimiento más los días de gracia del contrato — así que aquí no hay nada que ajustar."
+    },
+    "payments": {
+      "title": "Confirmaciones de pago",
+      "description": "Cuando confirmas o rechazas un pago que reportó un inquilino, recibe un correo en menos de un minuto — con el motivo, si se rechazó."
+    },
+    "repairs": {
+      "title": "Avances de reparaciones",
+      "description": "Cuando una solicitud cambia de estado, o agregas una nota marcada \"visible para el inquilino\", el inquilino se entera por correo."
+    }
   },
   "dialog": {
     "title": "Confirmar acción",
@@ -521,6 +578,7 @@
   },
   "contracts": {
     "new": "Nuevo contrato",
+    "monthToMonth": "Mes a mes",
     "columns": {
       "tenant": "Inquilino principal",
       "start": "Inicio",
@@ -920,6 +978,8 @@
     "sending": "Enviando…",
     "sentCount": "{{count}} recibo enviado",
     "sentCount_other": "{{count}} recibos enviados",
+    "sendFailed": "{{count}} recibo no se pudo enviar por correo y no se marcó como enviado: {{names}}",
+    "sendFailed_other": "{{count}} recibos no se pudieron enviar por correo y no se marcaron como enviados: {{names}}",
     "batchTitle": "Revisa el lote de {{month}}",
     "batchSummary": "{{count}} borrador por facturar, por un total de",
     "batchSummary_other": "{{count}} borradores por facturar, por un total de",
@@ -1052,6 +1112,13 @@
     "whatsapp": "WhatsApp",
     "telefono": "Teléfono",
     "personal": "En persona"
+  },
+  "portalPreview": {
+    "open": "Ver el portal como este inquilino",
+    "banner": "Viendo como {{name}}, solo lectura",
+    "exit": "Salir de la vista previa",
+    "noLogin": "Primero invita a este inquilino al portal. No hay nada que mostrar hasta que tenga acceso al portal.",
+    "failed": "No se pudo abrir la vista previa. Inténtalo de nuevo."
   },
   "portal": {
     "balanceDue": "Saldo pendiente",
@@ -1283,7 +1350,11 @@
       "welcomeKitReady": "Kit de bienvenida descargado."
     },
     "roleChanged": "Rol actualizado.",
-    "ownRoleLocked": "Pide a otro administrador que cambie tu rol.",
+    "demoteSelf": {
+      "title": "¿Quitarte tu propio acceso de administrador?",
+      "description": "Pasarás a {{role}} y perderás de inmediato el acceso a Configuración y a la gestión de usuarios. Solo otro administrador podrá volver a hacerte administrador.",
+      "confirm": "Sí, cambiar mi rol"
+    },
     "inviteSent": "Invitación enviada.",
     "adminOnly": "Solo un administrador puede ver esta sección.",
     "inviteUser": "Invitar usuario",

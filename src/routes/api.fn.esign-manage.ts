@@ -30,19 +30,16 @@ export const Route = createFileRoute("/api/fn/esign-manage")({
           };
 
           if (body.action === "void" && body.request_id) {
-            const { data, error } = await db
-              .from("signature_requests")
-              .update({ status: "voided", voided_at: new Date().toISOString() })
-              .eq("id", body.request_id)
-              .eq("status", "sent")
-              .select("id, lease_id");
+            // Cancels and burns every link, in one locked transaction.
+            const { data: leaseId, error } = await db.rpc("cancel_signature_request", {
+              p_request: body.request_id,
+            });
             if (error) throw error;
-            if (!data.length)
-              return json({ error: "This agreement can no longer be cancelled" }, 409);
+            if (!leaseId) return json({ error: "This agreement can no longer be cancelled" }, 409);
             await db.from("activity_log").insert({
               actor_id: session.profile.id,
               entity_type: "lease",
-              entity_id: data[0]!.lease_id,
+              entity_id: leaseId,
               action: "esign_void",
               meta: { request_id: body.request_id },
             });
@@ -66,17 +63,15 @@ export const Route = createFileRoute("/api/fn/esign-manage")({
 
             const { token, hash } = newToken();
             const expiresAt = new Date(Date.now() + LINK_DAYS * 86_400_000).toISOString();
-            const { error } = await db
-              .from("signature_signers")
-              .update({ token_hash: hash, token_expires_at: expiresAt })
-              .eq("id", signer.id);
+            // New hash and expiry, and a reminder keeps the whole agreement open.
+            const { data: rotated, error } = await db.rpc("resend_signature_link", {
+              p_signer: signer.id,
+              p_token_hash: hash,
+              p_expires_at: expiresAt,
+            });
             if (error) throw error;
-            // Expiry is per agreement too: a reminder keeps the whole thing open.
-            await db
-              .from("signature_requests")
-              .update({ expires_at: expiresAt })
-              .eq("id", agreement.id)
-              .lt("expires_at", expiresAt);
+            if (!rotated)
+              return json({ error: "Nothing to resend: already signed or closed" }, 409);
 
             const emailed = await emailSigningLink({
               to: signer.email,
@@ -88,11 +83,7 @@ export const Route = createFileRoute("/api/fn/esign-manage")({
               expiresAt,
               message: agreement.message,
             });
-            if (emailed)
-              await db
-                .from("signature_signers")
-                .update({ emailed_at: new Date().toISOString() })
-                .eq("id", signer.id);
+            if (emailed) await db.rpc("mark_signature_emailed", { p_signer: signer.id });
             return json({ emailed, link: signLink(siteUrl(), token) });
           }
 

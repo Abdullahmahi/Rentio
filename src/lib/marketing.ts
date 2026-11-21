@@ -122,11 +122,21 @@ export const CLIENT_PROOF = {
 /** First client, for internal reference only. No quote renders until they agree in writing. */
 export const FIRST_CLIENT = "Hayen Properties";
 
-/* Pricing (owner decision 2026-10-28): flat, not per door. Every price on the page renders from these. */
-/** Per month, the whole Rentio software + AI bundle. */
-export const MONTHLY_PRICE = 349;
-/** One-time setup: migration, training, website. */
-export const SETUP_FEE = 3500;
+/* Pricing (owner decision 2026-11-21): two flat plans, not per door. Every price on the page
+   renders from these. AI Team's agents are services our team sets up: badge "done", never "live". */
+export const PLANS = {
+  /** Software + money tools + our team's migration and training. */
+  core: { monthly: 249, setup: 499 },
+  /** Everything in Core plus the AI agents. */
+  aiTeam: { monthly: 549, setup: 1499 },
+} as const;
+
+export type PlanKey = keyof typeof PLANS;
+
+/** "$1,499"-style price. */
+export function usd(amount: number) {
+  return `$${amount.toLocaleString("en-US")}`;
+}
 
 /* Legal and contact details for /privacy, /terms, /contact and the footer.
    Empty strings are hidden, never rendered as blank rows. */
@@ -137,8 +147,10 @@ export const CONTACT_ADDRESS: string = "";
 
 /** Interpolation values for every price string in the marketing locale files. */
 export const PRICE_VARS = {
-  monthlyPrice: `$${MONTHLY_PRICE.toLocaleString("en-US")}`,
-  setupFee: `$${SETUP_FEE.toLocaleString("en-US")}`,
+  corePrice: usd(PLANS.core.monthly),
+  coreSetup: usd(PLANS.core.setup),
+  aiTeamPrice: usd(PLANS.aiTeam.monthly),
+  aiTeamSetup: usd(PLANS.aiTeam.setup),
 };
 
 /** CLIENT_PROOF in the current language. */
