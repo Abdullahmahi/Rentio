@@ -23,6 +23,7 @@ export const BUCKETS = [
   "payment-receipts",
   "work-order-photos",
   "company",
+  "applications",
 ] as const;
 export type Bucket = (typeof BUCKETS)[number];
 
@@ -125,6 +126,17 @@ export async function mayAccess(
 ) {
   if (session.isStaff) return Boolean(session.profile.org_id);
   const owner = objectPath.split("/")[0] ?? "";
+  // Applicants: their own application's files (<application_id>/<file>),
+  // written only while it is a draft. Nothing else, not even the logo.
+  if (session.profile.role === "applicant") {
+    if (bucket !== "applications" || !UUID.test(owner)) return false;
+    const { data } = await session.db
+      .from("applications")
+      .select("status")
+      .eq("id", owner)
+      .maybeSingle();
+    return Boolean(data) && (mode === "read" || data?.status === "draft");
+  }
   // The company bucket also holds unit and property documents; tenants get the logo only (S-004).
   if (bucket === "company") return mode === "read" && owner === "logo";
   if (!UUID.test(owner)) return false;

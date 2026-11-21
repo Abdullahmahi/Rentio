@@ -26,7 +26,8 @@
     },
     "requests": "Access requests",
     "expenses": "Expenses",
-    "serviceRequests": "Service requests"
+    "serviceRequests": "Service requests",
+    "applications": "Applications"
   },
   "pages": {
     "dashboard": {
@@ -1588,6 +1589,155 @@
       "noSigners": "Add at least one signer.",
       "nameEmail": "Every signer needs a full name and a valid email.",
       "unplaced": "Place a signature spot for: {{names}}."
+    }
+  },
+  "applications": {
+    "title": "Applications",
+    "description": "Rental applications from prospects. Review, record the background check, then approve or deny.",
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "under_review": "Under review",
+      "approved": "Approved",
+      "denied": "Denied",
+      "lease_sent": "Lease sent"
+    },
+    "statusHint": {
+      "draft": "Not sent yet. Finish the steps and submit.",
+      "submitted": "The office has your application.",
+      "under_review": "The office is reviewing your application.",
+      "approved": "Approved. The office will send your lease to sign.",
+      "denied": "The office could not approve this application.",
+      "lease_sent": "Your lease is ready to sign. Check your email."
+    },
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Phone",
+      "dateOfBirth": "Date of birth",
+      "currentAddress": "Current address",
+      "desiredMoveIn": "Desired move-in date",
+      "employer": "Employer",
+      "jobTitle": "Job title",
+      "employerPhone": "Employer phone",
+      "employmentStart": "Working there since",
+      "monthlyIncome": "Monthly income (before taxes)",
+      "notes": "Anything else the office should know",
+      "relationship": "Relationship",
+      "address": "Address",
+      "landlordName": "Landlord name",
+      "landlordPhone": "Landlord phone",
+      "rent": "Monthly rent",
+      "from": "From",
+      "to": "To",
+      "unit": "Unit",
+      "kind": "Document type",
+      "file": "File"
+    },
+    "kinds": {
+      "id": "Photo ID",
+      "pay_stub": "Pay stub",
+      "other": "Other"
+    },
+    "steps": {
+      "personal": "About you",
+      "work": "Work and income",
+      "history": "Rental history",
+      "coApplicants": "Co-applicants",
+      "documents": "Documents",
+      "review": "Review and submit"
+    },
+    "stepOf": "Step {{current}} of {{total}}",
+    "apply": {
+      "title": "Apply to rent",
+      "description": "Create an account or sign in with your email to start. Your answers are saved as you go.",
+      "signInInstead": "Already have an account? Sign in",
+      "signUpInstead": "New here? Create an account",
+      "starting": "Opening your application…",
+      "invalidLink": "This application link is not valid or has been turned off. Ask the office for a new one.",
+      "accountExists": "This email already has a Rentio account. Sign in with it, or use another email to apply.",
+      "otherCompany": "Your account is applying with another company. Use a different email for this one.",
+      "emailNotVerified": "Verify your email address first, then try again.",
+      "failed": "We could not open your application. Try again.",
+      "oneEmail": "One email address is one Rentio account."
+    },
+    "form": {
+      "next": "Save and continue",
+      "back": "Back",
+      "save": "Save",
+      "saved": "Saved",
+      "submit": "Submit application",
+      "submitted": "Application submitted",
+      "reviewHint": "Check your answers. After you submit you can no longer change them.",
+      "nameRequired": "Enter your full name and phone.",
+      "addHistory": "Add a previous address",
+      "noHistory": "No previous addresses added.",
+      "addCoApplicant": "Add co-applicant",
+      "noCoApplicants": "No co-applicants. Add every other adult who will live in the unit.",
+      "coApplicantAdded": "Co-applicant added",
+      "removed": "Removed",
+      "upload": "Upload",
+      "uploaded": "File uploaded",
+      "noFiles": "No documents yet. Add a photo ID and recent pay stubs.",
+      "fileRequired": "Choose a file."
+    },
+    "dashboard": {
+      "title": "Your applications",
+      "empty": "You have no applications yet. Open the link the office sent you.",
+      "continue": "Continue application",
+      "submittedOn": "Submitted {{date}}"
+    },
+    "queue": {
+      "emptyTitle": "No applications",
+      "emptyDescription": "Send an application link to a prospect. Their application shows up here.",
+      "allStatuses": "All statuses",
+      "applicant": "Applicant",
+      "received": "Received",
+      "income": "Monthly income",
+      "anyUnit": "Any unit",
+      "review": "Review"
+    },
+    "links": {
+      "title": "Application links",
+      "description": "Send one of these to a prospect. A unit link applies to that unit only.",
+      "unitOptional": "Unit (optional)",
+      "create": "New link",
+      "created": "Link created",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "deactivate": "Turn off",
+      "deactivated": "Link turned off",
+      "none": "No links yet.",
+      "manage": "Links"
+    },
+    "detail": {
+      "back": "All applications",
+      "answers": "Answers",
+      "notFound": "Application not found.",
+      "screening": "Background check",
+      "screeningHint": "Record the result of the check you ran outside Rentio. Only your team sees it.",
+      "screeningResult": "Result",
+      "screeningNote": "Note",
+      "result": {
+        "approved": "Passed",
+        "denied": "Did not pass"
+      },
+      "saveScreening": "Save result",
+      "screeningSaved": "Background check saved",
+      "decision": "Decision",
+      "decisionNote": "Note",
+      "approve": "Approve",
+      "deny": "Deny",
+      "approveTitle": "Approve and draft the lease",
+      "approveDescription": "Creates the tenant and a draft lease that reserves the unit. Send it for signature next.",
+      "denyTitle": "Deny this application",
+      "denyDescription": "The applicant only sees that it was not approved. The note stays with your team.",
+      "approved": "Application approved. Draft lease created.",
+      "denied": "Application denied",
+      "sendLease": "Send lease for signature",
+      "openLease": "Open lease",
+      "screeningDenied": "The background check did not pass.",
+      "noUnit": "Pick a unit."
     }
   }
 }

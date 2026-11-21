@@ -93,6 +93,228 @@ export type Database = {
         };
         Relationships: [];
       };
+      application_co_applicants: {
+        Row: {
+          id: string;
+          org_id: string;
+          application_id: string;
+          full_name: string;
+          email: string | null;
+          phone: string | null;
+          relationship: string | null;
+          monthly_income: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          application_id: string;
+          full_name: string;
+          email?: string | null;
+          phone?: string | null;
+          relationship?: string | null;
+          monthly_income?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          application_id?: string;
+          full_name?: string;
+          email?: string | null;
+          phone?: string | null;
+          relationship?: string | null;
+          monthly_income?: number | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      application_files: {
+        Row: {
+          id: string;
+          org_id: string;
+          application_id: string;
+          kind: string;
+          path: string;
+          file_name: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          application_id: string;
+          kind?: string;
+          path: string;
+          file_name?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          application_id?: string;
+          kind?: string;
+          path?: string;
+          file_name?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      application_links: {
+        Row: {
+          id: string;
+          org_id: string;
+          unit_id: string | null;
+          token: string;
+          active: boolean;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          unit_id?: string | null;
+          token?: string;
+          active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          unit_id?: string | null;
+          token?: string;
+          active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      application_reviews: {
+        Row: {
+          id: string;
+          org_id: string;
+          application_id: string;
+          screening_result: string | null;
+          screening_note: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          decision_note: string | null;
+          decided_by: string | null;
+          decided_at: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          application_id: string;
+          screening_result?: string | null;
+          screening_note?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          decision_note?: string | null;
+          decided_by?: string | null;
+          decided_at?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          application_id?: string;
+          screening_result?: string | null;
+          screening_note?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          decision_note?: string | null;
+          decided_by?: string | null;
+          decided_at?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      applications: {
+        Row: {
+          id: string;
+          org_id: string;
+          unit_id: string | null;
+          link_id: string | null;
+          profile_id: string;
+          status: string;
+          full_name: string | null;
+          email: string | null;
+          phone: string | null;
+          date_of_birth: string | null;
+          current_address: string | null;
+          desired_move_in: string | null;
+          employer: string | null;
+          job_title: string | null;
+          employer_phone: string | null;
+          employment_start: string | null;
+          monthly_income: number | null;
+          rental_history: Json;
+          notes: string | null;
+          submitted_at: string | null;
+          tenant_id: string | null;
+          lease_id: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          unit_id?: string | null;
+          link_id?: string | null;
+          profile_id: string;
+          status?: string;
+          full_name?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          date_of_birth?: string | null;
+          current_address?: string | null;
+          desired_move_in?: string | null;
+          employer?: string | null;
+          job_title?: string | null;
+          employer_phone?: string | null;
+          employment_start?: string | null;
+          monthly_income?: number | null;
+          rental_history?: Json;
+          notes?: string | null;
+          submitted_at?: string | null;
+          tenant_id?: string | null;
+          lease_id?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          unit_id?: string | null;
+          link_id?: string | null;
+          profile_id?: string;
+          status?: string;
+          full_name?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          date_of_birth?: string | null;
+          current_address?: string | null;
+          desired_move_in?: string | null;
+          employer?: string | null;
+          job_title?: string | null;
+          employer_phone?: string | null;
+          employment_start?: string | null;
+          monthly_income?: number | null;
+          rental_history?: Json;
+          notes?: string | null;
+          submitted_at?: string | null;
+          tenant_id?: string | null;
+          lease_id?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       documents: {
         Row: {
           id: string;
@@ -1430,6 +1652,16 @@ export type Database = {
         };
         Returns: undefined;
       };
+      approve_application: {
+        Args: {
+          p_application: string;
+          p_terms: Database["public"]["Functions"]["create_lease"]["Args"]["p_terms"];
+          p_unit?: string | null;
+          p_note?: string | null;
+          p_checklist?: { item: string; item_key: string; position: number }[];
+        };
+        Returns: { tenant_id: string; lease_id: string };
+      };
       generate_invoices: {
         Args: { p_period: string };
         Returns: { created: number; skipped: number }[];
@@ -1487,7 +1719,7 @@ export type Database = {
       payment_method: "ach" | "zelle" | "check" | "money_order" | "cash" | "card" | "other";
       payment_status: "pendiente" | "confirmado" | "cancelado";
       unit_status: "vacante" | "ocupada" | "mantenimiento" | "reservada";
-      user_role: "admin" | "manager" | "tenant" | "super_admin";
+      user_role: "admin" | "manager" | "tenant" | "super_admin" | "applicant";
       utility_status: "pendiente" | "facturado";
       utility_type: "agua" | "luz" | "gas" | "cuota_mantenimiento" | "otro";
       wo_category:

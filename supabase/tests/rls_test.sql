@@ -1105,4 +1105,237 @@ begin
 end;
 $$;
 
+-- ======================================================== rental applications
+do $$
+declare
+  admin_b    uuid := '00000000-0000-0000-0000-0000000000c1';
+  manager_id uuid := '00000000-0000-0000-0000-0000000000a2';
+  tenant_a   uuid := '00000000-0000-0000-0000-0000000000b1';
+  user_a     uuid := '00000000-0000-0000-0000-0000000000e1';
+  user_b     uuid := '00000000-0000-0000-0000-0000000000e2';
+  org_a uuid := (select id from public.organizations order by created_at limit 1);
+  prop uuid; unit_1 uuid; unit_2 uuid; link_a uuid; app_a uuid; app_b uuid;
+  res jsonb; res2 jsonb; lease_a uuid; lease_b uuid; terms jsonb;
+  n int; refused boolean;
+  t_real uuid := (select id from public.tenants where org_id = (select id from public.organizations order by created_at limit 1) limit 1);
+begin
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  insert into public.properties (org_id, name) values (org_a, 'Apply Court') returning id into prop;
+  insert into public.units (property_id, unit_number) values (prop, 'AP1') returning id into unit_1;
+  insert into public.units (property_id, unit_number) values (prop, 'AP2') returning id into unit_2;
+  insert into public.application_links (org_id, unit_id) values (org_a, unit_1) returning id into link_a;
+  insert into public.profiles (id, full_name, role, org_id, email) values
+    (user_a, 'Applicant A', 'applicant', org_a, 'applicant.a@example.com'),
+    (user_b, 'Applicant B', 'applicant', org_a, 'applicant.b@example.com');
+  insert into public.applications (org_id, unit_id, link_id, profile_id, full_name, email)
+    values (org_a, unit_1, link_a, user_a, 'Applicant A', 'applicant.a@example.com') returning id into app_a;
+  insert into public.applications (org_id, profile_id, full_name, email)
+    values (org_a, user_b, 'Applicant B', 'applicant.b@example.com') returning id into app_b;
+  insert into public.application_co_applicants (application_id, full_name) values (app_b, 'B Partner');
+  insert into public.application_files (application_id, kind, path) values (app_b, 'id', app_b || '/id.pdf');
+  insert into public.application_reviews (application_id, screening_note) values (app_a, 'Office only');
+  perform pg_temp.check('application child rows take org from the application',
+    (select org_id from public.application_files where application_id = app_b) = org_a);
+
+  set local role authenticated;
+
+  -- --------------------------------------------- applicant A, fenced to own
+  perform pg_temp.act_as(user_a);
+  select count(*) into n from public.applications;
+  perform pg_temp.check('applicant sees only own application', n = 1);
+  select count(*) into n from public.applications where id = app_b;
+  perform pg_temp.check('applicant A cannot read applicant B application', n = 0);
+  select count(*) into n from public.application_co_applicants where application_id = app_b;
+  perform pg_temp.check('applicant A cannot read applicant B co-applicants', n = 0);
+  select count(*) into n from public.application_files where application_id = app_b;
+  perform pg_temp.check('applicant A cannot read applicant B files', n = 0);
+  select count(*) into n from public.application_links;
+  perform pg_temp.check('applicant cannot read application links', n = 0);
+  select count(*) into n from public.tenants;
+  perform pg_temp.check('applicant cannot read tenants', n = 0);
+  select count(*) into n from public.leases;
+  perform pg_temp.check('applicant cannot read leases', n = 0);
+  select count(*) into n from public.invoices;
+  perform pg_temp.check('applicant cannot read invoices', n = 0);
+  select count(*) into n from public.payments;
+  perform pg_temp.check('applicant cannot read payments', n = 0);
+  select count(*) into n from public.units;
+  perform pg_temp.check('applicant cannot read units', n = 0);
+  select count(*) into n from public.profiles;
+  perform pg_temp.check('applicant reads only own profile', n = 1);
+
+  insert into public.application_co_applicants (application_id, full_name, monthly_income)
+    values (app_a, 'A Partner', 2500);
+  perform pg_temp.check('applicant adds a co-applicant to own draft',
+    (select count(*) from public.application_co_applicants where application_id = app_a) = 1);
+  refused := false;
+  begin
+    insert into public.application_co_applicants (application_id, full_name) values (app_b, 'Planted');
+  exception when others then refused := true;
+  end;
+  perform pg_temp.check('applicant cannot add to another application', refused);
+  refused := false;
+  begin
+    insert into public.applications (profile_id, full_name) values (user_a, 'Second');
+  exception when others then refused := true;
+  end;
+  perform pg_temp.check('applicant cannot insert applications directly', refused);
+
+  select count(*) into n from public.application_reviews;
+  perform pg_temp.check('applicant cannot read the review of own application', n = 0);
+  refused := false;
+  begin
+    insert into public.application_reviews (application_id, screening_result) values (app_a, 'approved');
+  exception when others then refused := true;
+  end;
+  perform pg_temp.check('applicant cannot write a screening result', refused);
+  refused := false;
+  begin
+    update public.applications set status = 'approved' where id = app_a;
+  exception when others then refused := true;
+  end;
+  perform pg_temp.check('applicant cannot approve own application', refused);
+  refused := false;
+  begin
+    update public.profiles set role = 'tenant' where id = user_a;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('applicant cannot change own role', refused);
+  refused := false;
+  begin
+    update public.profiles set tenant_id = t_real where id = user_a;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('applicant cannot link itself to a tenant', refused);
+
+  update public.applications set monthly_income = 5200, desired_move_in = current_date + 14,
+    rental_history = '[{"address": "1 Old St", "landlord_name": "Pat"}]'::jsonb
+  where id = app_a;
+  update public.applications set status = 'submitted' where id = app_a;
+  perform pg_temp.check('applicant submits own draft',
+    (select status = 'submitted' and submitted_at is not null from public.applications where id = app_a));
+  update public.applications set full_name = 'Changed later' where id = app_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('applicant cannot edit after submitting', n = 0);
+
+  perform pg_temp.act_as(tenant_a);
+  refused := false;
+  begin
+    update public.profiles set role = 'applicant' where id = tenant_a;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('tenant cannot change own role', refused);
+  select count(*) into n from public.applications;
+  perform pg_temp.check('tenant cannot read applications', n = 0);
+
+  -- ------------------------------------------------------- org B staff
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.applications where id in (app_a, app_b);
+  perform pg_temp.check('org B cannot read org A applications', n = 0);
+  select count(*) into n from public.application_links where id = link_a;
+  perform pg_temp.check('org B cannot read org A application links', n = 0);
+  select count(*) into n from public.application_co_applicants where application_id = app_b;
+  perform pg_temp.check('org B cannot read org A co-applicants', n = 0);
+  select count(*) into n from public.application_reviews where application_id = app_a;
+  perform pg_temp.check('org B cannot read org A application reviews', n = 0);
+  update public.applications set status = 'denied' where id = app_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('org B cannot decide org A applications', n = 0);
+  refused := false;
+  begin
+    insert into public.application_links (org_id, unit_id) values (org_a, unit_1);
+  exception when others then refused := true;
+  end;
+  perform pg_temp.check('org B cannot create a link in org A', refused);
+  refused := false;
+  begin
+    perform public.approve_application(app_a, '{}'::jsonb);
+  exception when others then refused := true;
+  end;
+  perform pg_temp.check('org B cannot approve org A application', refused);
+
+  -- ------------------------------------------------ manager reviews, approves
+  perform pg_temp.act_as(manager_id);
+  select count(*) into n from public.applications where id in (app_a, app_b);
+  perform pg_temp.check('staff read every application in the org', n = 2);
+  insert into public.application_links (unit_id) values (unit_2);
+  perform pg_temp.check('staff create an application link',
+    (select count(*) from public.application_links where unit_id = unit_2) = 1);
+  update public.applications set status = 'under_review' where id = app_a;
+  update public.application_reviews
+  set screening_result = 'approved', screening_note = 'Clear', reviewed_by = manager_id, reviewed_at = now()
+  where application_id = app_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('manager records the background check', n = 1);
+
+  refused := false;
+  begin
+    perform public.approve_application(app_b, '{}'::jsonb, unit_2);
+  exception when others then refused := true;
+  end;
+  perform pg_temp.check('a draft application cannot be approved', refused);
+
+  terms := jsonb_build_object('start_date', current_date + 14, 'end_date', current_date + 379,
+    'rent_amount', 1200, 'rent_due_day', 1, 'grace_days', 3, 'late_fee_type', 'fixed',
+    'late_fee_amount', 50, 'deposit_amount', 1200);
+  res := public.approve_application(app_a, terms, null, 'Welcome');
+  lease_a := (res ->> 'lease_id')::uuid;
+  perform pg_temp.check('manager can approve',
+    (select status = 'approved' and lease_id = lease_a from public.applications where id = app_a));
+  perform pg_temp.check('approve creates a draft lease on the unit',
+    (select status = 'borrador' and unit_id = unit_1 from public.leases where id = lease_a));
+  perform pg_temp.check('approve creates the tenant with the applicant email',
+    (select email = 'applicant.a@example.com' from public.tenants where id = (res ->> 'tenant_id')::uuid));
+  perform pg_temp.check('approve adds co-applicants as co-tenants',
+    (select count(*) from public.lease_tenants where lease_id = lease_a) = 2);
+  perform pg_temp.check('approve links the applicant login to the tenant',
+    (select tenant_id from public.profiles where id = user_a) = (res ->> 'tenant_id')::uuid);
+  perform pg_temp.check('approve writes the activity log',
+    exists (select 1 from public.activity_log where entity_id = app_a and action = 'approve'));
+  perform pg_temp.check('approve keeps the decision note in the staff-only review',
+    (select decision_note = 'Welcome' and screening_note = 'Clear'
+     from public.application_reviews where application_id = app_a));
+  res2 := public.approve_application(app_a, terms);
+  perform pg_temp.check('approve is idempotent', res2 = res);
+
+  perform pg_temp.check('approved stays approved until a signature request goes out',
+    (select status from public.applications where id = app_a) = 'approved');
+  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+    values (lease_a, 'Lease', lease_a || '/lease.pdf', repeat('a', 64), 1, now() + interval '14 days');
+  perform pg_temp.check('sending the lease for signature marks the application lease_sent',
+    (select status from public.applications where id = app_a) = 'lease_sent');
+
+  perform pg_temp.act_as(user_a);
+  select count(*) into n from public.leases;
+  perform pg_temp.check('approved applicant still cannot read the draft lease', n = 0);
+  select count(*) into n from public.tenants;
+  perform pg_temp.check('approved applicant still cannot read tenants', n = 0);
+
+  perform pg_temp.act_as(manager_id);
+  perform public.activate_lease(lease_a);
+  perform pg_temp.check('activating (manager) promotes the applicant to tenant',
+    (select role from public.profiles where id = user_a) = 'tenant');
+
+  perform pg_temp.act_as(user_a);
+  select count(*) into n from public.leases where id = lease_a;
+  perform pg_temp.check('promoted tenant reads own lease', n = 1);
+
+  -- --------------------------- second applicant, activated by the service
+  perform pg_temp.act_as(user_b);
+  update public.applications set status = 'submitted' where id = app_b;
+  perform pg_temp.act_as(manager_id);
+  res := public.approve_application(app_b, terms, unit_2);
+  lease_b := (res ->> 'lease_id')::uuid;
+  perform pg_temp.check('approve takes the unit staff picked',
+    (select unit_id from public.applications where id = app_b) = unit_2);
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  perform public.activate_lease(lease_b);
+  perform pg_temp.check('activating (service connection) promotes the applicant',
+    (select role from public.profiles where id = user_b) = 'tenant');
+end;
+$$;
+
 rollback;
