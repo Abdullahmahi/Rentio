@@ -860,8 +860,8 @@ export interface RootRouteChildren {
   VslRoute: typeof VslRoute
   ApiMeRoute: typeof ApiMeRoute
   ApiOrgRoute: typeof ApiOrgRoute
-  SignTokenRoute: typeof SignTokenRoute
   ApiPortalPreviewRoute: typeof ApiPortalPreviewRoute
+  SignTokenRoute: typeof SignTokenRoute
   ApiFilesSplatRoute: typeof ApiFilesSplatRoute
   ApiFnEsignManageRoute: typeof ApiFnEsignManageRoute
   ApiFnEsignSendRoute: typeof ApiFnEsignSendRoute
@@ -1460,8 +1460,8 @@ const rootRouteChildren: RootRouteChildren = {
   VslRoute: VslRoute,
   ApiMeRoute: ApiMeRoute,
   ApiOrgRoute: ApiOrgRoute,
-  SignTokenRoute: SignTokenRoute,
   ApiPortalPreviewRoute: ApiPortalPreviewRoute,
+  SignTokenRoute: SignTokenRoute,
   ApiFilesSplatRoute: ApiFilesSplatRoute,
   ApiFnEsignManageRoute: ApiFnEsignManageRoute,
   ApiFnEsignSendRoute: ApiFnEsignSendRoute,

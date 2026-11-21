@@ -986,7 +986,7 @@ declare
   t_a uuid := (select tenant_id from public.profiles where id = tenant_a);
   lease_a uuid; lease_b uuid; draft uuid; req_a uuid; req_b uuid; req_d uuid; signer_a uuid;
   hash text := repeat('a', 64);
-  n int; refused boolean; claimed boolean;
+  n int; refused boolean; claimed boolean; col text;
 begin
   select lt.lease_id into lease_a from public.lease_tenants lt where lt.tenant_id = t_a limit 1;
   select id into lease_b from public.leases where org_id = org_b limit 1;
@@ -1016,9 +1016,12 @@ begin
   perform pg_temp.check('esign: org B staff cannot read org A requests', n = 0);
   select count(*) into n from public.signature_signers where request_id = req_a;
   perform pg_temp.check('esign: org B staff cannot read org A signers', n = 0);
-  update public.signature_requests set status = 'voided' where id = req_a;
-  get diagnostics n = row_count;
-  perform pg_temp.check('esign: org B staff cannot void org A requests', n = 0);
+  refused := false;
+  begin
+    perform public.cancel_signature_request(req_a);
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: org B staff cannot cancel org A requests', refused);
 
   perform pg_temp.act_as(admin_a);
   select count(*) into n from public.signature_requests where id in (req_a, req_b);
@@ -1050,12 +1053,32 @@ begin
   exception when insufficient_privilege then refused := true;
   end;
   perform pg_temp.check('esign: tenant cannot read token_hash', refused);
-  update public.signature_requests set status = 'completed' where id = req_a;
-  get diagnostics n = row_count;
-  perform pg_temp.check('esign: tenant cannot update a request', n = 0);
-  update public.signature_signers set signed_at = now() where id = signer_a;
-  get diagnostics n = row_count;
-  perform pg_temp.check('esign: tenant cannot update a signer', n = 0);
+  refused := false;
+  begin
+    update public.signature_requests set status = 'completed' where id = req_a;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: tenant cannot update a request', refused);
+  refused := false;
+  begin
+    update public.signature_signers set signed_at = now() where id = signer_a;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: tenant cannot update a signer', refused);
+  refused := false;
+  begin
+    perform public.cancel_signature_request(req_a);
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: tenant cannot cancel a request', refused);
+  foreach col in array array['ip', 'user_agent', 'signature_data', 'consent_at', 'consent_text_sha256'] loop
+    refused := false;
+    begin
+      execute format('select %I from public.signature_signers where id = $1', col) using signer_a;
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('esign: tenant cannot read a signer''s ' || col, refused);
+  end loop;
   refused := false;
   begin
     insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
@@ -1098,10 +1121,15 @@ begin
     values (req_d, 'Tenant A', 'a@example.com', t_a, 1, 72, 72, 200, 50, repeat('4', 64), now() + interval '14 days');
   perform pg_temp.check('esign: no claim while a signer is pending',
     not public.claim_signature_finalisation(req_d));
-  update public.signature_signers
-    set signed_at = now(), signature_kind = 'typed', signature_data = 'Tenant A',
-        consent_at = now(), consent_version = 'v1'
-    where request_id = req_d;
+  perform pg_temp.check('esign: signing before consent is refused', not public.sign_signature(
+    (select id from public.signature_signers where request_id = req_d), 'typed', 'Tenant A', '203.0.113.7', 'UA'));
+  perform public.record_signature_consent(
+    (select id from public.signature_signers where request_id = req_d), 'v2', 'en', repeat('c', 64));
+  perform pg_temp.check('esign: signing after consent works', public.sign_signature(
+    (select id from public.signature_signers where request_id = req_d), 'typed', 'Tenant A', '203.0.113.7', 'UA'));
+  perform pg_temp.check('esign: consent keeps its own time, language and text hash', (
+    select consent_at <= signed_at and consent_locale = 'en' and consent_text_sha256 = repeat('c', 64)
+    from public.signature_signers where request_id = req_d));
   claimed := public.claim_signature_finalisation(req_d);
   perform pg_temp.check('esign: the first finaliser gets the claim', claimed);
   perform pg_temp.check('esign: a second finaliser is refused the claim',
@@ -1134,15 +1162,17 @@ begin
   -- No admin-only gate: a manager sends.
   set local role authenticated;
   perform pg_temp.act_as(manager_id);
-  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
-    values (lease_a, 'Manager sends', lease_a || '/m.pdf', hash, 1, now() + interval '14 days') returning id into req;
-  insert into public.signature_signers (request_id, name, email, tenant_id, page, x, y, w, h, token_hash, token_expires_at)
-    values (req, 'Tenant A', 'a@example.com', t_a, 1, 72, 72, 200, 50, repeat('5', 64), now() + interval '14 days')
-    returning id into s1;
-  insert into public.signature_signers (request_id, name, email, page, x, y, w, h, token_hash, token_expires_at, required)
-    values (req, 'Optional', 'o@example.com', 1, 72, 200, 200, 50, repeat('6', 64), now() + interval '14 days', false)
-    returning id into s2;
+  s1 := gen_random_uuid(); s2 := gen_random_uuid();
+  req := public.send_signature_request(gen_random_uuid(), lease_a, 'Manager sends', null, hash, 1,
+    now() + interval '14 days', jsonb_build_array(
+      jsonb_build_object('id', s1, 'name', 'Tenant A', 'email', 'a@example.com', 'tenant_id', t_a,
+        'page', 1, 'x', 72, 'y', 72, 'w', 200, 'h', 50, 'token_hash', repeat('5', 64)),
+      jsonb_build_object('id', s2, 'name', 'Optional', 'email', 'o@example.com', 'required', false,
+        'page', 1, 'x', 72, 'y', 200, 'w', 200, 'h', 50, 'token_hash', repeat('6', 64))));
   perform pg_temp.check('esign: a manager can send for signature', req is not null);
+  perform pg_temp.check('esign: send files the original at the request''s own path',
+    (select original_path from public.signature_requests where id = req)
+      = lease_a || '/esign-' || req || '-original.pdf');
 
   perform pg_temp.act_as(tenant_a);
   refused := false;
@@ -1156,9 +1186,8 @@ begin
   reset role;
   perform set_config('request.jwt.claim.sub', '', true);
   perform set_config('request.jwt.claim.org_id', '', true);
-  update public.signature_signers
-    set signed_at = now(), signature_kind = 'drawn', signature_data = 'x', consent_at = now(), consent_version = 'v2'
-    where id = s1;
+  perform public.record_signature_consent(s1, 'v2', 'es-MX', repeat('c', 64));
+  perform public.sign_signature(s1, 'drawn', 'x', null, null);
   perform pg_temp.check('esign: an unsigned optional signer does not block finalising',
     public.claim_signature_finalisation(req));
   update public.signature_requests set finalizing_at = null where id = req;
@@ -1177,10 +1206,168 @@ begin
   refused := false;
   begin
     update public.signature_signers set declined_at = now() where id = s1;
-  exception when check_violation then refused := true;
+  exception when check_violation or insufficient_privilege then refused := true;
   end;
   perform pg_temp.check('esign: a signer cannot be both signed and declined', refused);
   reset role;
+end;
+$$;
+
+-- ===================== e-sign: staff cannot forge, revive or rewrite (#73 review)
+do $$
+declare
+  admin_a  uuid := '00000000-0000-0000-0000-0000000000a1';
+  admin_b  uuid := '00000000-0000-0000-0000-0000000000c1';
+  tenant_a uuid := '00000000-0000-0000-0000-0000000000b1';
+  t_a uuid := (select tenant_id from public.profiles where id = tenant_a);
+  lease_a uuid; req uuid; req2 uuid; req3 uuid;
+  s1 uuid := gen_random_uuid(); s2 uuid := gen_random_uuid(); s3 uuid := gen_random_uuid();
+  hash text := repeat('d', 64);
+  refused boolean; ok boolean; changed text; col text; stmt text;
+begin
+  select lt.lease_id into lease_a from public.lease_tenants lt where lt.tenant_id = t_a limit 1;
+  set local role authenticated;
+  perform pg_temp.act_as(admin_a);
+  req := public.send_signature_request(gen_random_uuid(), lease_a, 'Hardening', null, hash, 1,
+    now() + interval '14 days', jsonb_build_array(
+      jsonb_build_object('id', s1, 'name', 'Tenant A', 'email', 'a@example.com', 'tenant_id', t_a,
+        'page', 1, 'x', 72, 'y', 72, 'w', 200, 'h', 50, 'token_hash', repeat('7', 64))));
+
+  -- Every evidence column, and the request's state, is out of staff reach.
+  foreach stmt in array array[
+    format('update public.signature_signers set signed_at = now() where id = %L', s1),
+    format('update public.signature_signers set signature_data = %L where id = %L', 'forged', s1),
+    format('update public.signature_signers set ip = %L where id = %L', '1.2.3.4', s1),
+    format('update public.signature_signers set user_agent = %L where id = %L', 'forged', s1),
+    format('update public.signature_signers set consent_at = now(), consent_version = %L where id = %L', 'x', s1),
+    format('update public.signature_signers set token_hash = %L where id = %L', repeat('8', 64), s1),
+    format('update public.signature_requests set status = %L where id = %L', 'sent', req),
+    format('update public.signature_requests set original_path = %L where id = %L', lease_a || '/swap.pdf', req),
+    format('insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at) values (%L, %L, %L, %L, 1, now())', lease_a, 'direct', lease_a || '/x.pdf', hash),
+    format('delete from public.signature_signers where id = %L', s1)
+  ] loop
+    refused := false;
+    begin
+      execute stmt;
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('esign: staff refused: ' || left(stmt, 60), refused);
+  end loop;
+  foreach col in array array['ip', 'user_agent', 'signature_data', 'consent_at', 'consent_version'] loop
+    refused := false;
+    begin
+      execute format('select %I from public.signature_signers where id = $1', col) using s1;
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('esign: staff cannot read ' || col, refused);
+  end loop;
+
+  -- Send is pinned to the caller's org and the lease's own tenants.
+  perform pg_temp.act_as(admin_b);
+  refused := false;
+  begin
+    perform public.send_signature_request(gen_random_uuid(), lease_a, 'Cross', null, hash, 1, now() + interval '1 day',
+      jsonb_build_array(jsonb_build_object('id', gen_random_uuid(), 'name', 'X', 'email', 'x@example.com',
+        'page', 1, 'x', 1, 'y', 1, 'w', 1, 'h', 1, 'token_hash', repeat('9', 64))));
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: org B staff cannot send on an org A lease', refused);
+  refused := false;
+  begin
+    perform public.resend_signature_link(s1, repeat('9', 64), now() + interval '1 day');
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: org B staff cannot resend an org A link', refused);
+  perform pg_temp.act_as(admin_a);
+  refused := false;
+  begin
+    perform public.send_signature_request(gen_random_uuid(), lease_a, 'Stranger', null, hash, 1, now() + interval '1 day',
+      jsonb_build_array(jsonb_build_object('id', gen_random_uuid(), 'name', 'X', 'email', 'x@example.com',
+        'tenant_id', (select id from public.tenants where id <> t_a and id not in
+          (select tenant_id from public.lease_tenants where lease_id = lease_a) limit 1),
+        'page', 1, 'x', 1, 'y', 1, 'w', 1, 'h', 1, 'token_hash', repeat('a', 63) || 'b')));
+  exception when invalid_parameter_value then refused := true;
+  end;
+  perform pg_temp.check('esign: a tenant signer must be on the lease', refused);
+
+  perform pg_temp.act_as(tenant_a);
+  refused := false;
+  begin
+    perform public.send_signature_request(gen_random_uuid(), lease_a, 'Tenant', null, hash, 1, now(), '[]');
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: a tenant cannot send', refused);
+  foreach stmt in array array[
+    format('select public.record_signature_consent(%L, %L, %L, %L)', s1, 'v', 'en', hash),
+    format('select public.sign_signature(%L, %L, %L, null, null)', s1, 'typed', 'x')
+  ] loop
+    refused := false;
+    begin
+      execute stmt;
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('esign: signing functions are service-only: ' || left(stmt, 40), refused);
+  end loop;
+
+  -- Resend rotates the hash; cancel is terminal and burns every link.
+  perform pg_temp.act_as(admin_a);
+  perform pg_temp.check('esign: resend works while open',
+    public.resend_signature_link(s1, repeat('e', 64), now() + interval '20 days'));
+  reset role;
+  perform pg_temp.check('esign: resend replaced the hash',
+    (select token_hash from public.signature_signers where id = s1) = repeat('e', 64));
+  set local role authenticated;
+  perform pg_temp.act_as(admin_a);
+  perform pg_temp.check('esign: cancel returns the lease', public.cancel_signature_request(req) = lease_a);
+  perform pg_temp.check('esign: cancelling twice is a no-op', public.cancel_signature_request(req) is null);
+  perform pg_temp.check('esign: a cancelled link cannot be resent',
+    not public.resend_signature_link(s1, repeat('f', 64), now() + interval '20 days'));
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  perform pg_temp.check('esign: cancel is voided and burns the link hash', (
+    select r.status = 'voided' and s.token_hash <> repeat('e', 64) and s.token_expires_at <= now()
+    from public.signature_requests r join public.signature_signers s on s.request_id = r.id
+    where r.id = req));
+  perform pg_temp.check('esign: no consent or signature on a cancelled request',
+    not public.record_signature_consent(s1, 'v2', 'en', hash) and not public.sign_signature(s1, 'typed', 'x', null, null));
+  refused := false;
+  begin
+    update public.signature_requests set status = 'sent' where id = req;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: even the service cannot revive a cancelled request', refused);
+
+  -- Signed is final, for the service too; an expired link cannot sign.
+  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+    values (lease_a, 'Final', lease_a || '/f.pdf', hash, 1, now() + interval '14 days') returning id into req2;
+  insert into public.signature_signers (id, request_id, name, email, page, x, y, w, h, token_hash, token_expires_at)
+    values (s2, req2, 'T', 't@example.com', 1, 1, 1, 1, 1, repeat('0', 63) || '1', now() + interval '14 days');
+  perform public.record_signature_consent(s2, 'v2', 'en', hash);
+  perform public.sign_signature(s2, 'typed', 'x', '203.0.113.7', 'UA');
+  foreach changed in array array['signature_data', 'ip', 'signed_at', 'consent_at'] loop
+    refused := false;
+    begin
+      execute format('update public.signature_signers set %I = %s where id = %L', changed,
+        case when changed in ('signed_at', 'consent_at') then 'now() + interval ''1 hour''' else quote_literal('forged') end, s2);
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('esign: a given signature is final: ' || changed, refused);
+  end loop;
+  perform pg_temp.check('esign: signing twice is refused', not public.sign_signature(s2, 'typed', 'y', null, null));
+  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+    values (lease_a, 'Expired', lease_a || '/e.pdf', hash, 1, now() + interval '14 days') returning id into req3;
+  insert into public.signature_signers (id, request_id, name, email, page, x, y, w, h, token_hash, token_expires_at)
+    values (s3, req3, 'T', 't@example.com', 1, 1, 1, 1, 1, repeat('0', 63) || '2', now() - interval '1 second');
+  perform pg_temp.check('esign: an expired link cannot consent or sign',
+    not public.record_signature_consent(s3, 'v2', 'en', hash) and not public.sign_signature(s3, 'typed', 'x', null, null));
+  perform public.complete_signature_request(req2, lease_a || '/signed-x.pdf', hash, 'F.pdf', '{}');
+  refused := false;
+  begin
+    update public.signature_requests set signed_sha256 = repeat('0', 64) where id = req2;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: a completed request is frozen', refused);
 end;
 $$;
 

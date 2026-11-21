@@ -15,7 +15,13 @@ import type { Database, Tables } from "@/lib/database.types";
 /** Internal Docker-network address. PostgREST is never exposed publicly. */
 export const POSTGREST_URL = process.env["POSTGREST_URL"] ?? "http://127.0.0.1:3001";
 
-const JWT_SECRET = process.env["POSTGREST_JWT_SECRET"] ?? "";
+// Read on use, not at import: a test file may set it after another file
+// already imported this module.
+function jwtSecret() {
+  const secret = process.env["POSTGREST_JWT_SECRET"] ?? "";
+  if (secret.length < 32) throw new Error("POSTGREST_JWT_SECRET must be at least 32 characters");
+  return secret;
+}
 
 /** Which company a super_admin is acting in. Set by /api/org. */
 export const ACTING_ORG_COOKIE = "rentio_org";
@@ -56,19 +62,16 @@ export interface Session {
 
 /** HS256, the one algorithm PostgREST and node:crypto share without a library. */
 export function signJwt(claims: Record<string, unknown>, ttlSeconds = 60) {
-  if (JWT_SECRET.length < 32)
-    throw new Error("POSTGREST_JWT_SECRET must be at least 32 characters");
+  const secret = jwtSecret();
   const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
   const now = Math.floor(Date.now() / 1000);
   const unsigned = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ ...claims, iat: now, exp: now + ttlSeconds })}`;
-  return `${unsigned}.${createHmac("sha256", JWT_SECRET).update(unsigned).digest("base64url")}`;
+  return `${unsigned}.${createHmac("sha256", secret).update(unsigned).digest("base64url")}`;
 }
 
 /** Same key, separate purpose, so a storage signature can never pass as a JWT. */
 export function derivedKey(purpose: string) {
-  if (JWT_SECRET.length < 32)
-    throw new Error("POSTGREST_JWT_SECRET must be at least 32 characters");
-  return createHmac("sha256", JWT_SECRET).update(purpose).digest();
+  return createHmac("sha256", jwtSecret()).update(purpose).digest();
 }
 
 export function clientFor(token: string): Db {

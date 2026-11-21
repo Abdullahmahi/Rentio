@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { fail, requireSession } from "@/lib/server/session";
-import { isBucket, mayAccess, putObject, removeObject, signedUrl } from "@/lib/server/storage";
+import {
+  isBucket,
+  isSealed,
+  mayAccess,
+  putObject,
+  removeObject,
+  signedUrl,
+} from "@/lib/server/storage";
 
 const MAX_BYTES = 15 * 1024 * 1024;
 const json = (body: unknown, status = 200) => Response.json(body, { status });
@@ -68,6 +75,7 @@ export const Route = createFileRoute("/api/storage/$action")({
           if (params.action === "remove") {
             if (!session.isStaff) return json({ error: "forbidden" }, 403);
             if (typeof body.path !== "string") return json({ error: "path is required" }, 400);
+            if (isSealed(body.path)) return json({ error: "forbidden" }, 403);
             await removeObject(orgId, bucket, body.path);
             return json({ removed: true });
           }

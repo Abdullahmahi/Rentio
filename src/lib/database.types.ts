@@ -969,6 +969,8 @@ export type Database = {
           required: boolean;
           declined_at: string | null;
           decline_reason: string | null;
+          consent_locale: string | null;
+          consent_text_sha256: string | null;
         };
         Insert: {
           id?: string;
@@ -999,6 +1001,8 @@ export type Database = {
           required?: boolean;
           declined_at?: string | null;
           decline_reason?: string | null;
+          consent_locale?: string | null;
+          consent_text_sha256?: string | null;
         };
         Update: {
           id?: string;
@@ -1029,6 +1033,8 @@ export type Database = {
           required?: boolean;
           declined_at?: string | null;
           decline_reason?: string | null;
+          consent_locale?: string | null;
+          consent_text_sha256?: string | null;
         };
         Relationships: [];
       };
@@ -1473,6 +1479,39 @@ export type Database = {
       };
       activate_lease: { Args: { p_lease: string }; Returns: undefined };
       claim_signature_finalisation: { Args: { p_request: string }; Returns: boolean };
+      send_signature_request: {
+        Args: {
+          p_id: string;
+          p_lease: string;
+          p_title: string;
+          p_message: string | null;
+          p_sha: string;
+          p_page_count: number;
+          p_expires_at: string;
+          p_signers: Json;
+        };
+        Returns: string;
+      };
+      resend_signature_link: {
+        Args: { p_signer: string; p_token_hash: string; p_expires_at: string };
+        Returns: boolean;
+      };
+      mark_signature_emailed: { Args: { p_signer: string }; Returns: undefined };
+      cancel_signature_request: { Args: { p_request: string }; Returns: string | null };
+      record_signature_consent: {
+        Args: { p_signer: string; p_version: string; p_locale: string; p_text_sha: string };
+        Returns: boolean;
+      };
+      sign_signature: {
+        Args: {
+          p_signer: string;
+          p_kind: string;
+          p_data: string;
+          p_ip: string | null;
+          p_user_agent: string | null;
+        };
+        Returns: boolean;
+      };
       decline_signature: { Args: { p_signer: string; p_reason: string | null }; Returns: boolean };
       complete_signature_request: {
         Args: {

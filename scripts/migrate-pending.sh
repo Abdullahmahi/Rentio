@@ -58,5 +58,13 @@ apply 20261121000200_tenant_work_order_insert.sql \
   "exists (select 1 from pg_trigger where tgname = 'guard_tenant_work_order_insert')"
 apply 20261121000300_staff_can_void_payments.sql \
   "exists (select 1 from pg_proc p where proname = 'void_payment' and pg_get_functiondef(p.oid) like '%Only staff can void%')"
+apply 20261122000100_lease_drafts.sql \
+  "exists (select 1 from pg_proc where proname = 'activate_lease')"
+apply 20261122000101_esign.sql \
+  "exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'signature_requests')"
+apply 20261122000102_esign_decline_required.sql \
+  "exists (select 1 from pg_proc where proname = 'decline_signature')"
+apply 20261122000103_esign_integrity.sql \
+  "exists (select 1 from pg_proc where proname = 'sign_signature')"
 
 echo "done"
