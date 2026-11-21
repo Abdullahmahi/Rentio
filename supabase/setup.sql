@@ -21,7 +21,7 @@
 
 
 -- ============================================================================
--- 1/27  20260919000100_schema
+-- 1/28  20260919000100_schema
 -- ============================================================================
 -- Rentio — core schema
 -- All money is numeric(12,2). Never float.
@@ -436,7 +436,7 @@ insert into public.settings (company_name, invoice_prefix) values ('Rentio', 'RE
 
 
 -- ============================================================================
--- 2/27  20260919000200_rls
+-- 2/28  20260919000200_rls
 -- ============================================================================
 -- Rentio — row level security. Deny by default, everywhere.
 --
@@ -834,7 +834,7 @@ create policy storage_tenant_write on storage.objects
 
 
 -- ============================================================================
--- 3/27  20260919000300_portal_views
+-- 3/28  20260919000300_portal_views
 -- ============================================================================
 -- The tenant portal needs the tenant's OWN unit number and building address:
 -- it is the payment reference on the Inicio screen and the whole of the
@@ -869,7 +869,7 @@ grant select on public.my_lease_details to authenticated;
 
 
 -- ============================================================================
--- 4/27  20260919000400_public_settings_address
+-- 4/28  20260919000400_public_settings_address
 -- ============================================================================
 -- The recibo PDF prints the landlord's letterhead — company name, address and
 -- bank details — and a tenant must be able to render their own receipt. The
@@ -905,7 +905,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 5/27  20260920000500_us_localization
+-- 5/28  20260920000500_us_localization
 -- ============================================================================
 -- Prompt 15 — the properties are in El Paso, Texas, not Mexico.
 -- Addresses become US addresses. No business logic changes here.
@@ -995,7 +995,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 6/27  20260920000501_drop_rfc
+-- 6/28  20260920000501_drop_rfc
 -- ============================================================================
 -- Prompt 20's cleanup, pulled forward: `rfc` was captured for Mexican tax
 -- invoicing (CFDI) that will never happen for a Texas landlord. Removing it
@@ -1025,7 +1025,7 @@ $$;
 
 
 -- ============================================================================
--- 7/27  20260920000600_us_payment_methods
+-- 7/28  20260920000600_us_payment_methods
 -- ============================================================================
 -- Prompt 16 — US payment rails.
 --
@@ -1110,7 +1110,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 8/27  20260920000700_texas_late_fees
+-- 8/28  20260920000700_texas_late_fees
 -- ============================================================================
 -- Prompt 17 — Texas Property Code §92.019 constrains residential late fees.
 --
@@ -1185,7 +1185,7 @@ alter table public.settings
 
 
 -- ============================================================================
--- 9/27  20260920000800_deposit_clock
+-- 9/28  20260920000800_deposit_clock
 -- ============================================================================
 -- Prompt 18 — Texas Property Code §92.103–92.109, security deposit returns.
 --
@@ -1253,7 +1253,7 @@ grant select on public.deposit_obligations to authenticated;
 
 
 -- ============================================================================
--- 10/27  20260920000900_texas_repairs_notices_turnover
+-- 10/28  20260920000900_texas_repairs_notices_turnover
 -- ============================================================================
 -- Prompt 19 — three smaller Texas Property Code obligations.
 
@@ -1403,7 +1403,7 @@ create policy turnover_admin_delete on public.unit_turnover_checklist
 
 
 -- ============================================================================
--- 11/27  20260920001000_late_fee_guard
+-- 11/28  20260920001000_late_fee_guard
 -- ============================================================================
 -- Prompt 17 said "do not let a manager bypass the 2-day rule anywhere in the
 -- UI". The gated "Apply late fee" button honoured it; "Add line" did not.
@@ -1476,7 +1476,7 @@ create trigger invoice_lines_enforce_late_fee_rules
 
 
 -- ============================================================================
--- 12/27  20260922001100_access_requests
+-- 12/28  20260922001100_access_requests
 -- ============================================================================
 -- A tenant with no invite needs somewhere to go.
 --
@@ -1540,7 +1540,7 @@ create policy access_requests_admin_delete on public.access_requests
 
 
 -- ============================================================================
--- 13/27  20260925001200_expenses
+-- 13/28  20260925001200_expenses
 -- ============================================================================
 -- Gastos: landlord expenses, entered by hand, one row per unit.
 -- The property is reached through units.property_id, like utility_charges.
@@ -1583,7 +1583,7 @@ create policy expenses_admin_delete on public.expenses
 
 
 -- ============================================================================
--- 14/27  20261024001300_super_admin_role
+-- 14/28  20261024001300_super_admin_role
 -- ============================================================================
 -- PortfolioAI staff: a role that spans every organization.
 --
@@ -1594,7 +1594,7 @@ alter type public.user_role add value if not exists 'super_admin';
 
 
 -- ============================================================================
--- 15/27  20261024001400_self_hosted_multi_tenant
+-- 15/28  20261024001400_self_hosted_multi_tenant
 -- ============================================================================
 -- Off Supabase, onto self-hosted Postgres + PostgREST, and multi-tenant.
 --
@@ -2131,7 +2131,7 @@ grant select on public.my_lease_details, public.public_settings to authenticated
 
 
 -- ============================================================================
--- 16/27  20261027001500_super_admin_acts_in_org
+-- 16/28  20261027001500_super_admin_acts_in_org
 -- ============================================================================
 -- super_admin: a real platform role, and a way to work inside a company.
 --
@@ -2303,7 +2303,7 @@ create trigger organizations_create_settings
 
 
 -- ============================================================================
--- 17/27  20261027001600_el_paso_dates
+-- 17/28  20261027001600_el_paso_dates
 -- ============================================================================
 -- Dates are El Paso dates. current_date was the server's UTC date, so every
 -- evening after 6pm Mountain time a receipt due "today" read as overdue,
@@ -2318,7 +2318,7 @@ $$;
 
 
 -- ============================================================================
--- 18/27  20261028002100_confirm_payment
+-- 18/28  20261028002100_confirm_payment
 -- ============================================================================
 -- B-013: confirming a payment was four browser writes with no transaction
 -- (status, allocations, invoice statuses, activity log). A failed insert or a
@@ -2427,7 +2427,7 @@ grant execute on function public.confirm_payment(uuid) to authenticated, service
 
 
 -- ============================================================================
--- 19/27  20261028002200_nightly_job
+-- 19/28  20261028002200_nightly_job
 -- ============================================================================
 -- The nightly job (execution.md A1, A3, A4; owner decisions D1, D2, D3).
 --
@@ -2828,7 +2828,7 @@ grant execute on function public.nightly() to service_role;
 
 
 -- ============================================================================
--- 20/27  20261028002300_record_and_void_payment
+-- 20/28  20261028002300_record_and_void_payment
 -- ============================================================================
 -- B-013 continued: "Record payment" and "Void" were several browser writes
 -- each (payment, allocations, invoice statuses, activity log) with no
@@ -3160,7 +3160,7 @@ grant execute on function public.void_payment(uuid, text) to authenticated, serv
 
 
 -- ============================================================================
--- 21/27  20261111000100_tenants_cannot_read_drafts
+-- 21/28  20261111000100_tenants_cannot_read_drafts
 -- ============================================================================
 -- Tenants must not see draft invoices. The nightly job drafts the month on
 -- the 1st for staff review; until staff send it, the tenant has nothing to
@@ -3177,7 +3177,7 @@ create policy invoices_select on public.invoices
 
 
 -- ============================================================================
--- 22/27  20261111000200_create_lease
+-- 22/28  20261111000200_create_lease
 -- ============================================================================
 -- A lease was five browser writes (lease, lease_tenants, turnover checklist,
 -- unit status, activity) with no transaction: a failed link insert left an
@@ -3267,7 +3267,7 @@ grant execute on function public.create_lease(uuid, jsonb, uuid, uuid[], uuid[],
 
 
 -- ============================================================================
--- 23/27  20261111000300_last_admin_and_append_only_log
+-- 23/28  20261111000300_last_admin_and_append_only_log
 -- ============================================================================
 -- Two guards the audit found missing (audit-product-2026-10-28.md §1).
 --
@@ -3316,7 +3316,7 @@ drop policy if exists admin_delete on public.activity_log;
 
 
 -- ============================================================================
--- 24/27  20261112000100_notifications
+-- 24/28  20261112000100_notifications
 -- ============================================================================
 -- Tenants never heard back (audit-product-2026-10-28.md §2.1 #8): no
 -- "payment confirmed", no "payment rejected, and why", no repair update, no
@@ -3584,7 +3584,7 @@ grant execute on function public.notification_result(uuid, text) to service_role
 
 
 -- ============================================================================
--- 25/27  20261112000200_nightly_per_org
+-- 25/28  20261112000200_nightly_per_org
 -- ============================================================================
 -- nightly() ran every company in one transaction: one bad lease in org A
 -- aborted invoicing for org B (audit-product-2026-10-28.md §4.3). Each
@@ -3640,7 +3640,7 @@ grant execute on function public.nightly() to service_role;
 
 
 -- ============================================================================
--- 26/27  20261122000100_lease_drafts
+-- 26/28  20261122000100_lease_drafts
 -- ============================================================================
 -- Leases can start as drafts (shared by e-sign and applications).
 --
@@ -3765,7 +3765,217 @@ grant execute on function public.activate_lease(uuid) to authenticated, service_
 
 
 -- ============================================================================
--- 27/27  DEMO DATA
+-- 27/28  20261122000101_esign
+-- ============================================================================
+-- E-sign: a lease PDF sent to its tenants (or applicants) for signature.
+--
+--   signature_requests  one per document sent; the original and, once every
+--                       signer is done, the signed PDF with its record page.
+--   signature_signers   one per person, with their own link, their spot on
+--                       the page and the evidence of their signature.
+--
+-- Staff manage both through RLS. A tenant may read requests on their own
+-- leases. Anonymous signers never reach PostgREST: the app server resolves
+-- their link by the SHA-256 of its token (the token itself is never stored)
+-- and acts with the service connection, filtered by the request's org.
+--
+--   claim_signature_finalisation(request)   service: one finaliser at a time
+--   complete_signature_request(request, ..)  service: atomic "it is signed"
+
+create table public.signature_requests (
+  id              uuid primary key default gen_random_uuid(),
+  org_id          uuid not null references public.organizations (id) on delete cascade
+                    default public.current_org_id(),
+  lease_id        uuid not null references public.leases (id) on delete cascade,
+  title           text not null check (length(title) between 1 and 200),
+  message         text check (length(message) <= 2000),
+  -- contracts bucket, <lease_id>/<file>
+  original_path   text not null,
+  original_sha256 text not null check (original_sha256 ~ '^[0-9a-f]{64}$'),
+  page_count      int  not null check (page_count > 0),
+  signed_path     text,
+  signed_sha256   text check (signed_sha256 ~ '^[0-9a-f]{64}$'),
+  status          text not null default 'sent' check (status in ('sent', 'completed', 'voided')),
+  created_by      uuid references public.profiles (id) on delete set null,
+  created_at      timestamptz not null default now(),
+  expires_at      timestamptz not null,
+  finalizing_at   timestamptz,
+  completed_at    timestamptz,
+  voided_at       timestamptz
+);
+create index signature_requests_lease_idx on public.signature_requests (lease_id, created_at desc);
+create index signature_requests_org_idx on public.signature_requests (org_id);
+
+create table public.signature_signers (
+  id               uuid primary key default gen_random_uuid(),
+  org_id           uuid not null references public.organizations (id) on delete cascade
+                     default public.current_org_id(),
+  request_id       uuid not null references public.signature_requests (id) on delete cascade,
+  name             text not null check (length(name) between 1 and 120),
+  email            text not null check (length(email) between 3 and 160),
+  tenant_id        uuid references public.tenants (id) on delete set null,
+  locale           text not null default 'es-MX' check (locale in ('en', 'es-MX')),
+  position         int  not null default 0,
+  -- Where they sign: 1-based page, box in PDF points from the page's
+  -- lower-left corner (pdf-lib's coordinate space).
+  page             int     not null check (page > 0),
+  x                numeric not null check (x >= 0),
+  y                numeric not null check (y >= 0),
+  w                numeric not null check (w > 0),
+  h                numeric not null check (h > 0),
+  token_hash       text not null unique check (token_hash ~ '^[0-9a-f]{64}$'),
+  token_expires_at timestamptz not null,
+  emailed_at       timestamptz,
+  viewed_at        timestamptz,
+  signed_at        timestamptz,
+  ip               text,
+  user_agent       text,
+  signature_kind   text check (signature_kind in ('drawn', 'typed')),
+  -- drawn: a PNG data URL; typed: the text
+  signature_data   text check (length(signature_data) <= 300000),
+  consent_at       timestamptz,
+  consent_version  text,
+  created_at       timestamptz not null default now(),
+  check (signed_at is null or (signature_kind is not null and signature_data is not null
+                               and consent_at is not null and consent_version is not null))
+);
+create index signature_signers_request_idx on public.signature_signers (request_id, position);
+create index signature_signers_org_idx on public.signature_signers (org_id);
+
+-- Same parent-derived org as every other child table.
+create trigger org_from_parent before insert or update on public.signature_requests
+  for each row execute function public.org_from_parent('leases', 'lease_id');
+create trigger org_from_parent before insert or update on public.signature_signers
+  for each row execute function public.org_from_parent('signature_requests', 'request_id');
+
+alter table public.signature_requests enable row level security;
+alter table public.signature_signers  enable row level security;
+
+-- Nothing for anon. Tenants and staff never see token_hash: it is left out
+-- of the column grant, so `select token_hash` (or `*`) is refused outright.
+revoke all on public.signature_requests, public.signature_signers from anon;
+revoke select on public.signature_signers from authenticated;
+grant select (id, org_id, request_id, name, email, tenant_id, locale, position, page, x, y, w, h,
+              token_expires_at, emailed_at, viewed_at, signed_at, ip, user_agent,
+              signature_kind, signature_data, consent_at, consent_version, created_at)
+  on public.signature_signers to authenticated;
+
+create policy org_isolation on public.signature_requests as restrictive for all to authenticated
+  using (org_id = (select public.current_org_id()) or (select public.is_super_admin()))
+  with check (org_id = (select public.current_org_id()) or (select public.is_super_admin()));
+create policy org_isolation on public.signature_signers as restrictive for all to authenticated
+  using (org_id = (select public.current_org_id()) or (select public.is_super_admin()))
+  with check (org_id = (select public.current_org_id()) or (select public.is_super_admin()));
+
+create policy signature_requests_select on public.signature_requests
+  for select to authenticated
+  using (public.is_staff() or lease_id in (select public.my_lease_ids()));
+create policy signature_requests_staff_insert on public.signature_requests
+  for insert to authenticated with check (public.is_staff());
+create policy signature_requests_staff_update on public.signature_requests
+  for update to authenticated using (public.is_staff()) with check (public.is_staff());
+
+create policy signature_signers_select on public.signature_signers
+  for select to authenticated
+  using (
+    public.is_staff()
+    or request_id in (
+      select r.id from public.signature_requests r
+      where r.lease_id in (select public.my_lease_ids())
+    )
+  );
+create policy signature_signers_staff_insert on public.signature_signers
+  for insert to authenticated with check (public.is_staff());
+create policy signature_signers_staff_update on public.signature_signers
+  for update to authenticated using (public.is_staff()) with check (public.is_staff());
+-- No delete policies: a sent agreement is evidence. Staff void it instead.
+
+-- ------------------------------------------------------------ finalisation
+-- Two signers can finish within the same second. Only one may build the
+-- signed PDF: the claim is a conditional update, so exactly one caller gets
+-- true. A claim older than two minutes is a crashed finaliser and may be
+-- retaken, which is why everything after it is idempotent.
+
+create or replace function public.claim_signature_finalisation(p_request uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  with claimed as (
+    update public.signature_requests r
+    set finalizing_at = now()
+    where r.id = p_request
+      and r.status = 'sent'
+      and (r.finalizing_at is null or r.finalizing_at < now() - interval '2 minutes')
+      and not exists (
+        select 1 from public.signature_signers s where s.request_id = r.id and s.signed_at is null
+      )
+    returning 1
+  )
+  select exists (select 1 from claimed);
+$$;
+
+-- Marks the request signed, files the signed PDF on the lease and on each
+-- signer's tenant record, and activates a draft lease. One transaction with
+-- the request row locked, so a retry or a racing caller is a no-op.
+create or replace function public.complete_signature_request(
+  p_request      uuid,
+  p_signed_path  text,
+  p_signed_sha   text,
+  p_name         text,
+  p_tenant_paths jsonb   -- {"<tenant_id>": "<tenant-docs path>"}
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  r public.signature_requests%rowtype;
+begin
+  select * into r from public.signature_requests where id = p_request for update;
+  if r.id is null then
+    raise exception 'Signature request not found.' using errcode = 'P0002';
+  end if;
+  if r.status = 'completed' then
+    return;  -- idempotent
+  end if;
+  if r.status <> 'sent' or exists (
+    select 1 from public.signature_signers where request_id = r.id and signed_at is null
+  ) then
+    raise exception 'This agreement is not ready to complete.' using errcode = 'P0001';
+  end if;
+
+  update public.signature_requests
+  set status = 'completed', completed_at = now(), finalizing_at = null,
+      signed_path = p_signed_path, signed_sha256 = p_signed_sha
+  where id = r.id;
+
+  insert into public.documents (org_id, owner_type, owner_id, name, url)
+  values (r.org_id, 'lease', r.lease_id, p_name, p_signed_path);
+
+  insert into public.documents (org_id, owner_type, owner_id, name, url)
+  select distinct r.org_id, 'tenant', s.tenant_id, p_name, p_tenant_paths ->> s.tenant_id::text
+  from public.signature_signers s
+  where s.request_id = r.id and s.tenant_id is not null
+    and p_tenant_paths ? s.tenant_id::text;
+
+  if (select status from public.leases where id = r.lease_id) = 'borrador' then
+    perform public.activate_lease(r.lease_id);
+  end if;
+end;
+$$;
+
+revoke all on function public.claim_signature_finalisation(uuid) from public, anon, authenticated;
+revoke all on function public.complete_signature_request(uuid, text, text, text, jsonb)
+  from public, anon, authenticated;
+grant execute on function public.claim_signature_finalisation(uuid) to service_role;
+grant execute on function public.complete_signature_request(uuid, text, text, text, jsonb) to service_role;
+
+
+-- ============================================================================
+-- 28/28  DEMO DATA
 -- ============================================================================
 -- Rentio — demo data (El Paso, Texas).
 -- Safe to re-run: it clears the demo tables first.

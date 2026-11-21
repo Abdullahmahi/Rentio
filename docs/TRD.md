@@ -129,7 +129,7 @@ invoice), `work_orders_set_written_notice`, `turnover_set_completed_at`,
 - **Organizations.** Every table carries `org_id` (default `current_org_id()` from the JWT; child tables re-derive it from their parent by the `org_from_parent` trigger and refuse a mismatch). One RESTRICTIVE `org_isolation` policy per table ANDs with every policy above. `super_admin` (`org_id` null) reads across orgs. `my_lease_details` and `public_settings` are security-definer views and filter by org themselves.
 - **Role changes:** only an admin (or the service connection) can set `role`, `org_id`, `tenant_id`, `email` or `clerk_user_id` on a profile, or insert a non-tenant profile (`profiles_restrict_role_changes`). This closes **S-001**.
 - **Storage** is now `src/lib/server/storage.ts`: `<STORAGE_DIR>/<org_id>/<bucket>/<path>`, org from the session, signed links verified by HMAC. `mayAccess()` restates the old storage policies.
-- **Anonymous surface:** only `/api/fn/submit-access-request` (always `{ok:true}`, work after the response) and Clerk sign-up. A sign-up only opens a portal if its Clerk-verified email matches an invited profile or exactly one tenant on a lease.
+- **Anonymous surface:** only `/api/fn/submit-access-request` (always `{ok:true}`, work after the response), `/api/sign/$token` (e-sign: the link's 256-bit token is the credential, stored only as its SHA-256; service connection filtered by the signer row's org) and Clerk sign-up. A sign-up only opens a portal if its Clerk-verified email matches an invited profile or exactly one tenant on a lease.
 
 Open security findings are in `docs/security.md` (gitignored).
 

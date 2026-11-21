@@ -897,4 +897,148 @@ begin
 end;
 $$;
 
+-- ======================================================= e-sign (esign)
+do $$
+declare
+  admin_a  uuid := '00000000-0000-0000-0000-0000000000a1';
+  admin_b  uuid := '00000000-0000-0000-0000-0000000000c1';
+  tenant_a uuid := '00000000-0000-0000-0000-0000000000b1';
+  tenant_b uuid := '00000000-0000-0000-0000-0000000000b2';
+  org_b uuid := (select id from public.organizations where slug = 'other-co');
+  t_a uuid := (select tenant_id from public.profiles where id = tenant_a);
+  lease_a uuid; lease_b uuid; draft uuid; req_a uuid; req_b uuid; req_d uuid; signer_a uuid;
+  hash text := repeat('a', 64);
+  n int; refused boolean; claimed boolean;
+begin
+  select lt.lease_id into lease_a from public.lease_tenants lt where lt.tenant_id = t_a limit 1;
+  select id into lease_b from public.leases where org_id = org_b limit 1;
+  perform pg_temp.check('esign fixture: a lease in each org', lease_a is not null and lease_b is not null);
+
+  -- Fixtures as the service connection (no caller identity).
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+    values (lease_a, 'Lease A', lease_a || '/a.pdf', hash, 1, now() + interval '14 days') returning id into req_a;
+  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+    values (lease_b, 'Lease B', lease_b || '/b.pdf', hash, 1, now() + interval '14 days') returning id into req_b;
+  insert into public.signature_signers (request_id, name, email, tenant_id, page, x, y, w, h, token_hash, token_expires_at)
+    values (req_a, 'Tenant A', 'a@example.com', t_a, 1, 72, 72, 200, 50, repeat('1', 64), now() + interval '14 days')
+    returning id into signer_a;
+  insert into public.signature_signers (request_id, name, email, page, x, y, w, h, token_hash, token_expires_at)
+    values (req_b, 'B Renter', 'b@example.com', 1, 72, 72, 200, 50, repeat('2', 64), now() + interval '14 days');
+  perform pg_temp.check('esign: request takes the lease org',
+    (select org_id from public.signature_requests where id = req_b) = org_b);
+  perform pg_temp.check('esign: signer takes the request org',
+    (select org_id from public.signature_signers where request_id = req_b) = org_b);
+
+  set local role authenticated;
+
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.signature_requests where id = req_a;
+  perform pg_temp.check('esign: org B staff cannot read org A requests', n = 0);
+  select count(*) into n from public.signature_signers where request_id = req_a;
+  perform pg_temp.check('esign: org B staff cannot read org A signers', n = 0);
+  update public.signature_requests set status = 'voided' where id = req_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('esign: org B staff cannot void org A requests', n = 0);
+
+  perform pg_temp.act_as(admin_a);
+  select count(*) into n from public.signature_requests where id in (req_a, req_b);
+  perform pg_temp.check('esign: org A staff see only their own requests', n = 1);
+  select count(*) into n from public.signature_signers where request_id = req_b;
+  perform pg_temp.check('esign: org A staff cannot read org B signers', n = 0);
+  refused := false;
+  begin
+    insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+      values (lease_b, 'Planted', 'x/y.pdf', hash, 1, now());
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: org A staff cannot file a request on an org B lease', refused);
+  refused := false;
+  begin
+    perform token_hash from public.signature_signers where id = signer_a;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: staff cannot read token_hash', refused);
+
+  perform pg_temp.act_as(tenant_a);
+  select count(*) into n from public.signature_requests where id = req_a;
+  perform pg_temp.check('esign: tenant reads requests on their own lease', n = 1);
+  select count(*) into n from public.signature_signers where request_id = req_a;
+  perform pg_temp.check('esign: tenant reads signers on their own lease', n = 1);
+  refused := false;
+  begin
+    perform token_hash from public.signature_signers where id = signer_a;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: tenant cannot read token_hash', refused);
+  update public.signature_requests set status = 'completed' where id = req_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('esign: tenant cannot update a request', n = 0);
+  update public.signature_signers set signed_at = now() where id = signer_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('esign: tenant cannot update a signer', n = 0);
+  refused := false;
+  begin
+    insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+      values (lease_a, 'Mine', lease_a || '/m.pdf', hash, 1, now());
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: tenant cannot insert a request', refused);
+  refused := false;
+  begin
+    insert into public.signature_signers (request_id, name, email, page, x, y, w, h, token_hash, token_expires_at)
+      values (req_a, 'Me', 'me@example.com', 1, 1, 1, 1, 1, repeat('3', 64), now());
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: tenant cannot insert a signer', refused);
+  refused := false;
+  begin
+    perform public.claim_signature_finalisation(req_a);
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: tenant cannot run the finaliser', refused);
+
+  perform pg_temp.act_as(tenant_b);
+  select count(*) into n from public.signature_requests where id = req_a;
+  perform pg_temp.check('esign: tenant B cannot read tenant A requests', n = 0);
+  select count(*) into n from public.signature_signers where request_id = req_a;
+  perform pg_temp.check('esign: tenant B cannot read tenant A signers', n = 0);
+
+  -- Finalisation, as the service connection: claim once, complete once, a
+  -- draft lease activates and the signed PDF is filed on lease and tenant.
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  insert into public.leases (unit_id, start_date, end_date, rent_amount, status)
+    select unit_id, current_date, current_date + 365, 900, 'borrador' from public.leases where id = lease_a
+    returning id into draft;
+  insert into public.lease_tenants (lease_id, tenant_id) values (draft, t_a);
+  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+    values (draft, 'Draft', draft || '/d.pdf', hash, 1, now() + interval '14 days') returning id into req_d;
+  insert into public.signature_signers (request_id, name, email, tenant_id, page, x, y, w, h, token_hash, token_expires_at)
+    values (req_d, 'Tenant A', 'a@example.com', t_a, 1, 72, 72, 200, 50, repeat('4', 64), now() + interval '14 days');
+  perform pg_temp.check('esign: no claim while a signer is pending',
+    not public.claim_signature_finalisation(req_d));
+  update public.signature_signers
+    set signed_at = now(), signature_kind = 'typed', signature_data = 'Tenant A',
+        consent_at = now(), consent_version = 'v1'
+    where request_id = req_d;
+  claimed := public.claim_signature_finalisation(req_d);
+  perform pg_temp.check('esign: the first finaliser gets the claim', claimed);
+  perform pg_temp.check('esign: a second finaliser is refused the claim',
+    not public.claim_signature_finalisation(req_d));
+  perform public.complete_signature_request(req_d, draft || '/signed.pdf', repeat('b', 64), 'Draft-signed.pdf',
+    jsonb_build_object(t_a::text, t_a || '/signed.pdf'));
+  perform public.complete_signature_request(req_d, draft || '/signed.pdf', repeat('b', 64), 'Draft-signed.pdf',
+    jsonb_build_object(t_a::text, t_a || '/signed.pdf'));
+  perform pg_temp.check('esign: completing marks the request completed',
+    (select status from public.signature_requests where id = req_d) = 'completed');
+  select count(*) into n from public.documents where url in (draft || '/signed.pdf', t_a || '/signed.pdf');
+  perform pg_temp.check('esign: signed PDF filed once on the lease and once on the tenant', n = 2);
+  perform pg_temp.check('esign: the draft lease activates when everyone has signed',
+    (select status from public.leases where id = draft) = 'activo');
+end;
+$$;
+
 rollback;
