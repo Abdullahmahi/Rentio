@@ -146,11 +146,11 @@ function ReceiptsPage() {
 
   const sendSelected = useToastMutation({
     mutationFn: async (ids: string[]) => {
-      // Same path as the single Send: the function emails the PDF and marks
-      // the invoice enviado. If it fails (mail not configured), still mark
-      // it sent so the batch isn't blocked on the provider.
+      // The function emails the PDF and only then marks the invoice enviado.
+      // A failed email leaves it as it was, so nobody is shown as invoiced
+      // who never got the receipt.
       // ponytail: sequential; batch the function if 400+ doors makes this slow.
-      const unemailed: string[] = [];
+      const failed: string[] = [];
       for (const id of ids) {
         try {
           const { error: functionError } = await invokeFn("send-invoice-email", {
@@ -159,31 +159,36 @@ function ReceiptsPage() {
           if (functionError) throw functionError;
         } catch (caught) {
           console.warn("send-invoice-email", caught);
-          unemailed.push(id);
+          failed.push(id);
         }
-      }
-      if (unemailed.length > 0) {
-        const { error } = await db
-          .from("invoices")
-          .update({ status: "enviado" })
-          .in("id", unemailed);
-        if (error) throw error;
       }
       await logActivity(actorId, "invoice", null, "send_bulk", {
         count: ids.length,
-        emailed: ids.length - unemailed.length,
+        emailed: ids.length - failed.length,
+        failed,
         period,
       });
-      return unemailed.length;
+      return failed;
     },
     successKey: "receipts.sent",
     pendingKey: "receipts.sending",
-    resultMessage: (_data, ids) => t("receipts.sentCount", { count: ids.length }),
+    resultMessage: (failed, ids) => t("receipts.sentCount", { count: ids.length - failed.length }),
     invalidate: [["invoices"]],
-    onSuccess: (unemailed) => {
-      setSelected([]);
+    onSuccess: (failed) => {
       setReviewingBatch(false);
-      if (unemailed > 0) toast.warning(t("receipts.sentWithoutEmail"));
+      // Failed ones stay ticked so a retry is one click.
+      setSelected(failed);
+      if (failed.length === 0) return;
+      const byId = new Map(rows.map((row) => [row.id, row]));
+      const names = failed
+        .map((id) => {
+          const row = byId.get(id);
+          return row ? `${row.tenantName} (${row.invoice_number ?? row.unitNumber})` : id;
+        })
+        .join(", ");
+      toast.warning(t("receipts.sendFailed", { count: failed.length, names }), {
+        duration: Infinity,
+      });
     },
   });
 

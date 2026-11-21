@@ -68,7 +68,7 @@ export function derivedKey(purpose: string) {
   return createHmac("sha256", JWT_SECRET).update(purpose).digest();
 }
 
-function clientFor(token: string): Db {
+export function clientFor(token: string): Db {
   return new PostgrestClient<Database>(POSTGREST_URL, {
     headers: { Authorization: `Bearer ${token}` },
   });

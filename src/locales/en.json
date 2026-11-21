@@ -8,6 +8,7 @@
     "properties": "Properties",
     "units": "Units",
     "parking": "Parking",
+    "automations": "Automations",
     "tenants": "Tenants",
     "contracts": "Leases",
     "receipts": "Invoices",
@@ -44,6 +45,10 @@
     "parking": {
       "title": "Parking",
       "description": "Manage assigned parking spaces."
+    },
+    "automations": {
+      "title": "Automations",
+      "description": "What Rentio does on its own, every night."
     },
     "tenants": {
       "title": "Tenants",
@@ -192,6 +197,58 @@
     "overdue": "Overdue",
     "paid": "Paid",
     "open": "Open"
+  },
+  "automations": {
+    "title": "Automations",
+    "description": "What Rentio does on its own, every night. Changes apply from the next run.",
+    "runNow": "Run now",
+    "running": "Running tonight's jobs now…",
+    "ranNow": "Done. The counts above are from this run.",
+    "ranWithErrors": "Finished with {{count}} errors. Open the run history for details.",
+    "save": "Save changes",
+    "saved": "Automations saved. They apply from the next run.",
+    "lastRun": {
+      "ok": "Ran {{when}} · everything went through",
+      "failed": "Ran {{when}} · something failed",
+      "never": "Hasn't run yet",
+      "neverHint": "The nightly job hasn't run for this company. Press Run now, or wait for tonight.",
+      "counts": "{{invoices}} invoices drafted · {{reminders}} rent reminders · {{warnings}} late-fee warnings · {{updates}} tenant updates · {{errors}} errors",
+      "next": "Runs every night around 11 pm",
+      "history": "See the last 30 runs",
+      "hide": "Hide the run history",
+      "trigger": { "cron": "nightly", "manual": "run by hand" }
+    },
+    "panel": {
+      "title": "What runs every night",
+      "description": "Switch any of these off at any time. Days count in El Paso time. Tenants always get emails in their own language."
+    },
+    "invoices": {
+      "title": "Monthly invoices",
+      "description": "Rentio drafts every active lease's rent invoice for the month. Drafts stay hidden from tenants until they are sent.",
+      "dayBefore": "Generate on day",
+      "dayAfter": "of each month",
+      "dayLabel": "Day of the month to generate invoices",
+      "drafts": "Leave as drafts for me to review",
+      "send": "Send to tenants automatically"
+    },
+    "reminder": {
+      "title": "Rent reminder",
+      "description": "A friendly email before rent is due, with the balance and how to pay. Says \"there is never a fee to pay rent\".",
+      "daysAfter": "days before the due date",
+      "daysLabel": "Days before the due date"
+    },
+    "lateFee": {
+      "title": "Late-fee warning",
+      "description": "Tells the tenant a late fee may be charged if rent doesn't arrive. The day is set by Texas law — the due date plus the lease's grace days — so there is nothing to adjust here."
+    },
+    "payments": {
+      "title": "Payment confirmations",
+      "description": "When you confirm or refuse a payment a tenant reported, they get an email within a minute — with the reason, if refused."
+    },
+    "repairs": {
+      "title": "Repair updates",
+      "description": "When a request changes status, or you add a note marked \"visible to tenant\", the tenant hears about it by email."
+    }
   },
   "dialog": {
     "title": "Confirm action",
@@ -520,6 +577,7 @@
   },
   "contracts": {
     "new": "New lease",
+    "monthToMonth": "Month-to-month",
     "columns": {
       "tenant": "Primary tenant",
       "start": "Start",
@@ -919,6 +977,8 @@
     "sending": "Sending…",
     "sentCount": "{{count}} invoice sent",
     "sentCount_other": "{{count}} invoices sent",
+    "sendFailed": "{{count}} invoice could not be emailed and was not marked as sent: {{names}}",
+    "sendFailed_other": "{{count}} invoices could not be emailed and were not marked as sent: {{names}}",
     "batchTitle": "Review the {{month}} batch",
     "batchSummary": "{{count}} draft about to be invoiced, totalling",
     "batchSummary_other": "{{count}} drafts about to be invoiced, totalling",
@@ -1282,7 +1342,11 @@
       "welcomeKitReady": "Welcome kit downloaded."
     },
     "roleChanged": "Role updated.",
-    "ownRoleLocked": "Ask another admin to change your role.",
+    "demoteSelf": {
+      "title": "Remove your own admin access?",
+      "description": "You'll become {{role}} and lose access to Settings and user management right away. Only another admin can make you an admin again.",
+      "confirm": "Yes, change my role"
+    },
     "inviteSent": "Invitation sent.",
     "adminOnly": "Only an administrator can view this section.",
     "inviteUser": "Invite user",
