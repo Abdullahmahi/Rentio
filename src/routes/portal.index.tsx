@@ -13,6 +13,7 @@ import {
 } from "@/components/rentio/status";
 import { formatMoney, formatDate } from "@/lib/format";
 import { useMyPortal, usePublicSettings } from "@/lib/queries";
+import { canPayOnline, useStripeAccount } from "@/lib/stripe";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 import { cn } from "@/lib/utils";
@@ -79,8 +80,10 @@ function PortalHome() {
   const portal = useMyPortal();
   const settings = usePublicSettings();
 
+  const stripeInfo = useStripeAccount();
   const balance = Number(portal.data?.balance?.balance ?? 0);
   const owes = balance > 0.005;
+  const payOnline = owes && canPayOnline(stripeInfo.data);
   const pendingReport = portal.data?.payments.find((payment) => payment.status === "pendiente");
   // The newest payment, if it was a report staff refused: say so, and why.
   const latestPayment = portal.data?.payments[0];
@@ -162,9 +165,19 @@ function PortalHome() {
             </div>
           ) : null}
 
-          {/* One working path, unmistakably primary. */}
-          <div className="mt-5">
-            <Button asChild className="h-12 w-full text-base">
+          {/* Pay now leads when the company takes online rent; reporting a
+              Zelle/cash payment stays one tap away either way. */}
+          <div className="mt-5 space-y-2">
+            {payOnline ? (
+              <Button asChild className="h-12 w-full text-base">
+                <Link to="/portal/pay">{t("stripe.pay.title")}</Link>
+              </Button>
+            ) : null}
+            <Button
+              asChild
+              variant={payOnline ? "outline" : "default"}
+              className="h-12 w-full text-base"
+            >
               <Link to="/portal/report-payment">{t("portal.reportPayment")}</Link>
             </Button>
           </div>

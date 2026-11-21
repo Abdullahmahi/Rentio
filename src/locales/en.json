@@ -1478,6 +1478,29 @@
       "hint": "Passing card costs on to tenants is your legal call: card-network rules and state law set what is allowed, and Rentio does not check it for you. Bank transfers (ACH) never carry a fee.",
       "percent": "Fee (percent of the amount)",
       "saved": "Fee setting saved."
+    },
+    "pay": {
+      "title": "Pay now",
+      "hint": "Pay your balance securely. Card payments post right away; bank payments take a few business days.",
+      "amount": "Amount due",
+      "chooseMethod": "How do you want to pay?",
+      "card": "Card",
+      "cardHint": "Debit or credit card, Apple Pay, Google Pay.",
+      "bank": "Bank account (ACH)",
+      "bankHint": "No fee. Connects to your bank securely; clears in 3–5 business days.",
+      "feeNotice": "Your landlord adds a {{percent}}% card fee ({{fee}}). Pay from your bank account to avoid it.",
+      "feeLine": "Card fee ({{percent}}%)",
+      "total": "Total",
+      "saveMethod": "Save this payment method for next time",
+      "continue": "Continue",
+      "payButton": "Pay {{amount}}",
+      "successTitle": "Payment received",
+      "successBody": "Thank you! It will show on your home screen in a moment.",
+      "processingTitle": "Payment on its way",
+      "processingBody": "Your bank payment is processing. It usually clears in 3–5 business days; you'll see it on your home screen once it does.",
+      "notReady": "Online payment isn't available right now. Use one of the other ways to pay.",
+      "nothingDue": "You have nothing to pay right now.",
+      "failed": "The payment didn't go through. Check the details and try again."
     }
   }
 }
