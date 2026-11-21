@@ -233,6 +233,25 @@ export function useInvoices({ leaseId, period }: { leaseId?: string; period?: st
   });
 }
 
+/**
+ * Money actually received since `since` (D5): confirmed payments by the day
+ * paid. Pending and voided payments never count. Bucket with `cashByMonth`.
+ */
+export function useCashReceived(since: string) {
+  return useQuery({
+    queryKey: [...qk.payments, "received", since],
+    queryFn: async () => {
+      const { data, error } = await db
+        .from("payments")
+        .select("lease_id, amount, paid_at")
+        .eq("status", "confirmado")
+        .gte("paid_at", since);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 /** The signed-in staff member's profile id, for recorded_by / actor_id columns. */
 export function useActorId() {
   const { profile } = useAuth();

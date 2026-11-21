@@ -38,6 +38,7 @@ import { Route as ApiFnGenerateDepositDispositionRouteImport } from './routes/ap
 import { Route as ApiFnGenerateInvoicePdfRouteImport } from './routes/api.fn.generate-invoice-pdf'
 import { Route as ApiFnGenerateNoticeToVacateRouteImport } from './routes/api.fn.generate-notice-to-vacate'
 import { Route as ApiFnGenerateWelcomeKitRouteImport } from './routes/api.fn.generate-welcome-kit'
+import { Route as ApiFnRunAutomationsRouteImport } from './routes/api.fn.run-automations'
 import { Route as ApiFnSendInvoiceEmailRouteImport } from './routes/api.fn.send-invoice-email'
 import { Route as ApiFnSendNotificationsRouteImport } from './routes/api.fn.send-notifications'
 import { Route as ApiFnSendStaffInviteRouteImport } from './routes/api.fn.send-staff-invite'
@@ -45,6 +46,7 @@ import { Route as ApiFnSendTenantInviteRouteImport } from './routes/api.fn.send-
 import { Route as ApiFnSubmitAccessRequestRouteImport } from './routes/api.fn.submit-access-request'
 import { Route as ApiJobsNightlyRouteImport } from './routes/api.jobs.nightly'
 import { Route as ApiStorageActionRouteImport } from './routes/api.storage.$action'
+import { Route as AppAutomationsIndexRouteImport } from './routes/app.automations.index'
 import { Route as AppContractsIndexRouteImport } from './routes/app.contracts.index'
 import { Route as AppContractsIdRouteImport } from './routes/app.contracts.$id'
 import { Route as AppExpensesIndexRouteImport } from './routes/app.expenses.index'
@@ -218,6 +220,11 @@ const ApiFnGenerateWelcomeKitRoute = ApiFnGenerateWelcomeKitRouteImport.update({
   path: '/api/fn/generate-welcome-kit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiFnRunAutomationsRoute = ApiFnRunAutomationsRouteImport.update({
+  id: '/api/fn/run-automations',
+  path: '/api/fn/run-automations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFnSendInvoiceEmailRoute = ApiFnSendInvoiceEmailRouteImport.update({
   id: '/api/fn/send-invoice-email',
   path: '/api/fn/send-invoice-email',
@@ -253,6 +260,11 @@ const ApiStorageActionRoute = ApiStorageActionRouteImport.update({
   id: '/api/storage/$action',
   path: '/api/storage/$action',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppAutomationsIndexRoute = AppAutomationsIndexRouteImport.update({
+  id: '/automations/',
+  path: '/automations/',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppContractsIndexRoute = AppContractsIndexRouteImport.update({
   id: '/contracts/',
@@ -410,6 +422,7 @@ export interface FileRoutesByFullPath {
   '/api/fn/generate-invoice-pdf': typeof ApiFnGenerateInvoicePdfRoute
   '/api/fn/generate-notice-to-vacate': typeof ApiFnGenerateNoticeToVacateRoute
   '/api/fn/generate-welcome-kit': typeof ApiFnGenerateWelcomeKitRoute
+  '/api/fn/run-automations': typeof ApiFnRunAutomationsRoute
   '/api/fn/send-invoice-email': typeof ApiFnSendInvoiceEmailRoute
   '/api/fn/send-notifications': typeof ApiFnSendNotificationsRoute
   '/api/fn/send-staff-invite': typeof ApiFnSendStaffInviteRoute
@@ -426,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
   '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/rest/v1/$': typeof RestV1SplatRoute
+  '/app/automations/': typeof AppAutomationsIndexRoute
   '/app/contracts/': typeof AppContractsIndexRoute
   '/app/expenses/': typeof AppExpensesIndexRoute
   '/app/import/': typeof AppImportIndexRoute
@@ -471,6 +485,7 @@ export interface FileRoutesByTo {
   '/api/fn/generate-invoice-pdf': typeof ApiFnGenerateInvoicePdfRoute
   '/api/fn/generate-notice-to-vacate': typeof ApiFnGenerateNoticeToVacateRoute
   '/api/fn/generate-welcome-kit': typeof ApiFnGenerateWelcomeKitRoute
+  '/api/fn/run-automations': typeof ApiFnRunAutomationsRoute
   '/api/fn/send-invoice-email': typeof ApiFnSendInvoiceEmailRoute
   '/api/fn/send-notifications': typeof ApiFnSendNotificationsRoute
   '/api/fn/send-staff-invite': typeof ApiFnSendStaffInviteRoute
@@ -487,6 +502,7 @@ export interface FileRoutesByTo {
   '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
   '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/rest/v1/$': typeof RestV1SplatRoute
+  '/app/automations': typeof AppAutomationsIndexRoute
   '/app/contracts': typeof AppContractsIndexRoute
   '/app/expenses': typeof AppExpensesIndexRoute
   '/app/import': typeof AppImportIndexRoute
@@ -535,6 +551,7 @@ export interface FileRoutesById {
   '/api/fn/generate-invoice-pdf': typeof ApiFnGenerateInvoicePdfRoute
   '/api/fn/generate-notice-to-vacate': typeof ApiFnGenerateNoticeToVacateRoute
   '/api/fn/generate-welcome-kit': typeof ApiFnGenerateWelcomeKitRoute
+  '/api/fn/run-automations': typeof ApiFnRunAutomationsRoute
   '/api/fn/send-invoice-email': typeof ApiFnSendInvoiceEmailRoute
   '/api/fn/send-notifications': typeof ApiFnSendNotificationsRoute
   '/api/fn/send-staff-invite': typeof ApiFnSendStaffInviteRoute
@@ -551,6 +568,7 @@ export interface FileRoutesById {
   '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
   '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/rest/v1/$': typeof RestV1SplatRoute
+  '/app/automations/': typeof AppAutomationsIndexRoute
   '/app/contracts/': typeof AppContractsIndexRoute
   '/app/expenses/': typeof AppExpensesIndexRoute
   '/app/import/': typeof AppImportIndexRoute
@@ -600,6 +618,7 @@ export interface FileRouteTypes {
     | '/api/fn/generate-invoice-pdf'
     | '/api/fn/generate-notice-to-vacate'
     | '/api/fn/generate-welcome-kit'
+    | '/api/fn/run-automations'
     | '/api/fn/send-invoice-email'
     | '/api/fn/send-notifications'
     | '/api/fn/send-staff-invite'
@@ -616,6 +635,7 @@ export interface FileRouteTypes {
     | '/portal/maintenance/$id'
     | '/portal/receipts/$id'
     | '/rest/v1/$'
+    | '/app/automations/'
     | '/app/contracts/'
     | '/app/expenses/'
     | '/app/import/'
@@ -661,6 +681,7 @@ export interface FileRouteTypes {
     | '/api/fn/generate-invoice-pdf'
     | '/api/fn/generate-notice-to-vacate'
     | '/api/fn/generate-welcome-kit'
+    | '/api/fn/run-automations'
     | '/api/fn/send-invoice-email'
     | '/api/fn/send-notifications'
     | '/api/fn/send-staff-invite'
@@ -677,6 +698,7 @@ export interface FileRouteTypes {
     | '/portal/maintenance/$id'
     | '/portal/receipts/$id'
     | '/rest/v1/$'
+    | '/app/automations'
     | '/app/contracts'
     | '/app/expenses'
     | '/app/import'
@@ -724,6 +746,7 @@ export interface FileRouteTypes {
     | '/api/fn/generate-invoice-pdf'
     | '/api/fn/generate-notice-to-vacate'
     | '/api/fn/generate-welcome-kit'
+    | '/api/fn/run-automations'
     | '/api/fn/send-invoice-email'
     | '/api/fn/send-notifications'
     | '/api/fn/send-staff-invite'
@@ -740,6 +763,7 @@ export interface FileRouteTypes {
     | '/portal/maintenance/$id'
     | '/portal/receipts/$id'
     | '/rest/v1/$'
+    | '/app/automations/'
     | '/app/contracts/'
     | '/app/expenses/'
     | '/app/import/'
@@ -783,6 +807,7 @@ export interface RootRouteChildren {
   ApiFnGenerateInvoicePdfRoute: typeof ApiFnGenerateInvoicePdfRoute
   ApiFnGenerateNoticeToVacateRoute: typeof ApiFnGenerateNoticeToVacateRoute
   ApiFnGenerateWelcomeKitRoute: typeof ApiFnGenerateWelcomeKitRoute
+  ApiFnRunAutomationsRoute: typeof ApiFnRunAutomationsRoute
   ApiFnSendInvoiceEmailRoute: typeof ApiFnSendInvoiceEmailRoute
   ApiFnSendNotificationsRoute: typeof ApiFnSendNotificationsRoute
   ApiFnSendStaffInviteRoute: typeof ApiFnSendStaffInviteRoute
@@ -998,6 +1023,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFnGenerateWelcomeKitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/fn/run-automations': {
+      id: '/api/fn/run-automations'
+      path: '/api/fn/run-automations'
+      fullPath: '/api/fn/run-automations'
+      preLoaderRoute: typeof ApiFnRunAutomationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/fn/send-invoice-email': {
       id: '/api/fn/send-invoice-email'
       path: '/api/fn/send-invoice-email'
@@ -1046,6 +1078,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/storage/$action'
       preLoaderRoute: typeof ApiStorageActionRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/automations/': {
+      id: '/app/automations/'
+      path: '/automations'
+      fullPath: '/app/automations/'
+      preLoaderRoute: typeof AppAutomationsIndexRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/contracts/': {
       id: '/app/contracts/'
@@ -1233,6 +1272,7 @@ interface AppRouteChildren {
   AppReceiptsIdRoute: typeof AppReceiptsIdRoute
   AppTenantsIdRoute: typeof AppTenantsIdRoute
   AppUnitsIdRoute: typeof AppUnitsIdRoute
+  AppAutomationsIndexRoute: typeof AppAutomationsIndexRoute
   AppContractsIndexRoute: typeof AppContractsIndexRoute
   AppExpensesIndexRoute: typeof AppExpensesIndexRoute
   AppImportIndexRoute: typeof AppImportIndexRoute
@@ -1257,6 +1297,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppReceiptsIdRoute: AppReceiptsIdRoute,
   AppTenantsIdRoute: AppTenantsIdRoute,
   AppUnitsIdRoute: AppUnitsIdRoute,
+  AppAutomationsIndexRoute: AppAutomationsIndexRoute,
   AppContractsIndexRoute: AppContractsIndexRoute,
   AppExpensesIndexRoute: AppExpensesIndexRoute,
   AppImportIndexRoute: AppImportIndexRoute,
@@ -1325,6 +1366,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFnGenerateInvoicePdfRoute: ApiFnGenerateInvoicePdfRoute,
   ApiFnGenerateNoticeToVacateRoute: ApiFnGenerateNoticeToVacateRoute,
   ApiFnGenerateWelcomeKitRoute: ApiFnGenerateWelcomeKitRoute,
+  ApiFnRunAutomationsRoute: ApiFnRunAutomationsRoute,
   ApiFnSendInvoiceEmailRoute: ApiFnSendInvoiceEmailRoute,
   ApiFnSendNotificationsRoute: ApiFnSendNotificationsRoute,
   ApiFnSendStaffInviteRoute: ApiFnSendStaffInviteRoute,

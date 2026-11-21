@@ -129,6 +129,12 @@ export function isExpiringSoon(lease: Tables<"leases">, today = todayIso()) {
   return days >= 0 && days <= 60;
 }
 
+/** D1: an active lease past its end date is a month-to-month holdover. It
+ *  stays active (and billed) until someone ends it. */
+export function isMonthToMonth(lease: Tables<"leases">, today = todayIso()) {
+  return isActive(lease) && lease.end_date < today;
+}
+
 export function occupancy(portfolio: Portfolio, propertyId?: string) {
   const units = propertyId
     ? portfolio.units.filter((unit) => unit.property_id === propertyId)

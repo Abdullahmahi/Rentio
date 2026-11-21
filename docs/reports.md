@@ -298,6 +298,23 @@ Source: `../audit-product-2026-10-28.md` §2.1 #5, #8, #11; §4.4; §3.2 #12. "E
 
 **Owner questions from today**: (1) deposit letter default language, above; (2) portal payment-method order now Zelle · cash · money order · check · ACH with Zelle preselected (research §3, El Paso) — confirm or reorder in `portal.report-payment.tsx:25`.
 
+## 2026-11-13 · Automations page (owner-approved Paper mock-up "13 · Automations")
+
+Owner decisions: a left-bar item under Operations (not a Settings tab); same look as the Settings cards in every theme. Paper: file `Rentio`, page *App · Harbor screens*, artboard "13 · Automations".
+
+**Changed**
+- `20261113000100_automations.sql`: `settings.auto_invoice_day` (1–28), `auto_invoice_send`, `auto_rent_reminder` + `_days` (1–14), `auto_late_fee_warning`, `auto_payment_emails`, `auto_repair_emails`; `job_runs` (one row per company per run; staff read own company, server writes). `nightly()` drafts on each company's day (or later in the month if that day was missed — never earlier) and returns a per-company breakdown with the invoice ids drafted this run; `queue_late_fee_warnings()` and `queue_rent_reminders()` respect the flags and the days; the three tenant-email triggers check `auto_payment_emails` / `auto_repair_emails`; `claim_notifications()` returns `org_id`.
+- `src/lib/server/automations.ts` `runAutomations(db, trigger, actor)`: the whole pipeline (invoices → late-fee emails → reminders → **send automatically** → outbox → `job_runs` rows). `api.jobs.nightly.ts` is now a thin secret-checked call to it; new `POST /api/fn/run-automations` (admin) is "Run now" and answers with the caller's company's counts. "Send automatically" emails each drafted invoice through a client minted for the company's first admin (RLS-scoped views such as `my_lease_details` hide rows from the service role).
+- `src/lib/server/send-invoice-email.ts`: the invoice email extracted from the route so the automation and the Send button share it (`NoTenantEmail` → 400 on the route).
+- `src/routes/app.automations.index.tsx`: Last-run strip (status, counts, "see the last 30 runs"), Run now, Save; one panel with the five rows (day-of-month + drafts/send segmented control; reminder days + switch; three switches). Managers see it read-only; admins edit. Nav item `automations` (Zap) under Operations; `automations.*`, `nav.automations`, `pages.automations` EN+ES.
+- `scripts/migrate-pending.sh` knows the new migration. `setup.sql` regenerated (26 migrations + seed). `database.types.ts` hand-extended (`settings` columns, `job_runs`, `notifications`, `claim_notifications.org_id`).
+
+**Checks**: `bun test` 74 pass · `bunx tsc --noEmit` clean · `bunx eslint .` 0 errors · prettier clean · `vite build` OK · G5 on a throwaway `postgres:17`: rls **143 ok / 0 errors** (7 new: run-log isolation ×3, payment emails off, reminders off ×2, per-company breakdown), lifecycle **39 ok / 0 errors**; container removed.
+
+**Not verified**: in a browser (no Clerk keys locally); a real "send automatically" run against Resend; the page in Mesa/Juniper/Graphite (it uses only theme tokens, so it should follow). The Paper mock-up shows "Repair updates" off purely as the off-state reference; the default is on.
+
+**Deploy order**: `scripts/migrate-pending.sh` on the server first (adds the columns and `job_runs`; the new code reads them on first load), then deploy. The Coolify scheduled task for `/api/jobs/nightly` is still **missing** — without it nothing on this page runs except "Run now".
+
 ## 2026-11-21 · View portal as tenant (read-only preview), issue #29
 
 **Changed**

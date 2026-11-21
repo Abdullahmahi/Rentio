@@ -54,7 +54,7 @@ const AuthContext = createContext<AuthValue | null>(null);
 export const clerkAppearance = {
   variables: {
     colorPrimary: "#1B4D3E",
-    fontFamily: "Inter Variable, Inter, system-ui, sans-serif",
+    fontFamily: "'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', system-ui, sans-serif",
     borderRadius: "0.625rem",
   },
   options: { elevation: "flush", unsafe_disableDevelopmentModeWarnings: true },

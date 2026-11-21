@@ -30,7 +30,7 @@ export function Bilingual() {
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">
               {t("bilingual.eyebrow")}
             </p>
-            <h2 className="mt-3 text-balance font-heading text-2xl font-medium !leading-snug md:text-4xl">
+            <h2 className="mt-3 text-balance font-heading text-2xl font-semibold tracking-tight !leading-snug md:text-4xl">
               {t("bilingual.headingLead")}{" "}
               <span className="font-subheading italic">{t("bilingual.headingEmphasis")}</span>
             </h2>

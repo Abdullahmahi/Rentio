@@ -21,7 +21,7 @@ export function ClosingCta() {
 
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
         <Container>
-          <h2 className="text-balance font-heading text-3xl font-medium !leading-snug md:text-4xl lg:text-5xl">
+          <h2 className="text-balance font-heading text-3xl font-semibold tracking-tight !leading-snug md:text-4xl lg:text-5xl">
             {t("cta.headingLead")}{" "}
             <span className="font-subheading italic">{t("cta.headingEmphasis")}</span>
           </h2>

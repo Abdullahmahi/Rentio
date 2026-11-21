@@ -65,7 +65,7 @@ export function Hero() {
           </Container>
 
           <Container delay={0.15}>
-            <h1 className="mx-auto max-w-4xl text-balance text-4xl font-bold !leading-tight lg:text-7xl">
+            <h1 className="mx-auto max-w-4xl text-balance text-4xl font-bold tracking-tight !leading-tight lg:text-7xl">
               {t("hero.headlineLead")}{" "}
               <span className="font-subheading italic">{t("hero.headlineEmphasis")}</span>
             </h1>

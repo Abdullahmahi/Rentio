@@ -225,8 +225,9 @@ function Importer({ kind }: { kind: ImportKind }) {
               .from("leases")
               .insert({
                 ...payload,
-                status:
-                  payload.end_date < todayIso() ? ("terminado" as const) : ("activo" as const),
+                // D1: a past end date is a month-to-month holdover, not an
+                // ended lease. Only a person ends a lease (move-out).
+                status: "activo" as const,
               })
               .select("id")
               .single();

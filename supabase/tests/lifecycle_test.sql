@@ -210,7 +210,7 @@ begin
   insert into public.invoices (lease_id, period_month, due_date, status, total)
     values (l_running, '2000-03-01', today - 5, 'pagado', 0) returning id into inv_paid;
 
-  n := public.queue_late_fee_warnings();
+  n := public.queue_late_fee_warnings(org);
   perform pg_temp.check('warning queued on the last grace day',
     exists (select 1 from public.late_fee_warnings where invoice_id = inv_due_today
             and eligible_on = today + 1 and sent_at is null));
@@ -221,18 +221,20 @@ begin
   perform pg_temp.check('no warning for a lease with no late fee',
     not exists (select 1 from public.late_fee_warnings w join public.invoices i on i.id = w.invoice_id
                 where i.lease_id = l_holdover));
-  perform pg_temp.check('re-running queues nothing', public.queue_late_fee_warnings() = 0);
+  perform pg_temp.check('re-running queues nothing', public.queue_late_fee_warnings(org) = 0);
   perform pg_temp.check('fee and balance reach the sender',
-    (select fee from public.late_fee_warnings_to_send() where invoice_id = inv_due_today) = 50
-    and (select balance from public.late_fee_warnings_to_send() where invoice_id = inv_due_today) = 1000);
+    (select fee from public.late_fee_warnings_to_send(org) where invoice_id = inv_due_today) = 50
+    and (select balance from public.late_fee_warnings_to_send(org) where invoice_id = inv_due_today) = 1000);
   perform pg_temp.check('no late fee line was added (D3)',
     not exists (select 1 from public.invoice_lines where invoice_id = inv_due_today and category = 'recargo'));
 
   -- ------------------------------------------------------- A1 nightly()
-  perform public.nightly();
-  j := public.nightly();
+  perform public.nightly(org);
+  j := public.nightly(org);
   perform pg_temp.check('second nightly() changes nothing',
     (j ->> 'invoices_created')::int = 0 and (j ->> 'warnings_queued')::int = 0);
+  perform pg_temp.check('nightly() breaks the run down per company',
+    jsonb_typeof(j -> 'orgs') = 'array' and jsonb_array_length(j -> 'orgs') >= 1);
 
   raise notice '--- all lifecycle assertions passed ---';
 end;
