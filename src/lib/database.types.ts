@@ -921,6 +921,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      stripe_oauth_states: {
+        Row: {
+          nonce: string;
+          org_id: string;
+          profile_id: string;
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: {
+          nonce: string;
+          org_id: string;
+          profile_id: string;
+          expires_at: string;
+          created_at?: string;
+        };
+        Update: {
+          nonce?: string;
+          org_id?: string;
+          profile_id?: string;
+          expires_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       tenants: {
         Row: {
           id: string;

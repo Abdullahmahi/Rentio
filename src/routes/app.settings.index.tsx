@@ -45,9 +45,13 @@ import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/app/settings/")({
-  // /api/stripe/callback lands here with ?stripe=connected|error.
-  validateSearch: (search: Record<string, unknown>): { stripe?: "connected" | "error" } =>
-    search["stripe"] === "connected" || search["stripe"] === "error"
+  // /api/stripe/callback lands here with ?stripe=connected|already|error.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { stripe?: "connected" | "already" | "error" } =>
+    search["stripe"] === "connected" ||
+    search["stripe"] === "already" ||
+    search["stripe"] === "error"
       ? { stripe: search["stripe"] }
       : {},
   head: () => ({
@@ -176,6 +180,7 @@ function SettingsPage() {
   useEffect(() => {
     if (!stripeResult) return;
     if (stripeResult === "connected") toast.success(t("stripe.connected"));
+    else if (stripeResult === "already") toast.error(t("stripe.alreadyConnected"));
     else toast.error(t("stripe.connectError"));
     void navigate({ to: "/app/settings", search: {}, replace: true });
   }, [stripeResult, navigate, t]);

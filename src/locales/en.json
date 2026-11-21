@@ -1467,6 +1467,8 @@
     "disconnected": "Stripe disconnected.",
     "connected": "Stripe connected.",
     "connectError": "The Stripe connection didn't complete. Try again.",
+    "alreadyConnected": "A Stripe account is already connected. An admin must disconnect it first.",
+    "adminOnly": "Only a company admin can connect or disconnect Stripe.",
     "pendingHint": "Stripe still needs information before this account can take payments. Finish setup in your Stripe dashboard, then refresh the status.",
     "accountId": "Account",
     "payouts": "Payouts enabled",

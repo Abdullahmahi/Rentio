@@ -3,14 +3,15 @@ import { siteUrl } from "@/lib/server/email";
 import { fail, requireSession, serviceDb } from "@/lib/server/session";
 import {
   accountRow,
+  connectAccount,
   connectUrl,
-  disconnectedRow,
+  consumeOAuthState,
+  disconnectAccount,
   getStripe,
   notConfigured,
-  signState,
+  startOAuth,
   stripeConfigured,
   stripeEnv,
-  verifyState,
 } from "@/lib/server/stripe";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
@@ -24,12 +25,13 @@ const backToSettings = (request: Request, result: string) =>
 /**
  * Stripe Connect for the company (issue #8). Standard account, OAuth.
  *   GET  account     { configured, publishableKey, account }  any signed-in user
- *   POST connect     { url }                                  staff
- *   GET  callback    ?code&state  → /app/settings?stripe=…    staff (the org that started)
+ *   POST connect     { url }                                  admin, nothing connected yet
+ *   GET  callback    ?code&state  → /app/settings?stripe=…    the admin who started it
  *   POST refresh     re-read the account from Stripe          staff
- *   POST disconnect  revoke access, clear the row             staff
- * Any staff of the company (admin or manager, owner rule) may do all of
- * this. Account id and status are written here only, through the service
+ *   POST disconnect  revoke access, clear the row             admin
+ * Owner rule: the money destination stays with the admin, so connecting,
+ * replacing (disconnect, then connect) and disconnecting are admin-only.
+ * Account id and status are written here only, through the service
  * connection, always for the caller's own organization.
  */
 export const Route = createFileRoute("/api/stripe/$action")({
@@ -61,33 +63,28 @@ export const Route = createFileRoute("/api/stripe/$action")({
         }
 
         if (params.action === "callback") {
-          if (!session.isStaff) return json({ error: "forbidden" }, 403);
+          if (!session.isAdmin) return backToSettings(request, "error");
           const stripe = getStripe();
           if (!stripe) return notConfigured();
           const url = new URL(request.url);
-          // The state is signed with our key and names the org that started
-          // the flow; it must be the caller's, or someone could pin their
-          // Stripe account onto another company.
-          if (verifyState(url.searchParams.get("state")) !== orgId)
-            return backToSettings(request, "error");
           const code = url.searchParams.get("code");
-          if (!code) return backToSettings(request, "error");
           try {
-            const token = await stripe.oauth.token({ grant_type: "authorization_code", code });
-            const account = await stripe.accounts.retrieve(token.stripe_user_id!);
+            // Signed by us, naming this org AND this admin, single-use: nobody
+            // else can finish (or replay) the flow to pin their own account.
             const service = serviceDb();
-            const { error } = await service
-              .from("stripe_accounts")
-              .upsert({ org_id: orgId, ...accountRow(account) }, { onConflict: "org_id" });
-            if (error) throw error;
-            await service.from("activity_log").insert({
-              actor_id: session.profile.id,
-              entity_type: "stripe_account",
-              action: "connect",
-              meta: { stripe_account_id: account.id, status: accountRow(account).status },
-              org_id: orgId,
+            const ok = await consumeOAuthState(
+              service,
+              url.searchParams.get("state"),
+              orgId,
+              session.profile.id,
+            );
+            if (!ok || !code) return backToSettings(request, "error");
+            const result = await connectAccount(service, stripe, {
+              orgId,
+              profileId: session.profile.id,
+              code,
             });
-            return backToSettings(request, "connected");
+            return backToSettings(request, result === "connected" ? "connected" : "already");
           } catch (caught) {
             console.error("stripe callback", caught);
             return backToSettings(request, "error");
@@ -108,8 +105,29 @@ export const Route = createFileRoute("/api/stripe/$action")({
         const service = serviceDb();
 
         try {
+          const adminOnly = params.action === "connect" || params.action === "disconnect";
+          if (adminOnly && !session.isAdmin) return json({ error: "admin only" }, 403);
+
           if (params.action === "connect") {
-            return json({ url: connectUrl(signState(orgId), redirectUri(request)) });
+            const { data: existing, error } = await service
+              .from("stripe_accounts")
+              .select("stripe_account_id")
+              .eq("org_id", orgId)
+              .maybeSingle();
+            if (error) throw error;
+            if (existing?.stripe_account_id)
+              return json({ error: "already connected: disconnect first" }, 409);
+            const state = await startOAuth(service, orgId, session.profile.id);
+            return json({ url: connectUrl(state, redirectUri(request)) });
+          }
+
+          if (params.action === "disconnect") {
+            const result = await disconnectAccount(service, stripe, {
+              orgId,
+              profileId: session.profile.id,
+            });
+            if (result === "not_connected") return json({ error: "not connected" }, 404);
+            return json({ disconnected: true });
           }
 
           const { data: row, error } = await service
@@ -129,30 +147,6 @@ export const Route = createFileRoute("/api/stripe/$action")({
               .eq("org_id", orgId);
             if (updateError) throw updateError;
             return json(patch);
-          }
-
-          if (params.action === "disconnect") {
-            // Revoking is best-effort: the owner may already have removed us
-            // from their dashboard, and the row must clear either way.
-            await stripe.oauth
-              .deauthorize({
-                client_id: stripeEnv().connectClientId,
-                stripe_user_id: row.stripe_account_id,
-              })
-              .catch((caught: unknown) => console.warn("stripe deauthorize", caught));
-            const { error: updateError } = await service
-              .from("stripe_accounts")
-              .update(disconnectedRow())
-              .eq("org_id", orgId);
-            if (updateError) throw updateError;
-            await service.from("activity_log").insert({
-              actor_id: session.profile.id,
-              entity_type: "stripe_account",
-              action: "disconnect",
-              meta: { stripe_account_id: row.stripe_account_id },
-              org_id: orgId,
-            });
-            return json({ disconnected: true });
           }
 
           return json({ error: "not found" }, 404);
