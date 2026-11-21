@@ -188,28 +188,15 @@ async function stampSignature(
   pdf: PDFDocument,
   page: PDFPage,
   signer: StampSigner,
-  font: PDFFont,
   small: PDFFont,
 ) {
+  // Drawn or typed, the signature arrives as a PNG: a typed one is rendered
+  // in the browser with the bundled Caveat face, so the PDF shows exactly
+  // what the signer saw.
   const box: Box = { x: signer.x, y: signer.y, w: signer.w, h: signer.h };
-  if (signer.signature_kind === "drawn" && signer.signature_data) {
-    const png = await pdf.embedPng(signer.signature_data);
-    const fit = fitInside(box, png.width, png.height);
-    page.drawImage(png, { x: fit.x, y: fit.y, width: fit.w, height: fit.h });
-  } else {
-    const text = winAnsi(signer.signature_data);
-    const size = Math.min(
-      box.h * 0.6,
-      (box.w / Math.max(font.widthOfTextAtSize(text, 1), 1)) * 0.95,
-    );
-    page.drawText(text, {
-      x: box.x + 4,
-      y: box.y + (box.h - size) / 2 + size * 0.2,
-      size,
-      font,
-      color: INK,
-    });
-  }
+  const png = await pdf.embedPng(signer.signature_data ?? "");
+  const fit = fitInside(box, png.width, png.height);
+  page.drawImage(png, { x: fit.x, y: fit.y, width: fit.w, height: fit.h });
   // "The date is added for you."
   const date = new Intl.DateTimeFormat("en-US", { timeZone: APP_TIMEZONE }).format(
     new Date(signer.signed_at ?? Date.now()),
@@ -259,13 +246,13 @@ export async function buildSignedPdf(
   // Fixed dates, so a retried finalisation produces the same bytes.
   pdf.setCreationDate(completed);
   pdf.setModificationDate(completed);
-  const script = await pdf.embedFont(StandardFonts.HelveticaOblique);
   const small = await pdf.embedFont(StandardFonts.Helvetica);
   const pages = pdf.getPages();
-  for (const signer of signers) {
+  // An optional signer who never signed leaves their spot blank.
+  for (const signer of signers.filter((row) => row.signed_at)) {
     const page = pages[signer.page - 1];
     if (!page) throw new Error(`signature spot on missing page ${signer.page}`);
-    await stampSignature(pdf, page, signer, script, small);
+    await stampSignature(pdf, page, signer, small);
   }
   const stamped = await pdf.save();
   const stampedSha = sha256Hex(stamped);
@@ -440,4 +427,62 @@ export async function finaliseIfComplete(requestId: string, orgId: string) {
     }
   }
   return true;
+}
+
+/**
+ * A signer declined: log it on the lease (staff see it in Agreements) and
+ * tell whoever sent it. Org comes from the signer row the caller resolved.
+ */
+export async function notifyDecline(options: {
+  orgId: string;
+  leaseId: string;
+  requestId: string;
+  createdBy: string | null;
+  title: string;
+  signerName: string;
+  reason: string | null;
+}) {
+  const service = serviceDb();
+  await service.from("activity_log").insert({
+    org_id: options.orgId,
+    actor_id: null,
+    entity_type: "lease",
+    entity_id: options.leaseId,
+    action: "esign_declined",
+    meta: { request_id: options.requestId, signer: options.signerName, reason: options.reason },
+  });
+  if (!options.createdBy) return;
+  const { data: sender } = await service
+    .from("profiles")
+    .select("email, full_name, locale")
+    .eq("id", options.createdBy)
+    .eq("org_id", options.orgId)
+    .maybeSingle();
+  if (!sender?.email) return;
+  const es = sender.locale === "es-MX";
+  const company = await companyName(options.orgId);
+  const name = escapeHtml(options.signerName);
+  const title = escapeHtml(options.title);
+  const reason = options.reason
+    ? `<p style="border-left:3px solid #DFE6ED;padding-left:12px;white-space:pre-line">${escapeHtml(options.reason)}</p>`
+    : "";
+  const link = `${siteUrl()}/app/contracts/${options.leaseId}?tab=documents`;
+  try {
+    await sendEmail({
+      to: sender.email,
+      subject: es
+        ? `${options.signerName} no firmó: ${options.title}`
+        : `${options.signerName} declined to sign: ${options.title}`,
+      html: emailLayout(
+        es ? "Firma rechazada" : "Signing declined",
+        es
+          ? `<p>${name} rechazó firmar <strong>${title}</strong>.</p>${reason}${button(link, "Ver el contrato")}`
+          : `<p>${name} declined to sign <strong>${title}</strong>.</p>${reason}${button(link, "Open the lease")}`,
+        company,
+        es ? "es-MX" : "en",
+      ),
+    });
+  } catch (caught) {
+    console.warn("esign: decline notice not emailed", caught);
+  }
 }

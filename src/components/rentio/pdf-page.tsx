@@ -88,7 +88,10 @@ export function PdfPage({ doc, pageNumber, onClick, overlay, className }: PdfPag
     if (!page || !canvas || width === 0) return;
     const base = page.getViewport({ scale: 1 });
     const next = page.getViewport({ scale: width / base.width });
-    const ratio = window.devicePixelRatio || 1;
+    // Device width × devicePixelRatio, doubled so small print stays sharp
+    // when a phone pinch-zooms (the page never blocks browser zoom).
+    // ponytail: fixed 2× headroom, capped at 4×; re-render on zoom if needed.
+    const ratio = Math.min(4, (window.devicePixelRatio || 1) * 2);
     canvas.width = Math.floor(next.width * ratio);
     canvas.height = Math.floor(next.height * ratio);
     canvas.style.width = `${next.width}px`;

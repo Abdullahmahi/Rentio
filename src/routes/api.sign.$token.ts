@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CONSENT_VERSION } from "@/lib/esign";
-import { clientIp, companyName, finaliseIfComplete, hashToken } from "@/lib/server/esign";
+import {
+  clientIp,
+  companyName,
+  finaliseIfComplete,
+  hashToken,
+  notifyDecline,
+} from "@/lib/server/esign";
 import { serviceDb } from "@/lib/server/session";
 import { signedUrl } from "@/lib/server/storage";
 
@@ -15,7 +21,8 @@ const json = (body: unknown, status = 200) => Response.json(body, { status });
  * signer's email, IP or signature.
  *
  *   GET   → the agreement to read (marks it opened)
- *   POST  { kind: "drawn"|"typed", data, consent: true, locale } → signs
+ *   POST  { kind: "drawn"|"typed", data (PNG), consent: true, locale } → signs
+ *   POST  { action: "decline", reason? } → declines (closes the request)
  */
 async function resolve(token: string) {
   const hash = hashToken(token);
@@ -43,6 +50,7 @@ function stateOf({ signer, request }: Resolved) {
   if (request.status === "voided") return "voided";
   if (request.status === "completed") return "completed";
   if (signer.signed_at) return "signed";
+  if (request.status === "declined" || signer.declined_at) return "declined";
   const now = Date.now();
   if (new Date(signer.token_expires_at).getTime() < now) return "expired";
   if (new Date(request.expires_at).getTime() < now) return "expired";
@@ -90,6 +98,7 @@ async function describe(found: Resolved) {
       page: signer.page,
       box: { x: signer.x, y: signer.y, w: signer.w, h: signer.h },
       signed_at: signer.signed_at,
+      declined_at: signer.declined_at,
     },
     others: (others ?? [])
       .filter((row) => row.id !== signer.id)
@@ -166,25 +175,45 @@ export const Route = createFileRoute("/api/sign/$token")({
         const { signer, request, orgId } = found;
 
         const body = (await http.json().catch(() => ({}))) as {
+          action?: unknown;
+          reason?: unknown;
           kind?: unknown;
           data?: unknown;
           consent?: unknown;
           locale?: unknown;
         };
+
+        if (body.action === "decline") {
+          const reason = typeof body.reason === "string" ? body.reason.slice(0, 500) : null;
+          const { data: declined, error } = await serviceDb().rpc("decline_signature", {
+            p_signer: signer.id,
+            p_reason: reason,
+          });
+          if (error) return json({ error: "could not record that" }, 500);
+          if (declined)
+            await notifyDecline({
+              orgId,
+              leaseId: request.lease_id,
+              requestId: request.id,
+              createdBy: request.created_by,
+              title: request.title,
+              signerName: signer.name,
+              reason: reason?.trim() || null,
+            }).catch((caught) => console.error("esign decline notice", caught));
+          return json(await describe((await resolve(params.token)) ?? found));
+        }
+
         const locale = body.locale === "en" ? "en" : "es-MX";
         if (body.consent !== true) return json({ error: "consent is required" }, 400);
-        let data: string;
-        if (body.kind === "drawn" && typeof body.data === "string" && isPngDataUrl(body.data)) {
-          data = body.data;
-        } else if (body.kind === "typed" && typeof body.data === "string") {
-          data = body.data
-            .replace(/[\p{Cc}]/gu, "")
-            .trim()
-            .slice(0, 80);
-          if (!data) return json({ error: "type your name" }, 400);
-        } else {
+        // Typed signatures are rendered to a PNG in the browser with the
+        // bundled cursive face, so both kinds arrive as an image.
+        if (
+          (body.kind !== "drawn" && body.kind !== "typed") ||
+          typeof body.data !== "string" ||
+          !isPngDataUrl(body.data)
+        )
           return json({ error: "a signature is required" }, 400);
-        }
+        const data = body.data;
 
         const now = new Date().toISOString();
         const { data: signed, error } = await serviceDb()
@@ -202,6 +231,7 @@ export const Route = createFileRoute("/api/sign/$token")({
           .eq("id", signer.id)
           .eq("org_id", orgId)
           .is("signed_at", null)
+          .is("declined_at", null)
           .select("id");
         if (error) return json({ error: "could not save the signature" }, 500);
         if (!signed.length) return json({ error: "already signed" }, 409);

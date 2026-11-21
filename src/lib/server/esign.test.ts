@@ -110,7 +110,16 @@ test("the signed PDF stamps each signature and appends the record", async () => 
   };
   const signers = [
     { ...signer, name: "Daniel", signature_kind: "drawn", signature_data: PNG },
-    { ...signer, name: "Sofía", signature_kind: "typed", signature_data: "Sofía Treviño", y: 200 },
+    { ...signer, name: "Sofía", signature_kind: "typed", signature_data: PNG, y: 200 },
+    // Optional and never signed: left blank, no error.
+    {
+      ...signer,
+      name: "Guarantor",
+      signed_at: null,
+      signature_kind: null,
+      signature_data: null,
+      y: 300,
+    },
   ];
   const record = {
     requestId: "r1",

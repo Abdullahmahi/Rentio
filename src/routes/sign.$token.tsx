@@ -3,12 +3,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Check, Clock, Download, FileCheck2, Loader2, Mail, PenLine, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import "@fontsource/caveat/400.css";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { PdfPage, usePdf } from "@/components/rentio/pdf-page";
 import { RowsSkeleton } from "@/components/rentio/query-state";
-import { formatStamp, type Box } from "@/lib/esign";
+import { formatStamp, SIGNATURE_FONT, type Box } from "@/lib/esign";
 import i18n, { type AppLanguage } from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 import { cn } from "@/lib/utils";
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/sign/$token")({
 });
 
 interface Agreement {
-  state: "open" | "signed" | "completed" | "expired" | "voided" | "invalid";
+  state: "open" | "signed" | "completed" | "declined" | "expired" | "voided" | "invalid";
   company: string;
   title: string;
   unit: string | null;
@@ -38,6 +40,7 @@ interface Agreement {
     page: number;
     box: Box;
     signed_at: string | null;
+    declined_at: string | null;
   };
   others: { name: string; signed: boolean }[];
   pdf_url: string | null;
@@ -45,14 +48,40 @@ interface Agreement {
   error?: string;
 }
 
-const api = (token: string, init?: RequestInit) =>
-  fetch(`/api/sign/${encodeURIComponent(token)}`, init).then(
-    async (response) => (await response.json()) as Agreement,
-  );
+/** POSTs to the signer's own endpoint. A reply without a state is a failure. */
+async function post(token: string, body: unknown) {
+  const response = await fetch(`/api/sign/${encodeURIComponent(token)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const next = (await response.json().catch(() => ({}))) as Partial<Agreement>;
+  if (!next.state) throw new Error(next.error ?? `HTTP ${response.status}`);
+  return next as Agreement;
+}
+
+/** A typed name drawn in the bundled cursive face, as the PNG the PDF gets. */
+async function typedSignaturePng(text: string, color: string) {
+  await document.fonts.load(`64px "${SIGNATURE_FONT}"`);
+  const canvas = document.createElement("canvas");
+  canvas.width = 900;
+  canvas.height = 200;
+  const context = canvas.getContext("2d")!;
+  let size = 110;
+  context.font = `${size}px "${SIGNATURE_FONT}"`;
+  while (size > 24 && context.measureText(text).width > canvas.width - 40) {
+    size -= 4;
+    context.font = `${size}px "${SIGNATURE_FONT}"`;
+  }
+  context.fillStyle = color;
+  context.textBaseline = "middle";
+  context.fillText(text, 20, canvas.height / 2);
+  return canvas.toDataURL("image/png");
+}
 
 /**
  * T1–T3: the signer's page. No login: the link is the credential. Works on
- * a 375px phone; the same layout serves applicants and existing tenants.
+ * a 375px phone, every label in both languages, every tap target ≥ 44px.
  */
 function SignPage() {
   const { token } = Route.useParams();
@@ -60,16 +89,19 @@ function SignPage() {
   const queryClient = useQueryClient();
   const agreement = useQuery({
     queryKey: ["sign", token],
-    queryFn: () => api(token),
+    queryFn: async () => {
+      const response = await fetch(`/api/sign/${encodeURIComponent(token)}`);
+      return (await response.json()) as Agreement;
+    },
     refetchOnWindowFocus: false,
-    retry: false,
+    retry: 1,
   });
   const data = agreement.data;
   const [language, setLanguage] = useState<AppLanguage | null>(null);
 
   // Their portal language; Spanish when they never chose, like the portal.
   useEffect(() => {
-    if (data && !language) setLanguage(data.signer?.locale === "en" ? "en" : "es-MX");
+    if (data?.signer && !language) setLanguage(data.signer.locale === "en" ? "en" : "es-MX");
   }, [data, language]);
   useEffect(() => {
     if (language) {
@@ -78,7 +110,7 @@ function SignPage() {
     }
   }, [language]);
 
-  const other: AppLanguage = language === "en" ? "es-MX" : "en";
+  const current: AppLanguage = language ?? (i18n.language === "en" ? "en" : "es-MX");
   const initials = (data?.company ?? "")
     .split(/\s+/)
     .slice(0, 2)
@@ -86,9 +118,64 @@ function SignPage() {
     .join("")
     .toUpperCase();
 
+  let body;
+  if (agreement.isLoading) {
+    body = (
+      <div className="p-4">
+        <RowsSkeleton count={5} />
+      </div>
+    );
+  } else if (agreement.isError) {
+    body = (
+      <Notice title={t("esign.sign.loadFailedTitle")} body={t("esign.sign.loadFailedBody")}>
+        <Button className="h-11" onClick={() => void agreement.refetch()}>
+          {t("esign.sign.retry")}
+        </Button>
+      </Notice>
+    );
+  } else if (!data || data.state === "invalid") {
+    body = <Notice title={t("esign.sign.invalidTitle")} body={t("esign.sign.invalidBody")} />;
+  } else if (data.state === "expired") {
+    body = (
+      <Notice
+        title={t("esign.sign.expiredTitle")}
+        body={t("esign.sign.expiredBody", { company: data.company })}
+      />
+    );
+  } else if (data.state === "voided") {
+    body = (
+      <Notice
+        title={t("esign.sign.voidedTitle")}
+        body={t("esign.sign.voidedBody", { company: data.company })}
+      />
+    );
+  } else if (data.state === "declined") {
+    body = data.signer.declined_at ? (
+      <Notice
+        title={t("esign.sign.youDeclinedTitle")}
+        body={t("esign.sign.youDeclinedBody", { company: data.company })}
+      />
+    ) : (
+      <Notice
+        title={t("esign.sign.declinedTitle")}
+        body={t("esign.sign.declinedBody", { company: data.company })}
+      />
+    );
+  } else if (data.state === "open") {
+    body = (
+      <ReadAndSign
+        token={token}
+        agreement={data}
+        onDone={(next) => queryClient.setQueryData(["sign", token], next)}
+      />
+    );
+  } else {
+    body = <Signed agreement={data} />;
+  }
+
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <header className="sticky top-0 z-20 flex items-center gap-2.5 border-b border-border bg-surface px-4 py-3">
+      <header className="sticky top-0 z-20 flex items-center gap-2.5 border-b border-border bg-surface px-4 py-1.5">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
           {initials || "R"}
         </span>
@@ -97,53 +184,38 @@ function SignPage() {
         </span>
         <button
           type="button"
-          className="text-sm font-semibold text-muted-foreground hover:text-foreground"
+          lang={current === "en" ? "es" : "en"}
+          className="min-h-11 rounded-md px-3 text-sm font-semibold text-muted-foreground hover:text-foreground"
           aria-label={t("actions.changeLanguage")}
-          onClick={() => setLanguage(other)}
+          onClick={() => setLanguage(current === "en" ? "es-MX" : "en")}
         >
-          {t(`language.${other}`)}
+          {t("esign.sign.otherLanguage")}
         </button>
       </header>
-
-      {agreement.isLoading ? (
-        <div className="p-4">
-          <RowsSkeleton count={5} />
-        </div>
-      ) : !data || data.state === "invalid" || agreement.isError ? (
-        <Notice title={t("esign.sign.invalidTitle")} body={t("esign.sign.invalidBody")} />
-      ) : data.state === "expired" ? (
-        <Notice
-          title={t("esign.sign.expiredTitle")}
-          body={t("esign.sign.expiredBody", { company: data.company })}
-        />
-      ) : data.state === "voided" ? (
-        <Notice
-          title={t("esign.sign.voidedTitle")}
-          body={t("esign.sign.voidedBody", { company: data.company })}
-        />
-      ) : data.state === "open" ? (
-        <ReadAndSign
-          token={token}
-          agreement={data}
-          onDone={(next) => queryClient.setQueryData(["sign", token], next)}
-        />
-      ) : (
-        <Signed agreement={data} />
-      )}
+      {body}
     </div>
   );
 }
 
-function Notice({ title, body }: { title: string; body: string }) {
+function Notice({
+  title,
+  body,
+  children,
+}: {
+  title: string;
+  body: string;
+  children?: React.ReactNode;
+}) {
   return (
-    <main className="mx-auto w-full max-w-md space-y-2 px-5 py-10">
+    <main className="mx-auto w-full max-w-md space-y-3 px-5 py-10">
       <h1 className="text-2xl font-bold">{title}</h1>
       <p className="text-base text-muted-foreground">{body}</p>
+      {children}
     </main>
   );
 }
 
-/** T1 (read every page) and T2 (the signature sheet). */
+/** T1 (read every page, to the end) and T2 (the signature sheet). */
 function ReadAndSign({
   token,
   agreement,
@@ -156,14 +228,16 @@ function ReadAndSign({
   const { t } = useTranslation();
   const { doc, error } = usePdf(agreement.pdf_url);
   const [current, setCurrent] = useState(1);
-  const [signing, setSigning] = useState(false);
+  const [sheet, setSheet] = useState<"sign" | "decline" | null>(null);
+  const [readToEnd, setReadToEnd] = useState(false);
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const endRef = useRef<HTMLDivElement>(null);
   const { signer } = agreement;
 
-  // Which page is on screen, for the "Page 1 of 6" chip.
+  // Which page is on screen ("Page 1 of 6"), and whether they reached the end.
   useEffect(() => {
     if (!doc) return;
-    const observer = new IntersectionObserver(
+    const pages = new IntersectionObserver(
       (entries) => {
         for (const entry of entries)
           if (entry.isIntersecting)
@@ -171,18 +245,30 @@ function ReadAndSign({
       },
       { rootMargin: "-45% 0px -45% 0px" },
     );
-    pageRefs.current.forEach((element) => element && observer.observe(element));
-    return () => observer.disconnect();
+    pageRefs.current.forEach((element) => element && pages.observe(element));
+    const end = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) setReadToEnd(true);
+    });
+    if (endRef.current) end.observe(endRef.current);
+    return () => {
+      pages.disconnect();
+      end.disconnect();
+    };
   }, [doc]);
 
   const goToSignature = () => {
     pageRefs.current[signer.page - 1]?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setSigning(true);
+    setSheet("sign");
   };
 
   return (
     <>
-      <main className="mx-auto w-full max-w-2xl flex-1 space-y-4 px-4 pb-40 pt-5">
+      <main
+        className={cn(
+          "mx-auto w-full max-w-2xl flex-1 space-y-4 px-4 pt-5",
+          sheet ? "pb-[560px]" : "pb-48",
+        )}
+      >
         <div className="space-y-1">
           <p className="text-sm font-semibold uppercase tracking-wide text-accent-foreground">
             {agreement.unit
@@ -193,6 +279,7 @@ function ReadAndSign({
           <p className="text-base text-muted-foreground">
             {t("esign.sign.intro", { company: agreement.company, count: agreement.page_count })}
           </p>
+          <p className="text-sm text-muted-foreground">{t("esign.sign.zoomHint")}</p>
         </div>
 
         {error ? (
@@ -215,15 +302,16 @@ function ReadAndSign({
                 overlay={
                   pageNumber === signer.page
                     ? (toCss) => (
-                        <button
-                          type="button"
+                        // A marker, not a control: the 52px button below is
+                        // what opens the signature sheet.
+                        <div
+                          aria-hidden
                           style={toCss(signer.box)}
-                          onClick={() => setSigning(true)}
-                          className="absolute flex items-center justify-center gap-1.5 overflow-hidden rounded-md border-2 border-primary bg-primary/10 px-2 text-sm font-semibold text-primary"
+                          className="pointer-events-none absolute flex items-center justify-center gap-1 overflow-hidden rounded-md border-2 border-primary bg-primary/10 px-1 text-xs font-semibold text-primary"
                         >
-                          <PenLine className="size-4 shrink-0" />
+                          <PenLine className="size-3.5 shrink-0" />
                           <span className="truncate">{t("esign.sign.spot")}</span>
-                        </button>
+                        </div>
                       )
                     : undefined
                 }
@@ -231,23 +319,32 @@ function ReadAndSign({
             </div>
           ))
         )}
+        <div ref={endRef} className="h-px" />
       </main>
 
-      {doc && !signing ? (
-        <span className="numeric fixed bottom-32 right-4 z-10 rounded-full bg-foreground px-3 py-1.5 text-sm font-semibold text-background">
+      {doc && !sheet ? (
+        <span className="numeric pointer-events-none fixed bottom-44 right-4 z-10 rounded-full bg-foreground px-3 py-1.5 text-sm font-semibold text-background">
           {t("esign.pageOf", { page: current, count: doc.numPages })}
         </span>
       ) : null}
 
-      {signing ? (
+      {sheet === "sign" ? (
         <SignatureSheet
           token={token}
           agreement={agreement}
-          onClose={() => setSigning(false)}
+          readToEnd={readToEnd}
+          onClose={() => setSheet(null)}
+          onDone={onDone}
+        />
+      ) : sheet === "decline" ? (
+        <DeclineSheet
+          token={token}
+          agreement={agreement}
+          onClose={() => setSheet(null)}
           onDone={onDone}
         />
       ) : (
-        <footer className="fixed inset-x-0 bottom-0 z-10 space-y-2.5 border-t border-border bg-surface px-4 pb-6 pt-4">
+        <footer className="fixed inset-x-0 bottom-0 z-10 space-y-1 border-t border-border bg-surface px-4 pb-4 pt-4">
           <Button className="h-[52px] w-full text-base" disabled={!doc} onClick={goToSignature}>
             <PenLine className="size-4" />
             {t("esign.sign.goToSignature")}
@@ -255,8 +352,37 @@ function ReadAndSign({
           <p className="text-center text-sm text-muted-foreground">
             {t("esign.sign.nothingSent", { page: signer.page })}
           </p>
+          <Button variant="ghost" className="h-11 w-full" onClick={() => setSheet("decline")}>
+            {t("esign.sign.decline")}
+          </Button>
         </footer>
       )}
+    </>
+  );
+}
+
+const SHEET =
+  "fixed inset-x-0 bottom-0 z-30 mx-auto max-h-[85dvh] max-w-2xl space-y-3.5 overflow-y-auto rounded-t-[20px] bg-surface px-4 pb-7 pt-2.5 shadow-[0_-8px_24px_rgba(18,33,46,0.14)]";
+
+function SheetHeader({ title, onClose }: { title: string; onClose: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <div className="flex justify-center">
+        <span className="h-1 w-9 rounded-full bg-border" />
+      </div>
+      <div className="flex items-center gap-2">
+        <h2 className="flex-1 text-xl font-semibold">{title}</h2>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-11"
+          aria-label={t("actions.close")}
+          onClick={onClose}
+        >
+          <X className="size-4" />
+        </Button>
+      </div>
     </>
   );
 }
@@ -265,11 +391,13 @@ function ReadAndSign({
 function SignatureSheet({
   token,
   agreement,
+  readToEnd,
   onClose,
   onDone,
 }: {
   token: string;
   agreement: Agreement;
+  readToEnd: boolean;
   onClose: () => void;
   onDone: (next: Agreement) => void;
 }) {
@@ -280,10 +408,12 @@ function SignatureSheet({
   const [mode, setMode] = useState<"drawn" | "typed">("drawn");
   const [typed, setTyped] = useState(agreement.signer.name);
   const [hasInk, setHasInk] = useState(false);
+  // Unchecked until the signer checks it. Never pre-filled.
   const [consent, setConsent] = useState(false);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const inkRef = useRef<HTMLSpanElement>(null);
   const last = useRef<{ x: number; y: number } | null>(null);
 
   // Size the canvas to its box at device resolution.
@@ -315,65 +445,56 @@ function SignatureSheet({
     setHasInk(false);
   };
 
-  const ready = consent && (mode === "drawn" ? hasInk : typed.trim().length > 0);
+  const hasSignature = mode === "drawn" ? hasInk : typed.trim().length > 0;
+  const ready = consent && hasSignature && readToEnd;
 
   const submit = async () => {
     if (!ready) return;
     setPending(true);
-    setError(null);
+    setFailed(false);
     try {
-      const response = await fetch(`/api/sign/${encodeURIComponent(token)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const ink = getComputedStyle(inkRef.current!).color;
+      const data =
+        mode === "drawn"
+          ? canvasRef.current!.toDataURL("image/png")
+          : await typedSignaturePng(typed.trim(), ink);
+      onDone(
+        await post(token, {
           kind: mode,
-          data: mode === "drawn" ? canvasRef.current!.toDataURL("image/png") : typed.trim(),
+          data,
           consent: true,
           locale: language === "en" ? "en" : "es-MX",
         }),
-      });
-      const next = (await response.json()) as Agreement;
-      if (!response.ok && !next.state) throw new Error(next.error);
-      onDone(next);
+      );
     } catch {
-      setError(t("esign.sign.failed"));
+      setFailed(true);
     } finally {
       setPending(false);
     }
   };
 
   return (
-    <section
-      aria-label={t("esign.sign.yourSignature")}
-      className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-2xl space-y-3.5 rounded-t-[20px] bg-surface px-4 pb-7 pt-2.5 shadow-[0_-8px_24px_rgba(18,33,46,0.14)]"
-    >
-      <div className="flex justify-center">
-        <span className="h-1 w-9 rounded-full bg-border" />
-      </div>
-      <div className="flex items-center gap-3">
-        <h2 className="flex-1 text-xl font-semibold">{t("esign.sign.yourSignature")}</h2>
-        <div className="flex rounded-[9px] bg-muted p-[3px]">
-          {(["drawn", "typed"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              aria-pressed={mode === option}
-              onClick={() => setMode(option)}
-              className={cn(
-                "h-8 rounded-[7px] px-3.5 text-sm",
-                mode === option ? "bg-surface font-semibold" : "font-medium text-muted-foreground",
-              )}
-            >
-              {t(option === "drawn" ? "esign.sign.draw" : "esign.sign.type")}
-            </button>
-          ))}
-        </div>
-        <Button variant="ghost" size="icon" aria-label={t("actions.close")} onClick={onClose}>
-          <X className="size-4" />
-        </Button>
+    <section aria-label={t("esign.sign.yourSignature")} className={SHEET}>
+      <SheetHeader title={t("esign.sign.yourSignature")} onClose={onClose} />
+      <div className="flex rounded-[9px] bg-muted p-[3px]">
+        {(["drawn", "typed"] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={mode === option}
+            onClick={() => setMode(option)}
+            className={cn(
+              "h-11 flex-1 rounded-[7px] px-3.5 text-sm",
+              mode === option ? "bg-surface font-semibold" : "font-medium text-muted-foreground",
+            )}
+          >
+            {t(option === "drawn" ? "esign.sign.draw" : "esign.sign.type")}
+          </button>
+        ))}
       </div>
 
-      <div className="flex h-[148px] flex-col justify-end gap-1.5 rounded-xl border-[1.5px] border-dashed border-border bg-background px-4 pb-3.5">
+      <div className="flex h-[148px] flex-col justify-end gap-1 rounded-xl border-[1.5px] border-dashed border-border bg-background px-4 pb-1">
+        <span ref={inkRef} className="hidden text-foreground" />
         {mode === "drawn" ? (
           <canvas
             ref={canvasRef}
@@ -403,7 +524,8 @@ function SignatureSheet({
             value={typed}
             maxLength={80}
             onChange={(event) => setTyped(event.target.value)}
-            className="h-14 border-0 bg-transparent px-1 font-[cursive] text-3xl italic shadow-none focus-visible:ring-0"
+            style={{ fontFamily: `"${SIGNATURE_FONT}", cursive` }}
+            className="h-16 border-0 bg-transparent px-1 text-4xl shadow-none focus-visible:ring-0"
           />
         )}
         <div className="h-px bg-border" />
@@ -412,39 +534,45 @@ function SignatureSheet({
             {t(mode === "drawn" ? "esign.sign.drawHint" : "esign.sign.typeHint")}
           </span>
           {mode === "drawn" ? (
-            <button type="button" className="text-sm font-semibold text-primary" onClick={clear}>
+            <button
+              type="button"
+              className="min-h-11 px-2 text-sm font-semibold text-primary"
+              onClick={clear}
+            >
               {t("esign.sign.clear")}
             </button>
-          ) : null}
+          ) : (
+            <span className="min-h-11" />
+          )}
         </div>
       </div>
 
-      <div className="flex items-start gap-3">
+      <label htmlFor="esign-consent" className="flex min-h-11 cursor-pointer items-start gap-3">
         <Checkbox
           id="esign-consent"
           className="mt-0.5 size-[22px]"
           checked={consent}
           onCheckedChange={(checked) => setConsent(checked === true)}
         />
-        <div className="space-y-1">
-          <label htmlFor="esign-consent" className="text-sm leading-5">
-            {t("esign.consent.short")}
-          </label>
-          <details className="text-xs text-muted-foreground">
-            <summary className="cursor-pointer font-medium">{t("esign.consent.more")}</summary>
-            <p className="mt-1 leading-5">
-              {t("esign.consent.full", { company: agreement.company })}
-            </p>
-          </details>
-        </div>
-      </div>
+        <span className="text-sm leading-5">{t("esign.consent.short")}</span>
+      </label>
+      <details className="text-sm text-muted-foreground">
+        <summary className="flex min-h-11 cursor-pointer items-center font-medium text-primary">
+          {t("esign.consent.more")}
+        </summary>
+        <ul className="mt-1 list-disc space-y-1.5 pl-5 leading-5">
+          {(["scope", "paper", "withdraw", "system", "email", "effect"] as const).map((key) => (
+            <li key={key}>{t(`esign.consent.items.${key}`, { company: agreement.company })}</li>
+          ))}
+        </ul>
+      </details>
 
-      {error ? (
+      {failed ? (
         <p
           role="alert"
           className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
         >
-          {error}
+          {t("esign.sign.failed")}
         </p>
       ) : null}
 
@@ -454,7 +582,79 @@ function SignatureSheet({
         onClick={() => void submit()}
       >
         {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-        {t("esign.sign.finish")}
+        {t(failed ? "esign.sign.retry" : "esign.sign.finish")}
+      </Button>
+      {!readToEnd ? (
+        <p className="text-center text-sm text-muted-foreground">{t("esign.sign.readToEnd")}</p>
+      ) : null}
+    </section>
+  );
+}
+
+/** The signer says no, optionally why. Staff are told; the request closes. */
+function DeclineSheet({
+  token,
+  agreement,
+  onClose,
+  onDone,
+}: {
+  token: string;
+  agreement: Agreement;
+  onClose: () => void;
+  onDone: (next: Agreement) => void;
+}) {
+  const { t } = useTranslation();
+  const [reason, setReason] = useState("");
+  const [pending, setPending] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const submit = async () => {
+    setPending(true);
+    setFailed(false);
+    try {
+      onDone(await post(token, { action: "decline", reason: reason.trim() }));
+    } catch {
+      setFailed(true);
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <section aria-label={t("esign.sign.declineTitle")} className={SHEET}>
+      <SheetHeader title={t("esign.sign.declineTitle")} onClose={onClose} />
+      <p className="text-base text-muted-foreground">
+        {t("esign.sign.declineBody", { company: agreement.company })}
+      </p>
+      <label htmlFor="esign-decline" className="block text-sm font-medium">
+        {t("esign.sign.declineReason")}
+      </label>
+      <Textarea
+        id="esign-decline"
+        rows={3}
+        maxLength={500}
+        value={reason}
+        onChange={(event) => setReason(event.target.value)}
+      />
+      {failed ? (
+        <p
+          role="alert"
+          className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+        >
+          {t("esign.sign.failed")}
+        </p>
+      ) : null}
+      <Button
+        variant="destructive"
+        className="h-[52px] w-full text-base"
+        disabled={pending}
+        onClick={() => void submit()}
+      >
+        {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+        {t(failed ? "esign.sign.retry" : "esign.sign.declineConfirm")}
+      </Button>
+      <Button variant="ghost" className="h-11 w-full" onClick={onClose}>
+        {t("esign.sign.declineBack")}
       </Button>
     </section>
   );
@@ -503,7 +703,7 @@ function Signed({ agreement }: { agreement: Agreement }) {
         {agreement.signed_pdf_url ? (
           <a
             href={agreement.signed_pdf_url}
-            className="flex items-center justify-center gap-2 border-t border-border py-3.5 font-semibold text-primary"
+            className="flex min-h-12 items-center justify-center gap-2 border-t border-border font-semibold text-primary"
           >
             <Download className="size-4" />
             {t("esign.sign.download")}

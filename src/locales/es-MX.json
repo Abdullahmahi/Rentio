@@ -1463,10 +1463,11 @@
     "status": {
       "sent": "Enviado",
       "viewed": "Abierto",
-      "partly": "{{signed}} de {{total}} firmaron",
+      "partly": "Firmado en parte ({{signed}} de {{total}})",
       "signed": "Firmado",
       "expired": "Enlace vencido",
-      "voided": "Cancelado"
+      "voided": "Cancelado",
+      "declined": "Rechazado"
     },
     "viewPdf": "Ver PDF",
     "signerSigned": "Firmó {{date}}",
@@ -1491,7 +1492,7 @@
     "sent_one": "Enviado a {{count}} firmante",
     "sent_other": "Enviado a {{count}} firmantes",
     "pickPdf": "Elige el PDF del contrato",
-    "pickHint": "Elige un PDF que ya esté en este contrato o sube uno.",
+    "pickHint": "Elige un PDF que ya esté en este contrato o sube uno. Fírmalo o séllalo por la oficina antes: la oficina no firma en la app.",
     "uploadPdf": "Subir PDF",
     "changePdf": "Cambiar",
     "pdfUnreadable": "No se pudo abrir este PDF.",
@@ -1514,12 +1515,20 @@
     "info": {
       "email": "Cada persona recibe un correo con su propio enlace privado. También aparece en su portal.",
       "expiry": "El enlace funciona 14 días. Puedes reenviarlo o cancelarlo cuando quieras.",
-      "final": "Cuando todos firmen, el PDF final se guarda en este contrato y se te envía a ti y a los inquilinos."
+      "final": "Cuando todos firmen, el PDF final se guarda en este contrato y se te envía a ti y a los inquilinos.",
+      "officeSigns": "La oficina firma o sella el PDF antes de enviarlo. Rentio no recoge la firma del arrendador."
     },
     "consent": {
-      "short": "Acepto firmar este contrato de forma electrónica. Vale lo mismo que firmar en papel.",
-      "more": "Leer el consentimiento completo",
-      "full": "Al marcar la casilla aceptas usar documentos y firmas electrónicas para este contrato, conforme a la ley federal ESIGN y la Ley Uniforme de Transacciones Electrónicas de Texas. Tu firma electrónica tiene el mismo efecto legal que una firma a mano. Puedes pedir a {{company}} una copia en papel sin costo, y puedes retirar este consentimiento antes de firmar cerrando esta página y avisando a {{company}}; retirarlo no anula una firma ya dada. Para leer y guardar este documento necesitas un teléfono o computadora con un navegador actual y un visor de PDF. Puedes descargar una copia después de firmar."
+      "short": "Acepto usar documentos y firmas electrónicas para este contrato y leí la información de abajo. Mi firma electrónica vale lo mismo que firmar en papel.",
+      "more": "Información: copias en papel, retirar el consentimiento, qué necesitas",
+      "items": {
+        "scope": "Este consentimiento aplica solo a este contrato y al registro de firmas que lo acompaña.",
+        "paper": "Puedes pedir a {{company}} una copia en papel sin costo, en cualquier momento: responde al correo que te trajo este enlace o comunícate con {{company}}.",
+        "withdraw": "Puedes retirar este consentimiento antes de firmar: no firmes y avísale a {{company}} (responde al correo). Entonces recibirás el contrato en papel. Retirarlo no anula una firma ya dada.",
+        "system": "Para leer y guardar este documento necesitas un teléfono, tableta o computadora con un navegador actual, acceso a internet y forma de abrir y guardar archivos PDF.",
+        "email": "Las copias se envían a tu correo. Si cambia, avísale a {{company}} para que lo actualice.",
+        "effect": "Conforme a la ley federal ESIGN y la Ley Uniforme de Transacciones Electrónicas de Texas, tu firma electrónica tiene el mismo efecto legal que una firma a mano."
+      }
     },
     "sign": {
       "pageTitle": "Firma tu contrato",
@@ -1551,7 +1560,34 @@
       "waiting_one": "Falta que firme {{names}}. Todos recibirán la copia final cuando lo haga.",
       "waiting_other": "Falta que firmen {{names}}. Todos recibirán la copia final cuando lo hagan.",
       "everyoneSigned": "Todos firmaron. La copia final va en camino.",
-      "portal": "Ir a mi portal"
+      "portal": "Ir a mi portal",
+      "otherLanguage": "English",
+      "loadFailedTitle": "No pudimos cargar tu contrato",
+      "loadFailedBody": "Revisa tu conexión e inténtalo de nuevo.",
+      "retry": "Intentar de nuevo",
+      "zoomHint": "Pellizca la pantalla para acercar cualquier página.",
+      "readToEnd": "Desplázate hasta el final del documento para firmar.",
+      "decline": "No quiero firmar",
+      "declineTitle": "¿Rechazar la firma?",
+      "declineBody": "Le avisaremos a {{company}} y la firma se detiene para todos. Puedes decir por qué (opcional).",
+      "declineReason": "Motivo (opcional)",
+      "declineConfirm": "Rechazar",
+      "declineBack": "Regresar",
+      "youDeclinedTitle": "Rechazaste firmar",
+      "youDeclinedBody": "Le avisamos a {{company}}. Si fue un error, pídeles que lo envíen de nuevo.",
+      "declinedTitle": "Esta firma se detuvo",
+      "declinedBody": "Otra persona del contrato rechazó firmar, así que {{company}} se pondrá en contacto."
+    },
+    "signerDeclined": "Rechazó {{date}}: {{reason}}",
+    "noReason": "sin motivo",
+    "optional": "opcional",
+    "mustSign": "Debe firmar para activar el contrato",
+    "errors": {
+      "noPdf": "Primero elige el PDF del contrato.",
+      "noTitle": "Ponle nombre al documento.",
+      "noSigners": "Agrega al menos un firmante.",
+      "nameEmail": "Cada firmante necesita nombre completo y un correo válido.",
+      "unplaced": "Coloca un lugar de firma para: {{names}}."
     }
   }
 }

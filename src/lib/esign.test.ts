@@ -1,5 +1,12 @@
 import { expect, test } from "bun:test";
-import { agreementStatus, boxInside, fitInside, isEmail, placeBox } from "@/lib/esign";
+import {
+  agreementStatus,
+  boxInside,
+  fitInside,
+  isEmail,
+  parseSigners,
+  placeBox,
+} from "@/lib/esign";
 
 const letter = { x: 0, y: 0, w: 612, h: 792 };
 
@@ -58,9 +65,46 @@ test("agreement status follows the signers", () => {
   expect(agreementStatus(open, [signed, viewed])).toBe("partly");
   expect(agreementStatus({ ...open, status: "completed" }, [signed])).toBe("signed");
   expect(agreementStatus({ ...open, status: "voided" }, [none])).toBe("voided");
+  expect(agreementStatus({ ...open, status: "declined" }, [signed, viewed])).toBe("declined");
   expect(agreementStatus({ status: "sent", expires_at: "2026-01-01T00:00:00Z" }, [none])).toBe(
     "expired",
   );
+});
+
+test("send validation: every signer needs a spot on a real page", () => {
+  const pages = [letter, letter];
+  const lease = new Set(["t1"]);
+  const daniel = {
+    name: "Daniel",
+    email: "d@example.com",
+    tenant_id: "t1",
+    page: 2,
+    x: 72,
+    y: 100,
+    w: 200,
+    h: 48,
+  };
+  const ok = parseSigners(
+    [
+      daniel,
+      { ...daniel, name: "Guarantor", email: "g@example.com", tenant_id: null, required: false },
+    ],
+    pages,
+    lease,
+  );
+  expect("signers" in ok && ok.signers.map((s) => s.required)).toEqual([true, false]);
+
+  const error = (signers: unknown) => {
+    const result = parseSigners(signers, pages, lease);
+    return "error" in result ? result.error : null;
+  };
+  expect(error([])).toMatch(/between 1 and 10/);
+  expect(error([{ ...daniel, page: undefined }])).toMatch(/place a signature spot for Daniel/);
+  expect(error([{ ...daniel, page: 3 }])).toMatch(/place a signature spot/);
+  expect(error([{ ...daniel, x: 500 }])).toMatch(/place a signature spot/);
+  expect(error([{ ...daniel, email: "nope" }])).toMatch(/name and an email/);
+  expect(error([{ ...daniel, tenant_id: "someone-else" }])).toMatch(/not on this lease/);
+  expect(error([daniel, { ...daniel, tenant_id: null, email: "D@example.com" }])).toMatch(/twice/);
 });
 
 test("isEmail", () => {

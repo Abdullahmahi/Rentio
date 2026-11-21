@@ -19,6 +19,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { agreementsKey, LinksDialog, type SentLink } from "@/components/rentio/agreements-panel";
@@ -59,6 +60,7 @@ interface Signer {
   name: string;
   email: string;
   tenantId: string | null;
+  required: boolean;
   spot: (Box & { page: number }) | null;
 }
 
@@ -99,6 +101,7 @@ function SendForSignaturePage() {
         name: person.full_name,
         email: person.email ?? "",
         tenantId: person.id,
+        required: true,
         spot: null,
       })),
     );
@@ -159,16 +162,26 @@ function SendForSignaturePage() {
   const list = signers ?? [];
   const update = (index: number, patch: Partial<Signer>) =>
     setSigners(list.map((signer, i) => (i === index ? { ...signer, ...patch } : signer)));
-  const ready =
-    Boolean(file && doc && title.trim()) &&
-    list.length > 0 &&
-    list.every((signer) => signer.name.trim() && isEmail(signer.email) && signer.spot);
+  const [problem, setProblem] = useState<string | null>(null);
+  // What stops sending, in words: the server refuses the same things.
+  const blocker = () => {
+    if (!file || !doc) return t("esign.errors.noPdf");
+    if (!title.trim()) return t("esign.errors.noTitle");
+    if (list.length === 0) return t("esign.errors.noSigners");
+    const unnamed = list.filter((signer) => !signer.name.trim() || !isEmail(signer.email));
+    if (unnamed.length) return t("esign.errors.nameEmail");
+    const unplaced = list.filter((signer) => !signer.spot).map((signer) => signer.name);
+    if (unplaced.length) return t("esign.errors.unplaced", { names: unplaced.join(", ") });
+    return null;
+  };
 
   const backToDocuments = () =>
     void navigate({ to: "/app/contracts/$id", params: { id }, search: { tab: "documents" } });
 
   const send = async () => {
-    if (!file || !ready) return;
+    const reason = blocker();
+    setProblem(reason);
+    if (reason || !file) return;
     setSending(true);
     try {
       const { data, error } = await invokeFn<{ signers: SentLink[] }>("esign-send", {
@@ -181,6 +194,7 @@ function SendForSignaturePage() {
             name: signer.name.trim(),
             email: signer.email.trim(),
             tenant_id: signer.tenantId,
+            required: signer.required,
             ...signer.spot,
           })),
         },
@@ -227,7 +241,7 @@ function SendForSignaturePage() {
                   {t("actions.cancel")}
                 </Link>
               </Button>
-              <Button disabled={!ready || sending} onClick={() => void send()}>
+              <Button disabled={sending} onClick={() => void send()}>
                 {sending ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
@@ -238,6 +252,15 @@ function SendForSignaturePage() {
             </div>
           }
         />
+
+        {problem ? (
+          <p
+            role="alert"
+            className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+          >
+            {problem}
+          </p>
+        ) : null}
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_348px]">
           {/* ------------------------------------------------ the document */}
@@ -430,6 +453,15 @@ function SendForSignaturePage() {
                           value={signer.email}
                           onChange={(event) => update(index, { email: event.target.value })}
                         />
+                        <label className="flex min-h-9 items-center gap-2 text-sm">
+                          <Checkbox
+                            checked={signer.required}
+                            onCheckedChange={(checked) =>
+                              update(index, { required: checked === true })
+                            }
+                          />
+                          {t("esign.mustSign")}
+                        </label>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -452,7 +484,14 @@ function SendForSignaturePage() {
                 onClick={() => {
                   setSigners([
                     ...list,
-                    { key: crypto.randomUUID(), name: "", email: "", tenantId: null, spot: null },
+                    {
+                      key: crypto.randomUUID(),
+                      name: "",
+                      email: "",
+                      tenantId: null,
+                      required: true,
+                      spot: null,
+                    },
                   ]);
                   setActive(list.length);
                 }}
@@ -483,6 +522,7 @@ function SendForSignaturePage() {
             <ul className="space-y-3 px-1 text-sm text-muted-foreground">
               {(
                 [
+                  [PenLine, "esign.info.officeSigns"],
                   [Mail, "esign.info.email"],
                   [Clock, "esign.info.expiry"],
                   [FileText, "esign.info.final"],

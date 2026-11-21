@@ -1463,10 +1463,11 @@
     "status": {
       "sent": "Sent",
       "viewed": "Opened",
-      "partly": "{{signed}} of {{total}} signed",
+      "partly": "Partially signed ({{signed}} of {{total}})",
       "signed": "Signed",
       "expired": "Link expired",
-      "voided": "Cancelled"
+      "voided": "Cancelled",
+      "declined": "Declined"
     },
     "viewPdf": "View PDF",
     "signerSigned": "Signed {{date}}",
@@ -1491,7 +1492,7 @@
     "sent_one": "Sent to {{count}} signer",
     "sent_other": "Sent to {{count}} signers",
     "pickPdf": "Choose the lease PDF",
-    "pickHint": "Pick a PDF already on this lease, or upload one.",
+    "pickHint": "Pick a PDF already on this lease, or upload one. Sign or stamp it for the office first: the office does not sign in the app.",
     "uploadPdf": "Upload PDF",
     "changePdf": "Change",
     "pdfUnreadable": "This PDF could not be opened.",
@@ -1514,12 +1515,20 @@
     "info": {
       "email": "Each person gets an email with their own private link. It also shows up in their portal.",
       "expiry": "The link works for 14 days. You can resend or cancel it any time.",
-      "final": "When everyone has signed, the final PDF is saved to this lease and emailed to you and the tenants."
+      "final": "When everyone has signed, the final PDF is saved to this lease and emailed to you and the tenants.",
+      "officeSigns": "The office signs or stamps the PDF before sending. Rentio does not collect a landlord signature."
     },
     "consent": {
-      "short": "I agree to sign this lease electronically. It counts the same as signing on paper.",
-      "more": "Read the full consent",
-      "full": "By checking the box you agree to use electronic records and signatures for this agreement, under the federal ESIGN Act and the Texas Uniform Electronic Transactions Act. Your electronic signature has the same legal effect as a handwritten one. You can ask {{company}} for a paper copy at no cost, and you can withdraw this consent before you sign by closing this page and contacting {{company}}; it does not undo a signature already given. To read and keep this document you need a phone or computer with a current web browser and a PDF viewer. You can download a copy after signing."
+      "short": "I agree to use electronic records and signatures for this agreement, and I have read the disclosures below. My electronic signature counts the same as signing on paper.",
+      "more": "Disclosures: paper copies, withdrawing, what you need",
+      "items": {
+        "scope": "This consent covers this agreement only, and the signing record that goes with it.",
+        "paper": "You may ask {{company}} for a paper copy at no charge, at any time: reply to the email that brought you this link, or contact {{company}} directly.",
+        "withdraw": "You may withdraw this consent before you sign by not signing and telling {{company}} (reply to the email). You will then get the agreement on paper. Withdrawing does not undo a signature already given.",
+        "system": "To read and keep this document you need a phone, tablet or computer with a current web browser, internet access, and a way to open and save PDF files.",
+        "email": "Copies are sent to your email address. If it changes, tell {{company}} so they can update it.",
+        "effect": "Under the federal ESIGN Act and the Texas Uniform Electronic Transactions Act, your electronic signature has the same legal effect as a handwritten one."
+      }
     },
     "sign": {
       "pageTitle": "Sign your agreement",
@@ -1551,7 +1560,34 @@
       "waiting_one": "{{names}} still needs to sign. You will all get the final copy once they do.",
       "waiting_other": "{{names}} still need to sign. You will all get the final copy once they do.",
       "everyoneSigned": "Everyone has signed. The final copy is on its way.",
-      "portal": "Go to my portal"
+      "portal": "Go to my portal",
+      "otherLanguage": "Español",
+      "loadFailedTitle": "We could not load your agreement",
+      "loadFailedBody": "Check your connection and try again.",
+      "retry": "Try again",
+      "zoomHint": "Pinch to zoom in on any page.",
+      "readToEnd": "Scroll to the end of the document to sign.",
+      "decline": "Decline to sign",
+      "declineTitle": "Decline to sign?",
+      "declineBody": "{{company}} will be told and the signing stops for everyone. You can say why (optional).",
+      "declineReason": "Reason (optional)",
+      "declineConfirm": "Decline",
+      "declineBack": "Go back",
+      "youDeclinedTitle": "You declined to sign",
+      "youDeclinedBody": "We told {{company}}. If this was a mistake, ask them to send it again.",
+      "declinedTitle": "This signing was stopped",
+      "declinedBody": "Another person on the lease declined to sign, so {{company}} will be in touch."
+    },
+    "signerDeclined": "Declined {{date}}: {{reason}}",
+    "noReason": "no reason given",
+    "optional": "optional",
+    "mustSign": "Must sign before the lease activates",
+    "errors": {
+      "noPdf": "Choose the lease PDF first.",
+      "noTitle": "Give the document a name.",
+      "noSigners": "Add at least one signer.",
+      "nameEmail": "Every signer needs a full name and a valid email.",
+      "unplaced": "Place a signature spot for: {{names}}."
     }
   }
 }

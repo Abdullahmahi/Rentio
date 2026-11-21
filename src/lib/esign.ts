@@ -19,7 +19,10 @@ export const SPOT_SIZE = { w: 200, h: 48 } as const;
 export const LINK_DAYS = 14;
 
 /** Bumped whenever the consent wording in the locale files changes. */
-export const CONSENT_VERSION = "esign-consent-v1";
+export const CONSENT_VERSION = "esign-consent-v2";
+
+/** The typed signature's face: Caveat (OFL), bundled by @fontsource/caveat. */
+export const SIGNATURE_FONT = "Caveat";
 
 /**
  * The spot a click drops: centred on the click, then pushed inside the page
@@ -63,7 +66,8 @@ export function fitInside(box: Box, w: number, h: number): Box {
   return { x: box.x + (box.w - fw) / 2, y: box.y + (box.h - fh) / 2, w: fw, h: fh };
 }
 
-export type AgreementStatus = "sent" | "viewed" | "partly" | "signed" | "expired" | "voided";
+export type AgreementStatus =
+  "sent" | "viewed" | "partly" | "signed" | "declined" | "expired" | "voided";
 
 /** What S2 shows for one agreement. */
 export function agreementStatus(
@@ -73,6 +77,7 @@ export function agreementStatus(
 ): AgreementStatus {
   if (request.status === "completed") return "signed";
   if (request.status === "voided") return "voided";
+  if (request.status === "declined") return "declined";
   if (new Date(request.expires_at) < now) return "expired";
   if (signers.some((signer) => signer.signed_at)) return "partly";
   if (signers.some((signer) => signer.viewed_at)) return "viewed";
@@ -87,6 +92,7 @@ export const STATUS_VARIANT: Record<
   viewed: "info",
   partly: "warning",
   signed: "success",
+  declined: "danger",
   expired: "danger",
   voided: "neutral",
 };
@@ -107,3 +113,68 @@ export const signLink = (siteUrl: string, token: string) => `${siteUrl}/sign/${t
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const isEmail = (value: string) => EMAIL.test(value.trim());
+
+export interface SignerInput {
+  name?: unknown;
+  email?: unknown;
+  tenant_id?: unknown;
+  required?: unknown;
+  page?: unknown;
+  x?: unknown;
+  y?: unknown;
+  w?: unknown;
+  h?: unknown;
+}
+
+export interface ParsedSigner {
+  name: string;
+  email: string;
+  tenantId: string | null;
+  required: boolean;
+  page: number;
+  box: Box;
+  position: number;
+}
+
+const text = (value: unknown, max: number) =>
+  typeof value === "string" ? value.trim().slice(0, max) : "";
+
+/**
+ * The send request's signers, checked: 1-10 people, each with a name, an
+ * email and a signature spot on a real page; a tenant only if they are on
+ * this lease; nobody twice. Staff cannot send until every signer has a
+ * spot, and the server repeats this whatever the browser did.
+ */
+export function parseSigners(
+  inputs: unknown,
+  pages: Box[],
+  onLease: Set<string>,
+): { signers: ParsedSigner[] } | { error: string } {
+  const list = Array.isArray(inputs) ? (inputs as SignerInput[]) : [];
+  if (list.length < 1 || list.length > 10) return { error: "between 1 and 10 signers" };
+  const signers: ParsedSigner[] = [];
+  for (const [position, input] of list.entries()) {
+    const name = text(input.name, 120);
+    const email = text(input.email, 160).toLowerCase();
+    const tenantId = typeof input.tenant_id === "string" ? input.tenant_id : null;
+    const page = Number(input.page);
+    const box = { x: Number(input.x), y: Number(input.y), w: Number(input.w), h: Number(input.h) };
+    const bounds = Number.isInteger(page) ? pages[page - 1] : undefined;
+    if (!name || !isEmail(email)) return { error: "every signer needs a name and an email" };
+    if (tenantId && !onLease.has(tenantId)) return { error: "that tenant is not on this lease" };
+    if (!bounds || !boxInside(box, bounds))
+      return { error: `place a signature spot for ${name} on the document` };
+    if (signers.some((other) => other.email === email))
+      return { error: `${email} is listed twice` };
+    signers.push({
+      name,
+      email,
+      tenantId,
+      required: input.required !== false,
+      page,
+      box,
+      position,
+    });
+  }
+  return { signers };
+}

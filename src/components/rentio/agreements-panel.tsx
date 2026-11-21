@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, Circle, Copy, FileCheck2, FileText, PenLine } from "lucide-react";
+import { CheckCircle2, Circle, Copy, FileCheck2, FileText, PenLine, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,8 @@ import { cn } from "@/lib/utils";
 export const agreementsKey = (leaseId: string) => ["signature-requests", leaseId] as const;
 
 /** Signer columns staff may read (token_hash is not granted). */
-const SIGNER_COLUMNS = "id, request_id, name, email, position, emailed_at, viewed_at, signed_at";
+const SIGNER_COLUMNS =
+  "id, request_id, name, email, position, required, emailed_at, viewed_at, signed_at, declined_at, decline_reason";
 
 export interface SentLink {
   name: string;
@@ -173,7 +174,7 @@ export function AgreementsPanel({ leaseId }: { leaseId: string }) {
           {agreements.data?.map(({ request, signers, sender }) => {
             const status = agreementStatus(request, signers);
             const signedCount = signers.filter((signer) => signer.signed_at).length;
-            const closed = status === "signed" || status === "voided";
+            const closed = status === "signed" || status === "voided" || status === "declined";
             return (
               <li key={request.id} className="flex gap-3 px-5 py-4">
                 <span
@@ -216,7 +217,7 @@ export function AgreementsPanel({ leaseId }: { leaseId: string }) {
                     {status === "signed" && request.signed_path ? (
                       <Button
                         variant="link"
-                        className="h-auto p-0"
+                        className="h-11 px-2"
                         onClick={() => open(request.signed_path!)}
                       >
                         {t("actions.download")}
@@ -224,7 +225,7 @@ export function AgreementsPanel({ leaseId }: { leaseId: string }) {
                     ) : (
                       <Button
                         variant="link"
-                        className="h-auto p-0"
+                        className="h-11 px-2"
                         onClick={() => open(request.original_path)}
                       >
                         {t("esign.viewPdf")}
@@ -232,34 +233,49 @@ export function AgreementsPanel({ leaseId }: { leaseId: string }) {
                     )}
                   </div>
 
-                  {!closed ? (
-                    <ul className="space-y-1.5">
+                  {status !== "signed" && status !== "voided" ? (
+                    <ul className="space-y-1">
                       {signers.map((signer) => (
                         <li
                           key={signer.id}
-                          className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
+                          className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 text-sm"
                         >
                           {signer.signed_at ? (
                             <CheckCircle2 className="size-4 shrink-0 text-success" />
+                          ) : signer.declined_at ? (
+                            <XCircle className="size-4 shrink-0 text-danger" />
                           ) : (
                             <Circle className="size-4 shrink-0 text-muted-foreground" />
                           )}
-                          <span className="w-40 truncate font-medium">{signer.name}</span>
+                          <span className="w-40 truncate font-medium">
+                            {signer.name}
+                            {!signer.required ? (
+                              <span className="font-normal text-muted-foreground">
+                                {" "}
+                                · {t("esign.optional")}
+                              </span>
+                            ) : null}
+                          </span>
                           <span className="min-w-0 flex-1 text-muted-foreground">
                             {signer.signed_at
                               ? t("esign.signerSigned", {
                                   date: formatStamp(signer.signed_at, i18n.language),
                                 })
-                              : signer.viewed_at
-                                ? t("esign.signerViewed", {
-                                    date: formatStamp(signer.viewed_at, i18n.language),
+                              : signer.declined_at
+                                ? t("esign.signerDeclined", {
+                                    date: formatStamp(signer.declined_at, i18n.language),
+                                    reason: signer.decline_reason ?? t("esign.noReason"),
                                   })
-                                : t("esign.signerNotOpened")}
+                                : signer.viewed_at
+                                  ? t("esign.signerViewed", {
+                                      date: formatStamp(signer.viewed_at, i18n.language),
+                                    })
+                                  : t("esign.signerNotOpened")}
                           </span>
-                          {!signer.signed_at ? (
+                          {!signer.signed_at && !closed ? (
                             <Button
                               variant="link"
-                              className="h-auto p-0"
+                              className="h-11 px-2"
                               onClick={() => void remind(signer)}
                             >
                               {t("esign.remind")}

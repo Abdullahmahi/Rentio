@@ -1,23 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
-import { boxInside, isEmail, LINK_DAYS, signLink } from "@/lib/esign";
+import { LINK_DAYS, parseSigners, signLink } from "@/lib/esign";
 import { siteUrl } from "@/lib/server/email";
 import { companyName, emailSigningLink, inspectPdf, newToken, sha256Hex } from "@/lib/server/esign";
 import { fail, requireSession } from "@/lib/server/session";
 import { getObject } from "@/lib/server/storage";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
-
-interface SignerInput {
-  name?: unknown;
-  email?: unknown;
-  tenant_id?: unknown;
-  page?: unknown;
-  x?: unknown;
-  y?: unknown;
-  w?: unknown;
-  h?: unknown;
-}
 
 const text = (value: unknown, max: number) =>
   typeof value === "string" ? value.trim().slice(0, max) : "";
@@ -50,10 +39,7 @@ export const Route = createFileRoute("/api/fn/esign-send")({
           const path = text(body.path, 300);
           const title = text(body.title, 200);
           const message = text(body.message, 2000) || null;
-          const inputs = Array.isArray(body.signers) ? (body.signers as SignerInput[]) : [];
           if (!leaseId || !title) return json({ error: "lease_id and title are required" }, 400);
-          if (inputs.length < 1 || inputs.length > 10)
-            return json({ error: "between 1 and 10 signers" }, 400);
 
           const { data: lease } = await db
             .from("leases")
@@ -80,27 +66,9 @@ export const Route = createFileRoute("/api/fn/esign-send")({
             .eq("lease_id", leaseId);
           const onLease = new Set((parties ?? []).map((row) => row.tenant_id));
 
-          const signers = [];
-          for (const [position, input] of inputs.entries()) {
-            const name = text(input.name, 120);
-            const email = text(input.email, 160).toLowerCase();
-            const tenantId = typeof input.tenant_id === "string" ? input.tenant_id : null;
-            const box = {
-              x: Number(input.x),
-              y: Number(input.y),
-              w: Number(input.w),
-              h: Number(input.h),
-            };
-            const page = Number(input.page);
-            const bounds = pages[page - 1];
-            if (!name || !isEmail(email))
-              return json({ error: "every signer needs a name and an email" }, 400);
-            if (tenantId && !onLease.has(tenantId))
-              return json({ error: "that tenant is not on this lease" }, 400);
-            if (!Number.isInteger(page) || !bounds || !boxInside(box, bounds))
-              return json({ error: `place ${name}'s signature on the page` }, 400);
-            signers.push({ name, email, tenantId, page, box, position });
-          }
+          const parsed = parseSigners(body.signers, pages, onLease);
+          if ("error" in parsed) return json({ error: parsed.error }, 400);
+          const { signers } = parsed;
 
           // A tenant's own portal language; Spanish when they never chose (the portal default).
           const tenantIds = signers.flatMap((signer) => (signer.tenantId ? [signer.tenantId] : []));
@@ -137,6 +105,7 @@ export const Route = createFileRoute("/api/fn/esign-send")({
             tenant_id: signer.tenantId,
             locale: localeOf(signer.tenantId),
             position: signer.position,
+            required: signer.required,
             page: signer.page,
             ...signer.box,
             ...newToken(),
