@@ -999,6 +999,78 @@ export type Database = {
         };
         Relationships: [];
       };
+      stripe_oauth_states: {
+        Row: {
+          nonce: string;
+          org_id: string;
+          profile_id: string;
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: {
+          nonce: string;
+          org_id: string;
+          profile_id: string;
+          expires_at: string;
+          created_at?: string;
+        };
+        Update: {
+          nonce?: string;
+          org_id?: string;
+          profile_id?: string;
+          expires_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      stripe_payment_attempts: {
+        Row: {
+          id: string;
+          org_id: string;
+          lease_id: string;
+          tenant_id: string;
+          invoice_key: string;
+          stripe_account_id: string;
+          payment_intent_id: string | null;
+          method: string;
+          amount_cents: number;
+          autopay: boolean;
+          status: string;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id: string;
+          lease_id: string;
+          tenant_id: string;
+          invoice_key: string;
+          stripe_account_id: string;
+          payment_intent_id?: string | null;
+          method: string;
+          amount_cents: number;
+          autopay?: boolean;
+          status?: string;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          lease_id?: string;
+          tenant_id?: string;
+          invoice_key?: string;
+          stripe_account_id?: string;
+          payment_intent_id?: string | null;
+          method?: string;
+          amount_cents?: number;
+          autopay?: boolean;
+          status?: string;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       tenants: {
         Row: {
           id: string;
@@ -1446,6 +1518,16 @@ export type Database = {
           allocations?: number;
           applied?: number;
           credit?: number;
+        };
+      };
+      reverse_online_payment: {
+        Args: { p_org: string; p_payment_intent: string; p_reason: string; p_event: string };
+        Returns: {
+          voided: boolean;
+          reason?: "not_recorded" | "already_voided";
+          payment_id?: string;
+          amount?: number;
+          allocations?: number;
         };
       };
       create_lease: {

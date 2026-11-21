@@ -21,7 +21,7 @@
 
 
 -- ============================================================================
--- 1/31  20260919000100_schema
+-- 1/33  20260919000100_schema
 -- ============================================================================
 -- Rentio — core schema
 -- All money is numeric(12,2). Never float.
@@ -436,7 +436,7 @@ insert into public.settings (company_name, invoice_prefix) values ('Rentio', 'RE
 
 
 -- ============================================================================
--- 2/31  20260919000200_rls
+-- 2/33  20260919000200_rls
 -- ============================================================================
 -- Rentio — row level security. Deny by default, everywhere.
 --
@@ -834,7 +834,7 @@ create policy storage_tenant_write on storage.objects
 
 
 -- ============================================================================
--- 3/31  20260919000300_portal_views
+-- 3/33  20260919000300_portal_views
 -- ============================================================================
 -- The tenant portal needs the tenant's OWN unit number and building address:
 -- it is the payment reference on the Inicio screen and the whole of the
@@ -869,7 +869,7 @@ grant select on public.my_lease_details to authenticated;
 
 
 -- ============================================================================
--- 4/31  20260919000400_public_settings_address
+-- 4/33  20260919000400_public_settings_address
 -- ============================================================================
 -- The recibo PDF prints the landlord's letterhead — company name, address and
 -- bank details — and a tenant must be able to render their own receipt. The
@@ -905,7 +905,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 5/31  20260920000500_us_localization
+-- 5/33  20260920000500_us_localization
 -- ============================================================================
 -- Prompt 15 — the properties are in El Paso, Texas, not Mexico.
 -- Addresses become US addresses. No business logic changes here.
@@ -995,7 +995,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 6/31  20260920000501_drop_rfc
+-- 6/33  20260920000501_drop_rfc
 -- ============================================================================
 -- Prompt 20's cleanup, pulled forward: `rfc` was captured for Mexican tax
 -- invoicing (CFDI) that will never happen for a Texas landlord. Removing it
@@ -1025,7 +1025,7 @@ $$;
 
 
 -- ============================================================================
--- 7/31  20260920000600_us_payment_methods
+-- 7/33  20260920000600_us_payment_methods
 -- ============================================================================
 -- Prompt 16 — US payment rails.
 --
@@ -1110,7 +1110,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 8/31  20260920000700_texas_late_fees
+-- 8/33  20260920000700_texas_late_fees
 -- ============================================================================
 -- Prompt 17 — Texas Property Code §92.019 constrains residential late fees.
 --
@@ -1185,7 +1185,7 @@ alter table public.settings
 
 
 -- ============================================================================
--- 9/31  20260920000800_deposit_clock
+-- 9/33  20260920000800_deposit_clock
 -- ============================================================================
 -- Prompt 18 — Texas Property Code §92.103–92.109, security deposit returns.
 --
@@ -1253,7 +1253,7 @@ grant select on public.deposit_obligations to authenticated;
 
 
 -- ============================================================================
--- 10/31  20260920000900_texas_repairs_notices_turnover
+-- 10/33  20260920000900_texas_repairs_notices_turnover
 -- ============================================================================
 -- Prompt 19 — three smaller Texas Property Code obligations.
 
@@ -1403,7 +1403,7 @@ create policy turnover_admin_delete on public.unit_turnover_checklist
 
 
 -- ============================================================================
--- 11/31  20260920001000_late_fee_guard
+-- 11/33  20260920001000_late_fee_guard
 -- ============================================================================
 -- Prompt 17 said "do not let a manager bypass the 2-day rule anywhere in the
 -- UI". The gated "Apply late fee" button honoured it; "Add line" did not.
@@ -1476,7 +1476,7 @@ create trigger invoice_lines_enforce_late_fee_rules
 
 
 -- ============================================================================
--- 12/31  20260922001100_access_requests
+-- 12/33  20260922001100_access_requests
 -- ============================================================================
 -- A tenant with no invite needs somewhere to go.
 --
@@ -1540,7 +1540,7 @@ create policy access_requests_admin_delete on public.access_requests
 
 
 -- ============================================================================
--- 13/31  20260925001200_expenses
+-- 13/33  20260925001200_expenses
 -- ============================================================================
 -- Gastos: landlord expenses, entered by hand, one row per unit.
 -- The property is reached through units.property_id, like utility_charges.
@@ -1583,7 +1583,7 @@ create policy expenses_admin_delete on public.expenses
 
 
 -- ============================================================================
--- 14/31  20261024001300_super_admin_role
+-- 14/33  20261024001300_super_admin_role
 -- ============================================================================
 -- PortfolioAI staff: a role that spans every organization.
 --
@@ -1594,7 +1594,7 @@ alter type public.user_role add value if not exists 'super_admin';
 
 
 -- ============================================================================
--- 15/31  20261024001400_self_hosted_multi_tenant
+-- 15/33  20261024001400_self_hosted_multi_tenant
 -- ============================================================================
 -- Off Supabase, onto self-hosted Postgres + PostgREST, and multi-tenant.
 --
@@ -2131,7 +2131,7 @@ grant select on public.my_lease_details, public.public_settings to authenticated
 
 
 -- ============================================================================
--- 16/31  20261027001500_super_admin_acts_in_org
+-- 16/33  20261027001500_super_admin_acts_in_org
 -- ============================================================================
 -- super_admin: a real platform role, and a way to work inside a company.
 --
@@ -2303,7 +2303,7 @@ create trigger organizations_create_settings
 
 
 -- ============================================================================
--- 17/31  20261027001600_el_paso_dates
+-- 17/33  20261027001600_el_paso_dates
 -- ============================================================================
 -- Dates are El Paso dates. current_date was the server's UTC date, so every
 -- evening after 6pm Mountain time a receipt due "today" read as overdue,
@@ -2318,7 +2318,7 @@ $$;
 
 
 -- ============================================================================
--- 18/31  20261028002100_confirm_payment
+-- 18/33  20261028002100_confirm_payment
 -- ============================================================================
 -- B-013: confirming a payment was four browser writes with no transaction
 -- (status, allocations, invoice statuses, activity log). A failed insert or a
@@ -2427,7 +2427,7 @@ grant execute on function public.confirm_payment(uuid) to authenticated, service
 
 
 -- ============================================================================
--- 19/31  20261028002200_nightly_job
+-- 19/33  20261028002200_nightly_job
 -- ============================================================================
 -- The nightly job (execution.md A1, A3, A4; owner decisions D1, D2, D3).
 --
@@ -2828,7 +2828,7 @@ grant execute on function public.nightly() to service_role;
 
 
 -- ============================================================================
--- 20/31  20261028002300_record_and_void_payment
+-- 20/33  20261028002300_record_and_void_payment
 -- ============================================================================
 -- B-013 continued: "Record payment" and "Void" were several browser writes
 -- each (payment, allocations, invoice statuses, activity log) with no
@@ -3160,7 +3160,7 @@ grant execute on function public.void_payment(uuid, text) to authenticated, serv
 
 
 -- ============================================================================
--- 21/31  20261111000100_tenants_cannot_read_drafts
+-- 21/33  20261111000100_tenants_cannot_read_drafts
 -- ============================================================================
 -- Tenants must not see draft invoices. The nightly job drafts the month on
 -- the 1st for staff review; until staff send it, the tenant has nothing to
@@ -3177,7 +3177,7 @@ create policy invoices_select on public.invoices
 
 
 -- ============================================================================
--- 22/31  20261111000200_create_lease
+-- 22/33  20261111000200_create_lease
 -- ============================================================================
 -- A lease was five browser writes (lease, lease_tenants, turnover checklist,
 -- unit status, activity) with no transaction: a failed link insert left an
@@ -3267,7 +3267,7 @@ grant execute on function public.create_lease(uuid, jsonb, uuid, uuid[], uuid[],
 
 
 -- ============================================================================
--- 23/31  20261111000300_last_admin_and_append_only_log
+-- 23/33  20261111000300_last_admin_and_append_only_log
 -- ============================================================================
 -- Two guards the audit found missing (audit-product-2026-10-28.md §1).
 --
@@ -3316,7 +3316,7 @@ drop policy if exists admin_delete on public.activity_log;
 
 
 -- ============================================================================
--- 24/31  20261112000100_notifications
+-- 24/33  20261112000100_notifications
 -- ============================================================================
 -- Tenants never heard back (audit-product-2026-10-28.md §2.1 #8): no
 -- "payment confirmed", no "payment rejected, and why", no repair update, no
@@ -3584,7 +3584,7 @@ grant execute on function public.notification_result(uuid, text) to service_role
 
 
 -- ============================================================================
--- 25/31  20261112000200_nightly_per_org
+-- 25/33  20261112000200_nightly_per_org
 -- ============================================================================
 -- nightly() ran every company in one transaction: one bad lease in org A
 -- aborted invoicing for org B (audit-product-2026-10-28.md §4.3). Each
@@ -3640,7 +3640,7 @@ grant execute on function public.nightly() to service_role;
 
 
 -- ============================================================================
--- 26/31  20261124000100_stripe_accounts
+-- 26/33  20261124000100_stripe_accounts
 -- ============================================================================
 -- Stripe Connect (issue #8): each company connects its OWN Stripe account
 -- (Standard account, direct charges). Rent goes straight to the company's
@@ -3697,7 +3697,7 @@ create policy org_isolation on public.stripe_accounts as restrictive for all to 
 
 
 -- ============================================================================
--- 27/31  20261124000105_online_payments
+-- 27/33  20261124000105_online_payments
 -- ============================================================================
 -- Pay now (issue #9): online rent through the company's own Stripe account.
 --
@@ -3764,7 +3764,7 @@ create policy org_isolation on public.stripe_customers as restrictive for all to
 
 
 -- ============================================================================
--- 28/31  20261124000106_record_online_payment
+-- 28/33  20261124000106_record_online_payment
 -- ============================================================================
 -- record_online_payment: what the Stripe webhook calls on
 -- payment_intent.succeeded. A CONFIRMED payment (money already moved), the
@@ -3857,7 +3857,7 @@ grant execute on function public.record_online_payment(uuid, uuid, numeric, publ
 
 
 -- ============================================================================
--- 29/31  20261124000108_autopay_enrollments
+-- 29/33  20261124000108_autopay_enrollments
 -- ============================================================================
 -- Autopay (issue #10): a tenant opts in to have rent charged to a saved
 -- Stripe payment method on the due date. One enrollment per LEASE: two
@@ -3908,7 +3908,7 @@ create policy org_isolation on public.autopay_enrollments as restrictive for all
 
 
 -- ============================================================================
--- 30/31  20261124000109_autopay_runs
+-- 30/33  20261124000109_autopay_runs
 -- ============================================================================
 -- Autopay (issue #10), the run side.
 --
@@ -3993,7 +3993,214 @@ grant execute on function public.autopay_due(uuid) to service_role;
 
 
 -- ============================================================================
--- 31/31  DEMO DATA
+-- 31/33  20261124000110_stripe_oauth_states
+-- ============================================================================
+-- Stripe Connect OAuth state is single-use and bound to the admin who
+-- started it (security review on PR #70). The signed state carries a nonce;
+-- the nonce lives here until the callback consumes it (delete ... returning),
+-- so a state cannot be replayed or finished by another user of the company.
+-- Server routes only (service connection): no grant to anon/authenticated.
+
+create table public.stripe_oauth_states (
+  nonce       text primary key,
+  org_id      uuid not null references public.organizations (id) on delete cascade,
+  profile_id  uuid not null references public.profiles (id) on delete cascade,
+  expires_at  timestamptz not null,
+  created_at  timestamptz not null default now()
+);
+
+alter table public.stripe_oauth_states enable row level security;
+revoke all on public.stripe_oauth_states from anon, authenticated;
+
+
+-- ============================================================================
+-- 32/33  20261124000111_stripe_payment_attempts
+-- ============================================================================
+-- Pay now hardening (security review on PR #71).
+--
+--   stripe_payment_attempts   every PaymentIntent we create, with the
+--                             connected account it was created ON, so a
+--                             webhook for it maps to the right org even after
+--                             the company disconnects or reconnects; and at
+--                             most one OPEN attempt per tenant + lease +
+--                             invoice set (no second PaymentIntent, no double charge).
+--   void_payment_internal     the body of void_payment, shared with:
+--   reverse_online_payment    the webhook's refund / dispute / ACH-return
+--                             path: void the recorded payment so the invoice
+--                             balance reopens. Idempotent.
+--
+-- Server only (service connection) for writes; staff read their company's
+-- attempts.
+
+-- ---------------------------------------------------- stripe_payment_attempts
+create table public.stripe_payment_attempts (
+  id                 uuid primary key default gen_random_uuid(),
+  org_id             uuid not null references public.organizations (id) on delete cascade,
+  lease_id           uuid not null references public.leases (id) on delete cascade,
+  tenant_id          uuid not null references public.tenants (id) on delete cascade,
+  -- sorted, comma-joined invoice ids: "the invoice set"
+  invoice_key        text not null,
+  stripe_account_id  text not null,
+  payment_intent_id  text unique,
+  method             text not null check (method in ('card', 'ach')),
+  amount_cents       integer not null check (amount_cents > 0),
+  autopay            boolean not null default false,
+  -- 'creating' until Stripe answers, then the PaymentIntent's own status.
+  status             text not null default 'creating'
+                     check (status in ('creating', 'requires_payment_method', 'requires_confirmation',
+                                       'requires_action', 'processing', 'succeeded', 'canceled')),
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz
+);
+
+create unique index stripe_payment_attempts_one_open
+  on public.stripe_payment_attempts (org_id, tenant_id, lease_id, invoice_key)
+  where status not in ('succeeded', 'canceled');
+create index stripe_payment_attempts_lease_open
+  on public.stripe_payment_attempts (lease_id)
+  where status not in ('succeeded', 'canceled');
+
+create trigger stripe_payment_attempts_set_updated_at
+  before update on public.stripe_payment_attempts
+  for each row execute function public.set_updated_at();
+
+alter table public.stripe_payment_attempts enable row level security;
+revoke all on public.stripe_payment_attempts from anon, authenticated;
+grant select on public.stripe_payment_attempts to authenticated;
+
+create policy stripe_payment_attempts_staff_select on public.stripe_payment_attempts
+  for select to authenticated using (public.is_staff());
+create policy org_isolation on public.stripe_payment_attempts as restrictive for all to authenticated
+  using (org_id = (select public.current_org_id()) or (select public.is_super_admin()))
+  with check (org_id = (select public.current_org_id()) or (select public.is_super_admin()));
+
+-- ------------------------------------------------------- void, shared body
+-- Caller has decided who may void. Locks the payment and its lease, drops
+-- the allocations, keeps the row as 'cancelado', refreshes invoice statuses
+-- (the balance reopens) and logs. p_actor null = the system (Stripe).
+
+create or replace function public.void_payment_internal(
+  p_payment uuid,
+  p_reason  text,
+  p_actor   uuid,
+  p_meta    jsonb default '{}'::jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pay      public.payments%rowtype;
+  touched  uuid[];
+begin
+  select * into pay from public.payments where id = p_payment for update;
+  if not found then
+    raise exception 'Payment not found.' using errcode = 'P0002';
+  end if;
+  if pay.status = 'cancelado' then
+    raise exception 'This payment is already voided.' using errcode = 'P0001';
+  end if;
+  if pay.status <> 'confirmado' then
+    raise exception 'Only a confirmed payment can be voided.' using errcode = 'P0001';
+  end if;
+
+  perform 1 from public.leases where id = pay.lease_id for update;
+
+  with gone as (
+    delete from public.payment_allocations where payment_id = pay.id returning invoice_id
+  )
+  select coalesce(array_agg(invoice_id), '{}') into touched from gone;
+
+  update public.payments
+  set status = 'cancelado',
+      void_reason = trim(p_reason)
+  where id = pay.id;
+
+  perform public.refresh_invoice_statuses(touched);
+
+  insert into public.activity_log (actor_id, entity_type, entity_id, action, meta, org_id)
+  values (
+    p_actor, 'payment', pay.id, 'void',
+    jsonb_build_object('reason', trim(p_reason), 'amount', pay.amount) || coalesce(p_meta, '{}'::jsonb),
+    pay.org_id
+  );
+
+  return jsonb_build_object('allocations', cardinality(touched), 'amount', pay.amount);
+end;
+$$;
+
+revoke all on function public.void_payment_internal(uuid, text, uuid, jsonb) from public, anon, authenticated;
+grant execute on function public.void_payment_internal(uuid, text, uuid, jsonb) to service_role;
+
+-- Same checks and behaviour as before; the body now lives above.
+create or replace function public.void_payment(p_payment uuid, p_reason text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() or public.current_org_id() is null then
+    raise exception 'Only an admin can void payments.' using errcode = '42501';
+  end if;
+  if coalesce(trim(p_reason), '') = '' then
+    raise exception 'A reason is required to void a payment.' using errcode = '22023';
+  end if;
+  perform 1 from public.payments where id = p_payment and org_id = public.current_org_id();
+  if not found then
+    raise exception 'Payment not found.' using errcode = 'P0002';
+  end if;
+  return public.void_payment_internal(p_payment, p_reason, public.current_user_id());
+end;
+$$;
+
+revoke all on function public.void_payment(uuid, text) from public, anon;
+grant execute on function public.void_payment(uuid, text) to authenticated, service_role;
+
+-- ------------------------------------------------- webhook reversal (Stripe)
+-- Refund, dispute or ACH return on a PaymentIntent we booked. Only within
+-- p_org (the org the webhook mapped the event to). Returns
+--   {voided: true, payment_id, amount, ...}   the payment was voided now
+--   {voided: false, reason: 'not_recorded'}   nothing booked for this intent
+--   {voided: false, reason: 'already_voided', payment_id}
+create or replace function public.reverse_online_payment(
+  p_org             uuid,
+  p_payment_intent  text,
+  p_reason          text,
+  p_event           text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pay public.payments%rowtype;
+begin
+  select * into pay
+  from public.payments
+  where stripe_payment_intent_id = p_payment_intent and org_id = p_org
+  for update;
+  if not found then
+    return jsonb_build_object('voided', false, 'reason', 'not_recorded');
+  end if;
+  if pay.status = 'cancelado' then
+    return jsonb_build_object('voided', false, 'reason', 'already_voided', 'payment_id', pay.id);
+  end if;
+  return public.void_payment_internal(pay.id, p_reason, null,
+           jsonb_build_object('source', 'stripe', 'stripe_event', p_event,
+                              'payment_intent', p_payment_intent))
+         || jsonb_build_object('voided', true, 'payment_id', pay.id);
+end;
+$$;
+
+revoke all on function public.reverse_online_payment(uuid, text, text, text) from public, anon, authenticated;
+grant execute on function public.reverse_online_payment(uuid, text, text, text) to service_role;
+
+
+-- ============================================================================
+-- 33/33  DEMO DATA
 -- ============================================================================
 -- Rentio — demo data (El Paso, Texas).
 -- Safe to re-run: it clears the demo tables first.

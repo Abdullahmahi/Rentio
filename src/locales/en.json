@@ -1467,6 +1467,8 @@
     "disconnected": "Stripe disconnected.",
     "connected": "Stripe connected.",
     "connectError": "The Stripe connection didn't complete. Try again.",
+    "alreadyConnected": "A Stripe account is already connected. An admin must disconnect it first.",
+    "adminOnly": "Only a company admin can connect or disconnect Stripe.",
     "pendingHint": "Stripe still needs information before this account can take payments. Finish setup in your Stripe dashboard, then refresh the status.",
     "accountId": "Account",
     "payouts": "Payouts enabled",
@@ -1500,7 +1502,8 @@
       "processingBody": "Your bank payment is processing. It usually clears in 3–5 business days; you'll see it on your home screen once it does.",
       "notReady": "Online payment isn't available right now. Use one of the other ways to pay.",
       "nothingDue": "You have nothing to pay right now.",
-      "failed": "The payment didn't go through. Check the details and try again."
+      "failed": "The payment didn't go through. Check the details and try again.",
+      "inProgress": "A payment for this rent is already in progress. Bank payments take a few business days; you don't need to pay again."
     },
     "autopay": {
       "title": "Autopay",

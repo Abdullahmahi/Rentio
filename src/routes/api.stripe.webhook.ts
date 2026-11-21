@@ -10,7 +10,8 @@ const json = (body: unknown, status = 200) => Response.json(body, { status });
  * authentication. Register <SITE_URL>/api/stripe/webhook in the Stripe
  * dashboard as a Connect endpoint (events from connected accounts), with
  * payment_intent.succeeded, payment_intent.processing,
- * payment_intent.payment_failed, charge.refunded, charge.dispute.created,
+ * payment_intent.payment_failed, payment_intent.canceled,
+ * payment_intent.requires_action, charge.refunded, charge.dispute.created,
  * account.updated. A 200 for anything we recognised, including duplicates,
  * so Stripe stops retrying; a 500 makes it retry.
  */

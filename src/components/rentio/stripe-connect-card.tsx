@@ -18,7 +18,9 @@ import { STRIPE_ACCOUNT_KEY, stripePost, useStripeAccount } from "@/lib/stripe";
 const BADGE = { not_connected: "neutral", pending: "warning", ready: "success" } as const;
 
 /**
- * Settings → "Connect Stripe" (any staff of the company). Renders nothing when the platform has
+ * Settings → "Connect Stripe". Connect and Disconnect are admin-only (the
+ * money destination is the admin's call); managers see status and the fee.
+ * Renders nothing when the platform has
  * no Stripe keys, so a company that never asked for online rent never sees
  * it. The fee toggle writes stripe_accounts directly (staff column grant);
  * everything about the account itself goes through /api/stripe/*.
@@ -31,6 +33,7 @@ export function StripeConnectCard() {
   const info = useStripeAccount();
   const account = info.data?.account ?? null;
   const status = account?.status ?? "not_connected";
+  const isAdmin = profile?.role === "admin" || profile?.role === "super_admin";
 
   const [fee, setFee] = useState({ enabled: false, percent: "0" });
   useEffect(() => {
@@ -117,7 +120,9 @@ export function StripeConnectCard() {
         onRetry={() => void info.refetch()}
         skeleton={<RowsSkeleton count={2} />}
       >
-        {status === "not_connected" ? (
+        {status === "not_connected" && !isAdmin ? (
+          <p className="text-sm text-muted-foreground">{t("stripe.adminOnly")}</p>
+        ) : status === "not_connected" ? (
           <Button
             type="button"
             disabled={connect.isPending}
@@ -148,13 +153,15 @@ export function StripeConnectCard() {
                 <RefreshCw className="size-4" aria-hidden />
                 {t("stripe.refresh")}
               </Button>
-              <ConfirmDialog
-                triggerLabel={t("stripe.disconnect")}
-                title={t("stripe.disconnect")}
-                description={t("stripe.disconnectConfirm")}
-                destructive
-                onConfirm={() => disconnect.mutate(undefined)}
-              />
+              {isAdmin ? (
+                <ConfirmDialog
+                  triggerLabel={t("stripe.disconnect")}
+                  title={t("stripe.disconnect")}
+                  description={t("stripe.disconnectConfirm")}
+                  destructive
+                  onConfirm={() => disconnect.mutate(undefined)}
+                />
+              ) : null}
               <Button
                 type="button"
                 variant="outline"

@@ -941,6 +941,22 @@ begin
   select count(*) into n from public.stripe_accounts where stripe_account_id = 'acct_b';
   perform pg_temp.check('org B sees only its own stripe account', n = 1
     and (select count(*) from public.stripe_accounts) = 1);
+
+  -- OAuth nonces (PR #70 review): server only, even for the company's admin.
+  perform pg_temp.act_as(admin_id);
+  begin
+    perform count(*) from public.stripe_oauth_states;
+    perform pg_temp.check('admin cannot read oauth nonces', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('admin cannot read oauth nonces', true);
+  end;
+  begin
+    insert into public.stripe_oauth_states (nonce, org_id, profile_id, expires_at)
+      values ('planted', org_a, admin_id, now() + interval '1 hour');
+    perform pg_temp.check('admin cannot plant an oauth nonce', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('admin cannot plant an oauth nonce', true);
+  end;
   reset role;
 end;
 $$;
@@ -1001,6 +1017,48 @@ begin
     perform pg_temp.check('record_online_payment refuses a lease outside the org', true);
   end;
 
+  -- PR #71 review: refunds / disputes / ACH returns void through the void path.
+  r := public.reverse_online_payment(org_b, 'pi_test_1', 'refund', 'evt_x');
+  perform pg_temp.check('reverse_online_payment stays inside the org',
+    not (r ->> 'voided')::boolean and r ->> 'reason' = 'not_recorded'
+    and (select status from public.payments where id = pay) = 'confirmado');
+  r := public.reverse_online_payment(org_a, 'pi_test_1', 'The payment was refunded in Stripe.', 'evt_refund');
+  perform pg_temp.check('reverse_online_payment voids the booked payment',
+    (r ->> 'voided')::boolean and (r ->> 'payment_id')::uuid = pay
+    and (select status from public.payments where id = pay) = 'cancelado'
+    and not exists (select 1 from public.payment_allocations where payment_id = pay));
+  perform pg_temp.check('the reversed invoice balance reopens',
+    (select coalesce(sum(b.balance), 0) from public.invoice_balances b
+       join public.invoices i on i.id = b.invoice_id
+      where i.lease_id = lease_a and i.status <> 'cancelado' and b.balance > 0) = before);
+  perform pg_temp.check('the reversal is logged as a system void', exists (
+    select 1 from public.activity_log where entity_id = pay and action = 'void'
+      and actor_id is null and meta ->> 'stripe_event' = 'evt_refund'));
+  r := public.reverse_online_payment(org_a, 'pi_test_1', 'again', 'evt_refund2');
+  perform pg_temp.check('a second reversal is a no-op',
+    not (r ->> 'voided')::boolean and r ->> 'reason' = 'already_voided'
+    and (select count(*) from public.activity_log where entity_id = pay and action = 'void') = 1);
+  r := public.reverse_online_payment(org_a, 'pi_never', 'x', 'evt_y');
+  perform pg_temp.check('reversing an unbooked intent changes nothing', r ->> 'reason' = 'not_recorded');
+
+  -- one open attempt per tenant + lease + invoice set
+  insert into public.stripe_payment_attempts
+    (org_id, lease_id, tenant_id, invoice_key, stripe_account_id, payment_intent_id, method, amount_cents, status)
+  values (org_a, lease_a, t_a, 'inv1', 'acct_a', 'pi_att_1', 'ach', 1000, 'processing');
+  begin
+    insert into public.stripe_payment_attempts
+      (org_id, lease_id, tenant_id, invoice_key, stripe_account_id, method, amount_cents)
+    values (org_a, lease_a, t_a, 'inv1', 'acct_a', 'card', 1000);
+    perform pg_temp.check('a second open attempt for the same invoices is refused', false);
+  exception when unique_violation then
+    perform pg_temp.check('a second open attempt for the same invoices is refused', true);
+  end;
+  update public.stripe_payment_attempts set status = 'succeeded' where payment_intent_id = 'pi_att_1';
+  insert into public.stripe_payment_attempts
+    (org_id, lease_id, tenant_id, invoice_key, stripe_account_id, method, amount_cents)
+  values (org_a, lease_a, t_a, 'inv1', 'acct_a', 'card', 1000);
+  perform pg_temp.check('a closed attempt does not block a new one', true);
+
   set local role authenticated;
 
   perform pg_temp.act_as(tenant_a);
@@ -1010,6 +1068,14 @@ begin
   exception when insufficient_privilege then
     perform pg_temp.check('tenant cannot call record_online_payment', true);
   end;
+  begin
+    perform public.reverse_online_payment(org_a, 'pi_test_1', 'x', 'evt');
+    perform pg_temp.check('tenant cannot call reverse_online_payment', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('tenant cannot call reverse_online_payment', true);
+  end;
+  select count(*) into n from public.stripe_payment_attempts;
+  perform pg_temp.check('tenant cannot read payment attempts', n = 0);
   begin
     insert into public.payments (lease_id, amount, method, status, reported_by_tenant, stripe_payment_intent_id)
     values (lease_a, 100, 'card', 'confirmado', false, 'pi_forged');
@@ -1046,6 +1112,22 @@ begin
     perform pg_temp.check('staff cannot call record_online_payment', false);
   exception when insufficient_privilege then
     perform pg_temp.check('staff cannot call record_online_payment', true);
+  end;
+  begin
+    perform public.void_payment_internal(pay, 'x', null);
+    perform pg_temp.check('staff cannot call void_payment_internal', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot call void_payment_internal', true);
+  end;
+  select count(*) into n from public.stripe_payment_attempts;
+  perform pg_temp.check('org A staff reads its payment attempts', n = 2);
+  begin
+    insert into public.stripe_payment_attempts
+      (org_id, lease_id, tenant_id, invoice_key, stripe_account_id, method, amount_cents)
+    values (org_a, lease_a, t_a, 'inv9', 'acct_evil', 'card', 1000);
+    perform pg_temp.check('staff cannot write payment attempts', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot write payment attempts', true);
   end;
   begin
     insert into public.stripe_events (event_id, type) values ('evt_forged', 'x');
