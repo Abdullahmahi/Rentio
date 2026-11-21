@@ -29,7 +29,10 @@ const THEME_STORAGE_KEY = "rentio-theme";
 function PortalProfile() {
   const { t, i18n: i18nInstance } = useTranslation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, preview } = useAuth();
+  // A portal preview is read-only (the server refuses writes too), and the
+  // login and sign-out buttons would act on the staff member, not the tenant.
+  const readOnly = Boolean(preview);
   const tenant = useMyTenant();
 
   const [form, setForm] = useState({
@@ -107,7 +110,7 @@ function PortalProfile() {
         }
       >
         <form
-          className="space-y-4 rounded-lg border border-border bg-surface p-5"
+          className="rounded-lg border border-border bg-surface p-5"
           noValidate
           onSubmit={(event) => {
             event.preventDefault();
@@ -118,55 +121,59 @@ function PortalProfile() {
             save.mutate(undefined);
           }}
         >
-          <h2 className="text-base font-semibold">{t("tenants.contactTitle")}</h2>
-          <Field label={t("tenants.fields.phone")} htmlFor="profile-phone">
-            <Input
-              id="profile-phone"
-              inputMode="tel"
-              className="numeric h-12"
-              value={form.phone}
-              onChange={(event) => setForm({ ...form, phone: formatUsPhone(event.target.value) })}
-            />
-          </Field>
-          <Field label={t("tenants.fields.email")} htmlFor="profile-email">
-            <Input
-              id="profile-email"
-              type="email"
-              className="h-12"
-              value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-            />
-          </Field>
-          <Field label={t("tenants.fields.emergencyName")} htmlFor="profile-ename">
-            <Input
-              id="profile-ename"
-              className="h-12"
-              value={form.emergency_contact_name}
-              onChange={(event) => setForm({ ...form, emergency_contact_name: event.target.value })}
-            />
-          </Field>
-          <Field label={t("tenants.fields.emergencyPhone")} htmlFor="profile-ephone">
-            <Input
-              id="profile-ephone"
-              inputMode="tel"
-              className="numeric h-12"
-              value={form.emergency_contact_phone}
-              onChange={(event) =>
-                setForm({ ...form, emergency_contact_phone: formatUsPhone(event.target.value) })
-              }
-            />
-          </Field>
-          {error ? (
-            <p
-              role="alert"
-              className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
-            >
-              {error}
-            </p>
-          ) : null}
-          <Button type="submit" className="h-12 w-full" disabled={save.isPending}>
-            {t("actions.save")}
-          </Button>
+          <fieldset disabled={readOnly} className="min-w-0 space-y-4">
+            <h2 className="text-base font-semibold">{t("tenants.contactTitle")}</h2>
+            <Field label={t("tenants.fields.phone")} htmlFor="profile-phone">
+              <Input
+                id="profile-phone"
+                inputMode="tel"
+                className="numeric h-12"
+                value={form.phone}
+                onChange={(event) => setForm({ ...form, phone: formatUsPhone(event.target.value) })}
+              />
+            </Field>
+            <Field label={t("tenants.fields.email")} htmlFor="profile-email">
+              <Input
+                id="profile-email"
+                type="email"
+                className="h-12"
+                value={form.email}
+                onChange={(event) => setForm({ ...form, email: event.target.value })}
+              />
+            </Field>
+            <Field label={t("tenants.fields.emergencyName")} htmlFor="profile-ename">
+              <Input
+                id="profile-ename"
+                className="h-12"
+                value={form.emergency_contact_name}
+                onChange={(event) =>
+                  setForm({ ...form, emergency_contact_name: event.target.value })
+                }
+              />
+            </Field>
+            <Field label={t("tenants.fields.emergencyPhone")} htmlFor="profile-ephone">
+              <Input
+                id="profile-ephone"
+                inputMode="tel"
+                className="numeric h-12"
+                value={form.emergency_contact_phone}
+                onChange={(event) =>
+                  setForm({ ...form, emergency_contact_phone: formatUsPhone(event.target.value) })
+                }
+              />
+            </Field>
+            {error ? (
+              <p
+                role="alert"
+                className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+              >
+                {error}
+              </p>
+            ) : null}
+            <Button type="submit" className="h-12 w-full" disabled={save.isPending}>
+              {t("actions.save")}
+            </Button>
+          </fieldset>
         </form>
 
         {/* Password, email and Google sign-in all live in Clerk's own panel. */}
@@ -176,6 +183,7 @@ function PortalProfile() {
             type="button"
             variant="outline"
             className="h-12 w-full"
+            disabled={readOnly}
             onClick={() => clerk.openUserProfile()}
           >
             {t("auth.manageLogin")}
@@ -216,6 +224,7 @@ function PortalProfile() {
         <Button
           variant="outline"
           className="h-12 w-full"
+          disabled={readOnly}
           onClick={() => {
             void signOut()
               .then(() => navigate({ to: "/sign-in", replace: true }))

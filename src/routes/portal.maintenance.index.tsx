@@ -12,6 +12,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { WorkOrderPriorityBadge, WorkOrderStatusBadge } from "@/components/rentio/status";
 import { CATEGORY_ICONS } from "@/lib/maintenance";
 import { formatDate } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
 import { useMyPortal, useToastMutation } from "@/lib/queries";
 import { db } from "@/lib/db";
 import { uploadFile } from "@/lib/storage";
@@ -38,6 +39,8 @@ const PRIORITIES: Enums<"wo_priority">[] = ["baja", "media", "alta", "urgente"];
 function PortalMaintenance() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  // A portal preview is read-only; the server refuses the write too.
+  const readOnly = Boolean(useAuth().preview);
   const portal = useMyPortal();
 
   const [creating, setCreating] = useState(false);
@@ -219,7 +222,7 @@ function PortalMaintenance() {
         title={t("nav.serviceRequests")}
         description={t("portal.maintenanceHint")}
         actions={
-          <Button className="h-11" onClick={() => setCreating(true)}>
+          <Button className="h-11" disabled={readOnly} onClick={() => setCreating(true)}>
             <Plus className="size-4" />
             {t("portal.newRequest")}
           </Button>
@@ -237,8 +240,8 @@ function PortalMaintenance() {
             icon={Wrench}
             message={t("portal.noRequests")}
             description={t("portal.noRequestsDescription")}
-            actionLabel={t("portal.newRequest")}
-            onAction={() => setCreating(true)}
+            actionLabel={readOnly ? undefined : t("portal.newRequest")}
+            onAction={readOnly ? undefined : () => setCreating(true)}
           />
         }
       >

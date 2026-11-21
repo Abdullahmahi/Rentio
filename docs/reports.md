@@ -314,3 +314,15 @@ Owner decisions: a left-bar item under Operations (not a Settings tab); same loo
 **Not verified**: in a browser (no Clerk keys locally); a real "send automatically" run against Resend; the page in Mesa/Juniper/Graphite (it uses only theme tokens, so it should follow). The Paper mock-up shows "Repair updates" off purely as the off-state reference; the default is on.
 
 **Deploy order**: `scripts/migrate-pending.sh` on the server first (adds the columns and `job_runs`; the new code reads them on first load), then deploy. The Coolify scheduled task for `/api/jobs/nightly` is still **missing** — without it nothing on this page runs except "Run now".
+
+## 2026-11-21 · View portal as tenant (read-only preview), issue #29
+
+**Changed**
+- `/api/portal-preview` (POST/DELETE): staff of the tenant's own company (super_admin: the company they act in) start a preview; sets a signed HttpOnly cookie (tenant, org, staff, 30 min) and logs `portal_preview` in `activity_log`. 409 when the tenant has no portal login yet.
+- `requireSession`: when the portal sends `x-rentio-preview: 1` and the cookie is valid for this staff member in this company, the session becomes the tenant's (JWT minted server-side, RLS unchanged) and every non-GET except `storage/sign` and `generate-invoice-pdf` is refused `preview_read_only`.
+- Portal: banner "Viewing as <name>, read-only · Exit preview" (EN + es-MX); report payment, new request, profile edit, manage login and sign-out disabled; language choice is not saved to the tenant's profile.
+- Tenant detail: "View portal as this tenant" button (shown once the tenant has a portal profile).
+
+**Checks**: `bun test` 94 pass (20 new) · `bunx tsc --noEmit` clean · `bun run lint` 0 errors · `bun run build` OK. No migration.
+
+**Not verified**: in a browser against a real Clerk login.

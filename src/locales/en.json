@@ -1112,6 +1112,13 @@
     "telefono": "Phone",
     "personal": "In person"
   },
+  "portalPreview": {
+    "open": "View portal as this tenant",
+    "banner": "Viewing as {{name}}, read-only",
+    "exit": "Exit preview",
+    "noLogin": "Invite this tenant to the portal first. There is nothing to preview until they have a portal login.",
+    "failed": "Could not open the preview. Try again."
+  },
   "portal": {
     "balanceDue": "Outstanding balance",
     "dueOn": "Due {{date}}",

@@ -407,7 +407,7 @@ export function useLanguagePreference(fallback: AppLanguage) {
   // out a new wrapper on every language change, which re-ran the resolve
   // effect below with the still-old profile locale and flipped the language
   // straight back (QA B-02).
-  const { profile, patchProfile } = useAuth();
+  const { profile, patchProfile, preview } = useAuth();
 
   const apply = useCallback((language: AppLanguage) => {
     void i18n.changeLanguage(language);
@@ -431,13 +431,14 @@ export function useLanguagePreference(fallback: AppLanguage) {
     (language: AppLanguage) => {
       apply(language);
       window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-      if (!profile?.id) return;
+      // A portal preview is read-only: the tenant's saved language stays theirs.
+      if (!profile?.id || preview) return;
       // Patch the in-memory profile now, so the resolve effect agrees with the
       // choice; the server copy follows.
       patchProfile({ locale: language });
       void db.from("profiles").update({ locale: language }).eq("id", profile.id);
     },
-    [apply, profile?.id, patchProfile],
+    [apply, profile?.id, patchProfile, preview],
   );
 
   return { language: i18n.language as AppLanguage, setLanguage };
