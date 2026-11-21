@@ -520,6 +520,7 @@
   },
   "contracts": {
     "new": "Nuevo contrato",
+    "monthToMonth": "Mes a mes",
     "columns": {
       "tenant": "Inquilino principal",
       "start": "Inicio",

@@ -520,6 +520,7 @@
   },
   "contracts": {
     "new": "New lease",
+    "monthToMonth": "Month-to-month",
     "columns": {
       "tenant": "Primary tenant",
       "start": "Start",

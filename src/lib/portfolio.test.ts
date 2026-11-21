@@ -10,6 +10,7 @@ import {
   currentLeaseFor,
   daysUntilEnd,
   isExpiringSoon,
+  isMonthToMonth,
   leaseContexts,
   occupancy,
   unitContexts,
@@ -135,4 +136,13 @@ test("a tenant's current lease is where they are primary, then co-tenant, never 
   const byTenant = currentLeaseByTenant(contexts);
   expect(byTenant.get("t3")?.lease.id).toBe("l3");
   expect(byTenant.get("t1")?.lease.id).toBe("l1");
+});
+
+test("isMonthToMonth flags active leases past their end date (D1)", () => {
+  const lease = (end_date: string, status = "activo") =>
+    ({ id: "x", unit_id: "u1", status, end_date }) as never;
+  expect(isMonthToMonth(lease("2026-09-18"), TODAY)).toBe(true); // ended yesterday
+  expect(isMonthToMonth(lease("2026-09-19"), TODAY)).toBe(false); // ends today
+  expect(isMonthToMonth(lease("2026-10-31"), TODAY)).toBe(false);
+  expect(isMonthToMonth(lease("2026-01-31", "terminado"), TODAY)).toBe(false);
 });
