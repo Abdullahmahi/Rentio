@@ -41,7 +41,7 @@ export function Compliance() {
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">
               {t("compliance.eyebrow")}
             </p>
-            <h2 className="mt-3 text-balance font-heading text-2xl font-medium !leading-snug md:text-4xl lg:text-5xl">
+            <h2 className="mt-3 text-balance font-heading text-2xl font-semibold tracking-tight !leading-snug md:text-4xl lg:text-5xl">
               {t("compliance.headingLead")}{" "}
               <span className="font-subheading italic">{t("compliance.headingEmphasis")}</span>
             </h2>
