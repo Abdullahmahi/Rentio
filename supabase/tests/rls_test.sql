@@ -849,4 +849,108 @@ begin
 end;
 $$;
 
+-- ================================================================ vehicles
+do $$
+declare
+  admin_a  uuid := '00000000-0000-0000-0000-0000000000a1';
+  tenant_a uuid := '00000000-0000-0000-0000-0000000000b1';
+  tenant_b uuid := '00000000-0000-0000-0000-0000000000b2';
+  admin_vb uuid := '00000000-0000-0000-0000-0000000000e1';
+  t_a uuid; t_b uuid; lease_a uuid; lease_b uuid; car_a uuid; car_b uuid; car_org_b uuid;
+  org_b uuid; tenant_org_b uuid;
+  n int; refused boolean;
+begin
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  select tenant_id into t_a from public.profiles where id = tenant_a;
+  select tenant_id into t_b from public.profiles where id = tenant_b;
+  select lease_id into lease_a from public.lease_tenants where tenant_id = t_a limit 1;
+  select lease_id into lease_b from public.lease_tenants where tenant_id = t_b limit 1;
+  insert into public.vehicles (tenant_id, lease_id, plate) values (t_b, lease_b, 'BBB 222') returning id into car_b;
+  insert into public.organizations (name, slug) values ('Vehicle Co', 'vehicle-co') returning id into org_b;
+  insert into public.tenants (org_id, full_name) values (org_b, 'VB Renter') returning id into tenant_org_b;
+  insert into public.vehicles (tenant_id, plate) values (tenant_org_b, 'ORG B 1') returning id into car_org_b;
+  insert into public.profiles (id, full_name, role, org_id) values (admin_vb, 'Admin VB', 'admin', org_b);
+  perform pg_temp.check('vehicle takes org_id from its tenant',
+    (select org_id from public.vehicles where id = car_org_b) = org_b);
+
+  set local role authenticated;
+
+  -- tenant A: own vehicles only; plate and state are normalised
+  perform pg_temp.act_as(tenant_a);
+  insert into public.vehicles (tenant_id, lease_id, plate, state)
+    values (t_a, lease_a, '  abc   123 ', ' tx') returning id into car_a;
+  perform pg_temp.check('tenant adds their own vehicle', car_a is not null);
+  perform pg_temp.check('plate and state are normalised',
+    (select plate = 'ABC 123' and state = 'TX' from public.vehicles where id = car_a));
+  select count(*) into n from public.vehicles where id = car_b;
+  perform pg_temp.check('tenant A cannot see tenant B vehicle', n = 0);
+  update public.vehicles set plate = 'PWNED' where id = car_b;
+  get diagnostics n = row_count;
+  perform pg_temp.check('tenant A cannot update tenant B vehicle', n = 0);
+  delete from public.vehicles where id = car_b;
+  get diagnostics n = row_count;
+  perform pg_temp.check('tenant A cannot delete tenant B vehicle', n = 0);
+  refused := false;
+  begin
+    insert into public.vehicles (tenant_id, plate) values (t_b, 'PLANTED');
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('tenant A cannot insert a vehicle for tenant B', refused);
+  refused := false;
+  begin
+    insert into public.vehicles (tenant_id, lease_id, plate) values (t_a, lease_b, 'WRONG LEASE');
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('tenant A cannot attach a vehicle to a lease they are not on', refused);
+  refused := false;
+  begin
+    update public.vehicles set tenant_id = t_b where id = car_a;
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('tenant A cannot hand their vehicle to tenant B', refused);
+  refused := false;
+  begin
+    insert into public.vehicles (tenant_id, plate, state) values (t_a, 'BAD STATE', 'Texas');
+  exception when check_violation then refused := true;
+  end;
+  perform pg_temp.check('vehicle state must be a USPS code', refused);
+
+  -- staff of org A see the company's vehicles, not org B's
+  perform pg_temp.act_as(admin_a);
+  select count(*) into n from public.vehicles where id in (car_a, car_b);
+  perform pg_temp.check('org A staff see org A vehicles', n = 2);
+  select count(*) into n from public.vehicles where id = car_org_b;
+  perform pg_temp.check('org A staff cannot see org B vehicle', n = 0);
+  update public.vehicles set plate = 'PWNED' where id = car_org_b;
+  get diagnostics n = row_count;
+  perform pg_temp.check('org A staff cannot update org B vehicle', n = 0);
+  refused := false;
+  begin
+    insert into public.vehicles (tenant_id, plate) values (tenant_org_b, 'PLANTED');
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('org A staff cannot insert a vehicle into org B', refused);
+
+  -- org B staff cannot see org A's
+  perform pg_temp.act_as(admin_vb);
+  select count(*) into n from public.vehicles where id in (car_a, car_b);
+  perform pg_temp.check('org B staff cannot see org A vehicles', n = 0);
+  select count(*) into n from public.vehicles where id = car_org_b;
+  perform pg_temp.check('org B staff see their own vehicle', n = 1);
+  refused := false;
+  begin
+    insert into public.vehicles (tenant_id, lease_id, plate) values (tenant_org_b, lease_a, 'CROSS');
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('a vehicle cannot point at another org lease', refused);
+
+  perform pg_temp.act_as(admin_a);
+  delete from public.vehicles where id = car_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('staff can delete a vehicle', n = 1);
+  reset role;
+end;
+$$;
+
 rollback;
