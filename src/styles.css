@@ -9,15 +9,13 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
-  /* Vetra's three font slots. It used a separate display face for the one
-     italic word inside each h2; Inter italic keeps the rhythm for free, and
-     swapping in a display face later is one token. `font-subheading` is always
-     paired with `italic` in the JSX, so the slot only has to be a family. */
-  /* Direction A · Evergreen. A serif says *record*, which is what this
-     product is. h1-h3 and PageHeader titles only — body, tables, money and
-     badges stay Inter, per design-system/rentio/MASTER.md. */
-  --font-heading: "Source Serif 4 Variable", ui-serif, Georgia, serif;
+  /* One family for the whole app, body and headings: Plus Jakarta Sans,
+     per design-system/rentio/MASTER.md. Headings get their weight (600-700)
+     and tight tracking from the JSX, not a second face. `font-subheading` is
+     always paired with `italic` in the JSX and uses Jakarta's real italic cut;
+     swapping in a display face later is one token. */
+  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
   --font-subheading: var(--font-sans);
   --font-base: var(--font-sans);
 
@@ -279,9 +277,8 @@
   html { font-family: var(--font-sans); }
   body { margin: 0; background: var(--background); color: var(--foreground); font-size: 14px; letter-spacing: 0; }
   button, input { font: inherit; letter-spacing: 0; }
-  /* Headings only. Table cells, money, badges and labels inherit Inter from
-     `html` above and must stay there — a serif in a money column is harder to
-     scan and breaks tabular alignment. */
+  /* Same family as body today; kept as its own slot so headings can change
+     face in one token. Money columns still need the `numeric` utility. */
   h1, h2, h3 { font-family: var(--font-heading); }
 }
 
