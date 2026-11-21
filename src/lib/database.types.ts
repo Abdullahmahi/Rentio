@@ -93,6 +93,84 @@ export type Database = {
         };
         Relationships: [];
       };
+      autopay_enrollments: {
+        Row: {
+          id: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id: string;
+          stripe_customer_id: string;
+          payment_method_id: string;
+          method_type: string;
+          method_label: string | null;
+          enabled: boolean;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          tenant_id: string;
+          lease_id: string;
+          stripe_customer_id: string;
+          payment_method_id: string;
+          method_type: string;
+          method_label?: string | null;
+          enabled?: boolean;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          tenant_id?: string;
+          lease_id?: string;
+          stripe_customer_id?: string;
+          payment_method_id?: string;
+          method_type?: string;
+          method_label?: string | null;
+          enabled?: boolean;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      autopay_runs: {
+        Row: {
+          id: string;
+          org_id: string;
+          enrollment_id: string;
+          invoice_id: string;
+          run_on: string;
+          status: string;
+          payment_intent_id: string | null;
+          error: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          enrollment_id: string;
+          invoice_id: string;
+          run_on?: string;
+          status: string;
+          payment_intent_id?: string | null;
+          error?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          enrollment_id?: string;
+          invoice_id?: string;
+          run_on?: string;
+          status?: string;
+          payment_intent_id?: string | null;
+          error?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       documents: {
         Row: {
           id: string;
@@ -1336,6 +1414,20 @@ export type Database = {
       void_payment: {
         Args: { p_payment: string; p_reason: string };
         Returns: { allocations: number; amount: number };
+      };
+      autopay_due: {
+        Args: { p_org: string };
+        Returns: {
+          enrollment_id: string;
+          invoice_id: string;
+          lease_id: string;
+          tenant_id: string;
+          due_date: string;
+          balance: number | string;
+          stripe_customer_id: string;
+          payment_method_id: string;
+          method_type: string;
+        }[];
       };
       record_online_payment: {
         Args: {

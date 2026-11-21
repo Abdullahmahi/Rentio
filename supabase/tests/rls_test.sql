@@ -1064,4 +1064,129 @@ begin
 end;
 $$;
 
+-- ============================================== autopay (issue #10)
+-- The server enrolls after a SetupIntent; the tenant may only flip
+-- `enabled` on their own row; runs are readable by staff and the tenant they
+-- concern; autopay_due is service-only and fenced to the org asked for.
+do $$
+declare
+  admin_id uuid := '00000000-0000-0000-0000-0000000000a1';
+  tenant_a uuid := '00000000-0000-0000-0000-0000000000b1';
+  tenant_b uuid := '00000000-0000-0000-0000-0000000000b2';
+  admin_b  uuid := '00000000-0000-0000-0000-0000000000c1';
+  org_a uuid := (select id from public.organizations order by created_at limit 1);
+  org_b uuid := (select org_id from public.profiles where id = admin_b);
+  t_a uuid := (select tenant_id from public.profiles where id = tenant_a);
+  t_b uuid := (select tenant_id from public.profiles where id = tenant_b);
+  lease_a uuid; lease_b uuid; lease_other uuid; enr_a uuid; enr_b uuid; inv uuid; n int;
+begin
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  select lt.lease_id into lease_a from public.lease_tenants lt where lt.tenant_id = t_a limit 1;
+  select lt.lease_id into lease_b from public.lease_tenants lt where lt.tenant_id = t_b limit 1;
+  select id into lease_other from public.leases where org_id = org_b limit 1;
+
+  insert into public.autopay_enrollments (tenant_id, lease_id, stripe_customer_id, payment_method_id, method_type, method_label)
+  values (t_a, lease_a, 'cus_a', 'pm_a', 'card', 'Visa •••• 4242') returning id into enr_a;
+  insert into public.autopay_enrollments (tenant_id, lease_id, stripe_customer_id, payment_method_id, method_type)
+  values (t_b, lease_b, 'cus_b', 'pm_b', 'ach') returning id into enr_b;
+  perform pg_temp.check('enrollment takes org_id from its lease',
+    (select org_id from public.autopay_enrollments where id = enr_a) = org_a);
+  begin
+    insert into public.autopay_enrollments (tenant_id, lease_id, stripe_customer_id, payment_method_id, method_type)
+    values (t_b, lease_a, 'cus_b', 'pm_b', 'card');
+    perform pg_temp.check('one autopay enrollment per lease', false);
+  exception when unique_violation then
+    perform pg_temp.check('one autopay enrollment per lease', true);
+  end;
+
+  -- an invoice due today on lease A, sent, with a balance: autopay_due finds it
+  insert into public.invoices (lease_id, period_month, due_date, status, total)
+  values (lease_a, date '2098-01-01', public.today_el_paso(), 'enviado', 500) returning id into inv;
+  select count(*) into n from public.autopay_due(org_a) d where d.invoice_id = inv;
+  perform pg_temp.check('autopay_due lists a sent invoice due today on an enrolled lease', n = 1);
+  select count(*) into n from public.autopay_due(org_b) d where d.invoice_id = inv;
+  perform pg_temp.check('autopay_due is fenced to the org asked for', n = 0);
+  update public.autopay_enrollments set enabled = false where id = enr_a;
+  select count(*) into n from public.autopay_due(org_a) d where d.invoice_id = inv;
+  perform pg_temp.check('autopay_due skips a disabled enrollment', n = 0);
+  update public.autopay_enrollments set enabled = true where id = enr_a;
+
+  insert into public.autopay_runs (enrollment_id, invoice_id, status, error)
+  values (enr_a, inv, 'failed', 'Your card was declined.');
+  perform pg_temp.check('run takes org_id from its invoice',
+    (select org_id from public.autopay_runs where invoice_id = inv) = org_a);
+  select count(*) into n from public.autopay_due(org_a) d where d.invoice_id = inv;
+  perform pg_temp.check('autopay_due never lists an invoice already attempted', n = 0);
+
+  set local role authenticated;
+
+  perform pg_temp.act_as(tenant_a);
+  select count(*) into n from public.autopay_enrollments;
+  perform pg_temp.check('tenant reads only their own enrollment', n = 1
+    and (select id from public.autopay_enrollments) = enr_a);
+  update public.autopay_enrollments set enabled = false where id = enr_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('tenant CAN turn their autopay off', n = 1);
+  update public.autopay_enrollments set enabled = true where id = enr_b;
+  get diagnostics n = row_count;
+  perform pg_temp.check('tenant cannot touch another tenant enrollment', n = 0);
+  begin
+    update public.autopay_enrollments set payment_method_id = 'pm_evil' where id = enr_a;
+    perform pg_temp.check('tenant cannot change the saved method directly', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('tenant cannot change the saved method directly', true);
+  end;
+  begin
+    insert into public.autopay_enrollments (tenant_id, lease_id, stripe_customer_id, payment_method_id, method_type)
+    values (t_a, lease_a, 'cus_a', 'pm_a', 'card');
+    perform pg_temp.check('tenant cannot insert an enrollment', false);
+  exception when insufficient_privilege or unique_violation then
+    perform pg_temp.check('tenant cannot insert an enrollment', true);
+  end;
+  select count(*) into n from public.autopay_runs;
+  perform pg_temp.check('tenant reads the failed run on their own lease', n = 1);
+  begin
+    perform public.autopay_due(org_a);
+    perform pg_temp.check('tenant cannot call autopay_due', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('tenant cannot call autopay_due', true);
+  end;
+
+  perform pg_temp.act_as(tenant_b);
+  select count(*) into n from public.autopay_runs;
+  perform pg_temp.check('tenant B cannot read tenant A autopay runs', n = 0);
+  select count(*) into n from public.autopay_enrollments where id = enr_a;
+  perform pg_temp.check('tenant B cannot read tenant A enrollment', n = 0);
+
+  perform pg_temp.act_as(admin_id);
+  select count(*) into n from public.autopay_enrollments;
+  perform pg_temp.check('org A staff reads org A enrollments', n = 2);
+  select count(*) into n from public.autopay_runs;
+  perform pg_temp.check('org A staff reads org A autopay runs', n = 1);
+  update public.autopay_enrollments set enabled = false where id = enr_b;
+  get diagnostics n = row_count;
+  perform pg_temp.check('staff cannot toggle a tenant enrollment', n = 0);
+  begin
+    insert into public.autopay_runs (enrollment_id, invoice_id, status) values (enr_b, inv, 'created');
+    perform pg_temp.check('staff cannot write autopay runs', false);
+  exception when insufficient_privilege or unique_violation then
+    perform pg_temp.check('staff cannot write autopay runs', true);
+  end;
+  begin
+    perform public.autopay_due(org_a);
+    perform pg_temp.check('staff cannot call autopay_due', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot call autopay_due', true);
+  end;
+
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.autopay_enrollments;
+  perform pg_temp.check('org B cannot read org A enrollments', n = 0);
+  select count(*) into n from public.autopay_runs;
+  perform pg_temp.check('org B cannot read org A autopay runs', n = 0);
+  reset role;
+end;
+$$;
+
 rollback;
