@@ -912,6 +912,9 @@ export type Database = {
           consent_at: string | null;
           consent_version: string | null;
           created_at: string;
+          required: boolean;
+          declined_at: string | null;
+          decline_reason: string | null;
         };
         Insert: {
           id?: string;
@@ -939,6 +942,9 @@ export type Database = {
           consent_at?: string | null;
           consent_version?: string | null;
           created_at?: string;
+          required?: boolean;
+          declined_at?: string | null;
+          decline_reason?: string | null;
         };
         Update: {
           id?: string;
@@ -966,6 +972,9 @@ export type Database = {
           consent_at?: string | null;
           consent_version?: string | null;
           created_at?: string;
+          required?: boolean;
+          declined_at?: string | null;
+          decline_reason?: string | null;
         };
         Relationships: [];
       };
@@ -1410,6 +1419,7 @@ export type Database = {
       };
       activate_lease: { Args: { p_lease: string }; Returns: undefined };
       claim_signature_finalisation: { Args: { p_request: string }; Returns: boolean };
+      decline_signature: { Args: { p_signer: string; p_reason: string | null }; Returns: boolean };
       complete_signature_request: {
         Args: {
           p_request: string;

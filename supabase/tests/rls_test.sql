@@ -1041,4 +1041,68 @@ begin
 end;
 $$;
 
+-- ============================ e-sign: managers, decline, optional signers
+do $$
+declare
+  manager_id uuid := '00000000-0000-0000-0000-0000000000a2';
+  tenant_a   uuid := '00000000-0000-0000-0000-0000000000b1';
+  t_a uuid := (select tenant_id from public.profiles where id = tenant_a);
+  lease_a uuid; req uuid; s1 uuid; s2 uuid;
+  hash text := repeat('c', 64);
+  refused boolean;
+begin
+  select lt.lease_id into lease_a from public.lease_tenants lt where lt.tenant_id = t_a limit 1;
+
+  -- No admin-only gate: a manager sends.
+  set local role authenticated;
+  perform pg_temp.act_as(manager_id);
+  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+    values (lease_a, 'Manager sends', lease_a || '/m.pdf', hash, 1, now() + interval '14 days') returning id into req;
+  insert into public.signature_signers (request_id, name, email, tenant_id, page, x, y, w, h, token_hash, token_expires_at)
+    values (req, 'Tenant A', 'a@example.com', t_a, 1, 72, 72, 200, 50, repeat('5', 64), now() + interval '14 days')
+    returning id into s1;
+  insert into public.signature_signers (request_id, name, email, page, x, y, w, h, token_hash, token_expires_at, required)
+    values (req, 'Optional', 'o@example.com', 1, 72, 200, 200, 50, repeat('6', 64), now() + interval '14 days', false)
+    returning id into s2;
+  perform pg_temp.check('esign: a manager can send for signature', req is not null);
+
+  perform pg_temp.act_as(tenant_a);
+  refused := false;
+  begin
+    perform public.decline_signature(s1, 'no');
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('esign: a tenant cannot call decline_signature directly', refused);
+
+  -- Service: the required signer signs, the optional one does not; it still completes.
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  update public.signature_signers
+    set signed_at = now(), signature_kind = 'drawn', signature_data = 'x', consent_at = now(), consent_version = 'v2'
+    where id = s1;
+  perform pg_temp.check('esign: an unsigned optional signer does not block finalising',
+    public.claim_signature_finalisation(req));
+  update public.signature_requests set finalizing_at = null where id = req;
+  perform pg_temp.check('esign: a signer who signed cannot then decline', not public.decline_signature(s1, null));
+
+  -- Decline: the optional signer says no; the request is declined and closed.
+  perform pg_temp.check('esign: decline_signature records the decline', public.decline_signature(s2, '  Wrong rent amount  '));
+  perform pg_temp.check('esign: the decline reason is kept, trimmed',
+    (select decline_reason from public.signature_signers where id = s2) = 'Wrong rent amount');
+  perform pg_temp.check('esign: a decline closes the request',
+    (select status from public.signature_requests where id = req) = 'declined');
+  perform pg_temp.check('esign: a declined request cannot be finalised',
+    not public.claim_signature_finalisation(req));
+  perform pg_temp.check('esign: declining twice is refused', not public.decline_signature(s2, null));
+
+  refused := false;
+  begin
+    update public.signature_signers set declined_at = now() where id = s1;
+  exception when check_violation then refused := true;
+  end;
+  perform pg_temp.check('esign: a signer cannot be both signed and declined', refused);
+end;
+$$;
+
 rollback;
