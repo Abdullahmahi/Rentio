@@ -849,4 +849,52 @@ begin
 end;
 $$;
 
+-- ================================ lease drafts: create_lease + activate_lease
+do $$
+declare
+  admin_id  uuid := '00000000-0000-0000-0000-0000000000a1';
+  tenant_a  uuid := '00000000-0000-0000-0000-0000000000b1';
+  unit_d    uuid; t1 uuid; draft uuid;
+  refused   boolean := false;
+begin
+  set local role authenticated;
+  perform pg_temp.act_as(admin_id);
+  select id into unit_d from public.units
+  where status = 'vacante' and org_id = public.current_org_id()
+  order by id desc limit 1;
+  select id into t1 from public.tenants order by id limit 1;
+  perform pg_temp.check('draft test has a vacant unit', unit_d is not null);
+  draft := public.create_lease(unit_d, jsonb_build_object(
+    'status', 'borrador', 'start_date', current_date, 'end_date', current_date + 365,
+    'rent_amount', 900, 'rent_due_day', 1, 'grace_days', 3, 'late_fee_type', 'fixed',
+    'late_fee_amount', 50, 'deposit_amount', 900), t1);
+  perform pg_temp.check('create_lease can make a draft',
+    (select status from public.leases where id = draft) = 'borrador');
+  perform pg_temp.check('a draft reserves the unit',
+    (select status from public.units where id = unit_d) = 'reservada');
+
+  begin
+    perform public.create_lease(unit_d, '{"status":"terminado"}'::jsonb, t1);
+  exception when others then refused := true;
+  end;
+  perform pg_temp.check('create_lease refuses any other starting status', refused);
+
+  perform pg_temp.act_as(tenant_a);
+  refused := false;
+  begin
+    perform public.activate_lease(draft);
+  exception when others then refused := true;
+  end;
+  perform pg_temp.check('a tenant cannot activate a lease', refused);
+
+  perform pg_temp.act_as(admin_id);
+  perform public.activate_lease(draft);
+  perform pg_temp.check('activate_lease makes it active',
+    (select status from public.leases where id = draft) = 'activo');
+  perform pg_temp.check('activate_lease occupies the unit',
+    (select status from public.units where id = unit_d) = 'ocupada');
+  reset role;
+end;
+$$;
+
 rollback;

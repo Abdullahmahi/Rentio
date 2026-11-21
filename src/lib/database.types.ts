@@ -447,6 +447,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      notifications: {
+        Row: {
+          id: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id: string | null;
+          kind: string;
+          entity_id: string | null;
+          dedupe_key: string;
+          payload: Json;
+          created_at: string;
+          sent_at: string | null;
+          channel: string | null;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id?: string | null;
+          kind: string;
+          entity_id?: string | null;
+          dedupe_key: string;
+          payload?: Json;
+          created_at?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          tenant_id?: string;
+          lease_id?: string | null;
+          kind?: string;
+          entity_id?: string | null;
+          dedupe_key?: string;
+          payload?: Json;
+          created_at?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          read_at?: string | null;
+        };
+        Relationships: [];
+      };
       organizations: {
         Row: {
           id: string;
@@ -1210,6 +1255,7 @@ export type Database = {
             late_fee_amount: number;
             late_fee_over_cap_ack: boolean;
             deposit_amount: number;
+            status?: "activo" | "borrador";
           };
           p_primary: string;
           p_co_tenants?: string[];
@@ -1218,6 +1264,7 @@ export type Database = {
         };
         Returns: string;
       };
+      activate_lease: { Args: { p_lease: string }; Returns: undefined };
       generate_invoices: {
         Args: { p_period: string };
         Returns: { created: number; skipped: number }[];

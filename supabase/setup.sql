@@ -21,7 +21,7 @@
 
 
 -- ============================================================================
--- 1/26  20260919000100_schema
+-- 1/27  20260919000100_schema
 -- ============================================================================
 -- Rentio — core schema
 -- All money is numeric(12,2). Never float.
@@ -436,7 +436,7 @@ insert into public.settings (company_name, invoice_prefix) values ('Rentio', 'RE
 
 
 -- ============================================================================
--- 2/26  20260919000200_rls
+-- 2/27  20260919000200_rls
 -- ============================================================================
 -- Rentio — row level security. Deny by default, everywhere.
 --
@@ -834,7 +834,7 @@ create policy storage_tenant_write on storage.objects
 
 
 -- ============================================================================
--- 3/26  20260919000300_portal_views
+-- 3/27  20260919000300_portal_views
 -- ============================================================================
 -- The tenant portal needs the tenant's OWN unit number and building address:
 -- it is the payment reference on the Inicio screen and the whole of the
@@ -869,7 +869,7 @@ grant select on public.my_lease_details to authenticated;
 
 
 -- ============================================================================
--- 4/26  20260919000400_public_settings_address
+-- 4/27  20260919000400_public_settings_address
 -- ============================================================================
 -- The recibo PDF prints the landlord's letterhead — company name, address and
 -- bank details — and a tenant must be able to render their own receipt. The
@@ -905,7 +905,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 5/26  20260920000500_us_localization
+-- 5/27  20260920000500_us_localization
 -- ============================================================================
 -- Prompt 15 — the properties are in El Paso, Texas, not Mexico.
 -- Addresses become US addresses. No business logic changes here.
@@ -995,7 +995,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 6/26  20260920000501_drop_rfc
+-- 6/27  20260920000501_drop_rfc
 -- ============================================================================
 -- Prompt 20's cleanup, pulled forward: `rfc` was captured for Mexican tax
 -- invoicing (CFDI) that will never happen for a Texas landlord. Removing it
@@ -1025,7 +1025,7 @@ $$;
 
 
 -- ============================================================================
--- 7/26  20260920000600_us_payment_methods
+-- 7/27  20260920000600_us_payment_methods
 -- ============================================================================
 -- Prompt 16 — US payment rails.
 --
@@ -1110,7 +1110,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 8/26  20260920000700_texas_late_fees
+-- 8/27  20260920000700_texas_late_fees
 -- ============================================================================
 -- Prompt 17 — Texas Property Code §92.019 constrains residential late fees.
 --
@@ -1185,7 +1185,7 @@ alter table public.settings
 
 
 -- ============================================================================
--- 9/26  20260920000800_deposit_clock
+-- 9/27  20260920000800_deposit_clock
 -- ============================================================================
 -- Prompt 18 — Texas Property Code §92.103–92.109, security deposit returns.
 --
@@ -1253,7 +1253,7 @@ grant select on public.deposit_obligations to authenticated;
 
 
 -- ============================================================================
--- 10/26  20260920000900_texas_repairs_notices_turnover
+-- 10/27  20260920000900_texas_repairs_notices_turnover
 -- ============================================================================
 -- Prompt 19 — three smaller Texas Property Code obligations.
 
@@ -1403,7 +1403,7 @@ create policy turnover_admin_delete on public.unit_turnover_checklist
 
 
 -- ============================================================================
--- 11/26  20260920001000_late_fee_guard
+-- 11/27  20260920001000_late_fee_guard
 -- ============================================================================
 -- Prompt 17 said "do not let a manager bypass the 2-day rule anywhere in the
 -- UI". The gated "Apply late fee" button honoured it; "Add line" did not.
@@ -1476,7 +1476,7 @@ create trigger invoice_lines_enforce_late_fee_rules
 
 
 -- ============================================================================
--- 12/26  20260922001100_access_requests
+-- 12/27  20260922001100_access_requests
 -- ============================================================================
 -- A tenant with no invite needs somewhere to go.
 --
@@ -1540,7 +1540,7 @@ create policy access_requests_admin_delete on public.access_requests
 
 
 -- ============================================================================
--- 13/26  20260925001200_expenses
+-- 13/27  20260925001200_expenses
 -- ============================================================================
 -- Gastos: landlord expenses, entered by hand, one row per unit.
 -- The property is reached through units.property_id, like utility_charges.
@@ -1583,7 +1583,7 @@ create policy expenses_admin_delete on public.expenses
 
 
 -- ============================================================================
--- 14/26  20261024001300_super_admin_role
+-- 14/27  20261024001300_super_admin_role
 -- ============================================================================
 -- PortfolioAI staff: a role that spans every organization.
 --
@@ -1594,7 +1594,7 @@ alter type public.user_role add value if not exists 'super_admin';
 
 
 -- ============================================================================
--- 15/26  20261024001400_self_hosted_multi_tenant
+-- 15/27  20261024001400_self_hosted_multi_tenant
 -- ============================================================================
 -- Off Supabase, onto self-hosted Postgres + PostgREST, and multi-tenant.
 --
@@ -2131,7 +2131,7 @@ grant select on public.my_lease_details, public.public_settings to authenticated
 
 
 -- ============================================================================
--- 16/26  20261027001500_super_admin_acts_in_org
+-- 16/27  20261027001500_super_admin_acts_in_org
 -- ============================================================================
 -- super_admin: a real platform role, and a way to work inside a company.
 --
@@ -2303,7 +2303,7 @@ create trigger organizations_create_settings
 
 
 -- ============================================================================
--- 17/26  20261027001600_el_paso_dates
+-- 17/27  20261027001600_el_paso_dates
 -- ============================================================================
 -- Dates are El Paso dates. current_date was the server's UTC date, so every
 -- evening after 6pm Mountain time a receipt due "today" read as overdue,
@@ -2318,7 +2318,7 @@ $$;
 
 
 -- ============================================================================
--- 18/26  20261028002100_confirm_payment
+-- 18/27  20261028002100_confirm_payment
 -- ============================================================================
 -- B-013: confirming a payment was four browser writes with no transaction
 -- (status, allocations, invoice statuses, activity log). A failed insert or a
@@ -2427,7 +2427,7 @@ grant execute on function public.confirm_payment(uuid) to authenticated, service
 
 
 -- ============================================================================
--- 19/26  20261028002200_nightly_job
+-- 19/27  20261028002200_nightly_job
 -- ============================================================================
 -- The nightly job (execution.md A1, A3, A4; owner decisions D1, D2, D3).
 --
@@ -2828,7 +2828,7 @@ grant execute on function public.nightly() to service_role;
 
 
 -- ============================================================================
--- 20/26  20261028002300_record_and_void_payment
+-- 20/27  20261028002300_record_and_void_payment
 -- ============================================================================
 -- B-013 continued: "Record payment" and "Void" were several browser writes
 -- each (payment, allocations, invoice statuses, activity log) with no
@@ -3160,7 +3160,7 @@ grant execute on function public.void_payment(uuid, text) to authenticated, serv
 
 
 -- ============================================================================
--- 21/26  20261111000100_tenants_cannot_read_drafts
+-- 21/27  20261111000100_tenants_cannot_read_drafts
 -- ============================================================================
 -- Tenants must not see draft invoices. The nightly job drafts the month on
 -- the 1st for staff review; until staff send it, the tenant has nothing to
@@ -3177,7 +3177,7 @@ create policy invoices_select on public.invoices
 
 
 -- ============================================================================
--- 22/26  20261111000200_create_lease
+-- 22/27  20261111000200_create_lease
 -- ============================================================================
 -- A lease was five browser writes (lease, lease_tenants, turnover checklist,
 -- unit status, activity) with no transaction: a failed link insert left an
@@ -3267,7 +3267,7 @@ grant execute on function public.create_lease(uuid, jsonb, uuid, uuid[], uuid[],
 
 
 -- ============================================================================
--- 23/26  20261111000300_last_admin_and_append_only_log
+-- 23/27  20261111000300_last_admin_and_append_only_log
 -- ============================================================================
 -- Two guards the audit found missing (audit-product-2026-10-28.md §1).
 --
@@ -3316,7 +3316,7 @@ drop policy if exists admin_delete on public.activity_log;
 
 
 -- ============================================================================
--- 24/26  20261112000100_notifications
+-- 24/27  20261112000100_notifications
 -- ============================================================================
 -- Tenants never heard back (audit-product-2026-10-28.md §2.1 #8): no
 -- "payment confirmed", no "payment rejected, and why", no repair update, no
@@ -3584,7 +3584,7 @@ grant execute on function public.notification_result(uuid, text) to service_role
 
 
 -- ============================================================================
--- 25/26  20261112000200_nightly_per_org
+-- 25/27  20261112000200_nightly_per_org
 -- ============================================================================
 -- nightly() ran every company in one transaction: one bad lease in org A
 -- aborted invoicing for org B (audit-product-2026-10-28.md §4.3). Each
@@ -3640,7 +3640,132 @@ grant execute on function public.nightly() to service_role;
 
 
 -- ============================================================================
--- 26/26  DEMO DATA
+-- 26/27  20261122000100_lease_drafts
+-- ============================================================================
+-- Leases can start as drafts (shared by e-sign and applications).
+--
+-- create_lease(..) keeps its signature. p_terms may now carry
+-- "status": "borrador" for a lease that waits for e-signatures; the default is
+-- still 'activo', so the wizard is unchanged. A draft reserves the unit.
+-- activate_lease(lease) is staff-or-service only and is what the e-sign
+-- finaliser calls when every signer has signed.
+
+create or replace function public.create_lease(
+  p_unit       uuid,
+  p_terms      jsonb,
+  p_primary    uuid,
+  p_co_tenants uuid[] default '{}',
+  p_guarantors uuid[] default '{}',
+  p_checklist  jsonb  default '[]'
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_lease uuid;
+  people    uuid[] := array[p_primary] || coalesce(p_co_tenants, '{}') || coalesce(p_guarantors, '{}');
+  -- 'borrador' = waiting for e-signatures; activate_lease() flips it once
+  -- every party has signed. Anything else is refused.
+  new_status public.lease_status := coalesce((p_terms->>'status')::public.lease_status, 'activo');
+begin
+  if new_status not in ('activo', 'borrador') then
+    raise exception 'A new lease is either active or a draft.' using errcode = '22023';
+  end if;
+  if not public.is_staff() or public.current_org_id() is null then
+    raise exception 'Only staff can create leases.' using errcode = '42501';
+  end if;
+  if not exists (
+    select 1 from public.units where id = p_unit and org_id = public.current_org_id()
+  ) then
+    raise exception 'That unit is not in your company.' using errcode = 'P0001';
+  end if;
+  if p_primary is null or array_position(people, null) is not null then
+    raise exception 'Every party on the lease must be a saved tenant.' using errcode = '22023';
+  end if;
+  if (select count(distinct x) from unnest(people) x) <> cardinality(people) then
+    raise exception 'A person can hold only one role on a lease.' using errcode = 'P0001';
+  end if;
+
+  insert into public.leases (
+    unit_id, start_date, end_date, rent_amount, rent_due_day, grace_days,
+    late_fee_type, late_fee_percent, late_fee_amount, late_fee_over_cap_ack,
+    deposit_amount, status
+  ) values (
+    p_unit,
+    (p_terms->>'start_date')::date,
+    (p_terms->>'end_date')::date,
+    coalesce((p_terms->>'rent_amount')::numeric, 0),
+    coalesce((p_terms->>'rent_due_day')::int, 1),
+    coalesce((p_terms->>'grace_days')::int, 0),
+    coalesce((p_terms->>'late_fee_type')::public.late_fee_type, 'percent'),
+    coalesce((p_terms->>'late_fee_percent')::numeric, 0),
+    coalesce((p_terms->>'late_fee_amount')::numeric, 0),
+    coalesce((p_terms->>'late_fee_over_cap_ack')::boolean, false),
+    coalesce((p_terms->>'deposit_amount')::numeric, 0),
+    new_status
+  )
+  returning id into new_lease;
+
+  insert into public.lease_tenants (lease_id, tenant_id, role)
+  select new_lease, p_primary, 'primary'::public.lease_tenant_role
+  union all select new_lease, t, 'co_tenant'::public.lease_tenant_role
+    from unnest(coalesce(p_co_tenants, '{}')) t
+  union all select new_lease, t, 'guarantor'::public.lease_tenant_role
+    from unnest(coalesce(p_guarantors, '{}')) t;
+
+  -- §92.156: the 7-day rekey clock starts at possession, so the checklist
+  -- exists from the lease's first second.
+  insert into public.unit_turnover_checklist (unit_id, lease_id, item, item_key, position)
+  select p_unit, new_lease, c->>'item', c->>'item_key', coalesce((c->>'position')::int, 0)
+  from jsonb_array_elements(coalesce(p_checklist, '[]')) c;
+
+  -- A draft holds the unit; it becomes occupied when the lease activates.
+  update public.units
+  set status = case when new_status = 'borrador' then 'reservada'::public.unit_status else 'ocupada'::public.unit_status end
+  where id = p_unit;
+
+  return new_lease;
+end;
+$$;
+
+revoke all on function public.create_lease(uuid, jsonb, uuid, uuid[], uuid[], jsonb) from public, anon;
+grant execute on function public.create_lease(uuid, jsonb, uuid, uuid[], uuid[], jsonb) to authenticated, service_role;
+
+create or replace function public.activate_lease(p_lease uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  l public.leases%rowtype;
+begin
+  -- Staff in the lease's org, or the service connection (the signing
+  -- finaliser runs for an anonymous signer and passes an explicit lease id).
+  select * into l from public.leases where id = p_lease for update;
+  if l.id is null then
+    raise exception 'Lease not found.' using errcode = 'P0002';
+  end if;
+  if public.current_user_id() is not null
+     and not (public.is_staff() and l.org_id = public.current_org_id()) then
+    raise exception 'Only staff can activate a lease.' using errcode = '42501';
+  end if;
+  if l.status <> 'borrador' then
+    return;  -- idempotent
+  end if;
+  update public.leases set status = 'activo' where id = p_lease;
+  update public.units set status = 'ocupada' where id = l.unit_id;
+end;
+$$;
+
+revoke all on function public.activate_lease(uuid) from public, anon;
+grant execute on function public.activate_lease(uuid) to authenticated, service_role;
+
+
+-- ============================================================================
+-- 27/27  DEMO DATA
 -- ============================================================================
 -- Rentio — demo data (El Paso, Texas).
 -- Safe to re-run: it clears the demo tables first.
