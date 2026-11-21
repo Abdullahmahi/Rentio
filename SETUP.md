@@ -120,17 +120,34 @@ Then:
   1. `rentio-app` → Environment Variables → add `CRON_SECRET` (at least 16
      random characters: `openssl rand -hex 32`). Redeploy so the app sees it.
   2. `rentio-app` → Scheduled Tasks → New: name `nightly`, frequency
-     `10 6 * * *` (daily 06:10 UTC), command:
+     `15 7 * * *` (daily 07:15 UTC; check the server's timezone in Coolify
+     is UTC), container `rentio-app`, command:
 
      ```sh
-     curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" http://localhost:3000/api/jobs/nightly
+     node -e 'fetch("https://rentio-app.com/api/jobs/nightly",{method:"POST",headers:{"x-cron-secret":process.env.CRON_SECRET}}).then(async r=>{console.log(r.status,await r.text());process.exit(r.ok?0:1)},e=>{console.error(e);process.exit(1)})'
      ```
 
-  It answers a JSON summary (`invoices_created`, `warnings_queued`,
-  `emailed`, …) and logs it. Without the header it is a 401. Running it twice
-  changes nothing the second time. 06:10 UTC is late evening the day before in
-  El Paso in winter (MST) and just after midnight in summer (MDT); the job
-  always works on the El Paso date at the moment it runs.
+     The app image is `node:22-slim`, which has **no `curl`**; Coolify runs
+     the task inside that container, so use `node`. From a machine that has
+     curl the equivalent is
+     `curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://rentio-app.com/api/jobs/nightly`.
+     `http://localhost:3000/api/jobs/nightly` also works from inside the
+     container and skips the proxy (no proxy timeout once there are many
+     companies).
+
+  It answers a JSON summary per company (`invoices_created`,
+  `late_fee_warnings`, `notifications_emailed`, `errors`, …) and logs it.
+  Without the header it is a 401. Running it twice changes nothing the
+  second time.
+
+  **Why 07:15 UTC.** "Today" in every nightly step is `today_el_paso()`
+  (`America/Denver`, also the database timezone), never UTC. The run must
+  land after local midnight so it works on the new day: 07:15 UTC is 00:15
+  MST / 01:15 MDT in El Paso and 01:15 CST / 02:15 CDT in Central Texas, so
+  it is after midnight all year in both zones. (The old `10 6 * * *` was
+  23:10 the previous evening in El Paso all winter, so invoices due on the
+  1st were drafted a day late.) Central-time companies still get Mountain
+  dates; per-company time zones are a later change.
 
 ## Checks
 
