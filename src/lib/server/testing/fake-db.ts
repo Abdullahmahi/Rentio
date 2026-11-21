@@ -34,8 +34,9 @@ export function fakeDb(
           for (const column of options.unique?.[table] ?? [])
             if (row[column] != null && list.some((other) => other[column] === row[column]))
               return { data: null, error: { code: "23505", message: `duplicate ${column}` } };
-        list.push(...incoming.map((row) => ({ ...row })));
-        return { data: returning ? incoming : null, error: null };
+        const stored = incoming.map((row) => ({ id: crypto.randomUUID(), ...row }));
+        list.push(...stored);
+        return { data: returning ? stored.map((row) => ({ ...row })) : null, error: null };
       }
       const hit = list.filter((row) => filters.every((filter) => filter(row)));
       if (op === "update") {

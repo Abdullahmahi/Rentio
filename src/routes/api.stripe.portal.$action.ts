@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { fail, requireSession } from "@/lib/server/session";
+import { fail, requireSession, serviceDb } from "@/lib/server/session";
 import { getStripe, notConfigured, stripeEnv } from "@/lib/server/stripe";
-import { computeCharge, intentMetadata, type OnlineMethod } from "@/lib/server/stripe-payments";
+import {
+  computeCharge,
+  intentMetadata,
+  openPaymentIntent,
+  type OnlineMethod,
+} from "@/lib/server/stripe-payments";
 import { connectedAccount, customerFor, openInvoices } from "@/lib/server/stripe-portal";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
@@ -59,8 +64,15 @@ export const Route = createFileRoute("/api/stripe/portal/$action")({
 
           const customer = await customerFor(stripe, session, account.stripe_account_id, tenantId);
 
-          const intent = await stripe.paymentIntents.create(
-            {
+          const invoiceIds = chosen.map((invoice) => invoice.id);
+          const result = await openPaymentIntent(serviceDb(), stripe, {
+            orgId,
+            leaseId: body.lease_id,
+            tenantId,
+            stripeAccount: account.stripe_account_id,
+            invoiceIds,
+            method,
+            params: {
               amount: charge.totalCents,
               currency: "usd",
               customer,
@@ -82,13 +94,17 @@ export const Route = createFileRoute("/api/stripe/portal/$action")({
                 orgId,
                 leaseId: body.lease_id,
                 tenantId,
-                invoiceIds: chosen.map((invoice) => invoice.id),
+                invoiceIds,
                 charge,
                 method,
               }),
             },
-            { stripeAccount: account.stripe_account_id },
-          );
+          });
+          // A payment for these invoices is already moving (ACH processing,
+          // or succeeded and the webhook is on its way): no second charge.
+          if ("in_progress" in result)
+            return json({ error: "payment_in_progress", status: result.status }, 409);
+          const { intent } = result;
 
           return json({
             clientSecret: intent.client_secret,

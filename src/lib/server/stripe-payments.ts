@@ -9,6 +9,8 @@
  */
 import type Stripe from "stripe";
 import type { Db } from "@/lib/server/session";
+import { escapeHtml } from "@/lib/server/email";
+import { emailStaff } from "@/lib/server/staff-email";
 import { accountRow } from "@/lib/server/stripe";
 
 export type OnlineMethod = "card" | "ach";
@@ -63,28 +65,207 @@ export function intentMetadata(input: {
   };
 }
 
+// ------------------------------------------------------- payment attempts
+// One OPEN PaymentIntent per tenant + lease + invoice set (security review
+// on #71): a second tab, a double click or autopay racing Pay now gets the
+// same intent back, or "in progress", never a second charge. The attempt
+// row also records the account the intent was created ON, so its webhook
+// maps to the org even after a disconnect or reconnect.
+
+/** Open = money may still move. */
+export const OPEN_ATTEMPT = [
+  "creating",
+  "requires_payment_method",
+  "requires_confirmation",
+  "requires_action",
+  "processing",
+] as const;
+const REUSABLE = new Set(["requires_payment_method", "requires_confirmation", "requires_action"]);
+
+export const invoiceKey = (ids: string[]) => [...ids].sort().join(",");
+
+type IntentApi = Pick<Stripe, "paymentIntents">;
+
+export interface AttemptInput {
+  orgId: string;
+  leaseId: string;
+  tenantId: string;
+  stripeAccount: string;
+  invoiceIds: string[];
+  method: OnlineMethod;
+  autopay?: boolean;
+  /** What Stripe is asked to create; amount must be the charge total. */
+  params: Stripe.PaymentIntentCreateParams & { amount: number };
+}
+
+export type AttemptResult =
+  { intent: Stripe.PaymentIntent; reused: boolean } | { in_progress: true; status: string };
+
+export async function openPaymentIntent(
+  db: Db,
+  stripe: IntentApi,
+  input: AttemptInput,
+): Promise<AttemptResult> {
+  const key = invoiceKey(input.invoiceIds);
+  for (let round = 0; round < 2; round += 1) {
+    const { data: open, error } = await db
+      .from("stripe_payment_attempts")
+      .select("id, status, payment_intent_id, stripe_account_id, method, amount_cents")
+      .eq("org_id", input.orgId)
+      .eq("tenant_id", input.tenantId)
+      .eq("lease_id", input.leaseId)
+      .eq("invoice_key", key)
+      .in("status", [...OPEN_ATTEMPT])
+      .maybeSingle();
+    if (error) throw error;
+
+    if (open?.status === "processing") return { in_progress: true, status: "processing" };
+
+    if (open && !open.payment_intent_id) {
+      // Another request is creating it right now (or crashed doing so): the
+      // same idempotency key gets the same intent from Stripe, never a second.
+      const intent = await createIntent(stripe, open.id, open.stripe_account_id, input);
+      return settle(db, open.id, intent, true);
+    }
+
+    if (open?.payment_intent_id) {
+      const intent = await stripe.paymentIntents.retrieve(open.payment_intent_id, undefined, {
+        stripeAccount: open.stripe_account_id,
+      });
+      const same =
+        open.stripe_account_id === input.stripeAccount &&
+        open.method === input.method &&
+        intent.amount === input.params.amount;
+      if (REUSABLE.has(intent.status) && same) return settle(db, open.id, intent, true);
+      if (!REUSABLE.has(intent.status)) {
+        // processing / succeeded / canceled: record what Stripe says.
+        await setStatus(db, open.id, intent.status);
+        if (intent.status === "processing" || intent.status === "succeeded")
+          return { in_progress: true, status: intent.status };
+      } else {
+        // Amount or method changed (staff recorded a payment, tenant switched
+        // to bank): the old intent must not stay payable next to the new one.
+        await stripe.paymentIntents.cancel(open.payment_intent_id, undefined, {
+          stripeAccount: open.stripe_account_id,
+        });
+        await setStatus(db, open.id, "canceled");
+      }
+    }
+
+    const { data: created, error: insertError } = await db
+      .from("stripe_payment_attempts")
+      .insert({
+        org_id: input.orgId,
+        lease_id: input.leaseId,
+        tenant_id: input.tenantId,
+        invoice_key: key,
+        stripe_account_id: input.stripeAccount,
+        method: input.method,
+        amount_cents: input.params.amount,
+        autopay: Boolean(input.autopay),
+      })
+      .select("id")
+      .maybeSingle();
+    if (insertError?.code === "23505") continue; // lost the race: reuse the winner's
+    if (insertError) throw insertError;
+    const intent = await createIntent(stripe, created!.id, input.stripeAccount, input);
+    return settle(db, created!.id, intent, false);
+  }
+  return { in_progress: true, status: "creating" };
+}
+
+const createIntent = (
+  stripe: IntentApi,
+  attemptId: string,
+  stripeAccount: string,
+  input: AttemptInput,
+) =>
+  stripe.paymentIntents.create(
+    { ...input.params, metadata: { ...input.params.metadata, attempt_id: attemptId } },
+    { stripeAccount, idempotencyKey: `rentio-attempt-${attemptId}` },
+  );
+
+async function settle(db: Db, attemptId: string, intent: Stripe.PaymentIntent, reused: boolean) {
+  const { error } = await db
+    .from("stripe_payment_attempts")
+    .update({ payment_intent_id: intent.id, status: attemptStatus(intent.status) })
+    .eq("id", attemptId);
+  if (error) throw error;
+  return { intent, reused };
+}
+
+const attemptStatus = (status: string) => (status === "requires_capture" ? "processing" : status);
+
+async function setStatus(db: Db, attemptId: string, status: string) {
+  const { error } = await db
+    .from("stripe_payment_attempts")
+    .update({ status: attemptStatus(status) })
+    .eq("id", attemptId);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------- webhook
+
 export type WebhookOutcome =
-  { ignored: string } | { duplicate: true } | { processed: string; payment_id?: string };
+  | { ignored: string }
+  | { duplicate: true }
+  | { processed: string; payment_id?: string; reversed?: boolean };
 
-/**
- * One Connect event. The Stripe account on the event decides the org; the
- * event id is written first so a redelivery is a no-op; then
- * payment_intent.succeeded books the rent and account.updated refreshes
- * the connection status. Everything else (processing, failed, refunds,
- * disputes) is only logged: refunds and disputes live in the company's own
- * Stripe dashboard (PRD).
- */
-export async function handleStripeEvent(event: Stripe.Event, db: Db): Promise<WebhookOutcome> {
-  if (!event.account) return { ignored: "no connected account on event" };
+/** The PaymentIntent an event is about, for the event types we act on. */
+function intentIdOf(event: Stripe.Event): string | null {
+  const object = event.data.object as {
+    object?: string;
+    id?: string;
+    payment_intent?: string | { id: string } | null;
+  };
+  if (object.object === "payment_intent") return object.id ?? null;
+  const pi = object.payment_intent;
+  return typeof pi === "string" ? pi : (pi?.id ?? null);
+}
 
-  const { data: owner, error: ownerError } = await db
+/** Which org an event belongs to: the attempt (created ON that account) first, else the account now connected. */
+async function orgForEvent(db: Db, event: Stripe.Event & { account: string }) {
+  const intentId = intentIdOf(event);
+  if (intentId) {
+    const { data, error } = await db
+      .from("stripe_payment_attempts")
+      .select("id, org_id, status")
+      .eq("payment_intent_id", intentId)
+      .eq("stripe_account_id", event.account)
+      .maybeSingle();
+    if (error) throw error;
+    if (data) return { orgId: data.org_id, attempt: data };
+  }
+  const { data: owner, error } = await db
     .from("stripe_accounts")
     .select("org_id")
     .eq("stripe_account_id", event.account)
     .maybeSingle();
-  if (ownerError) throw ownerError;
+  if (error) throw error;
+  return owner ? { orgId: owner.org_id, attempt: null } : null;
+}
+
+/**
+ * One Connect event. The org comes from the payment attempt (the account
+ * the intent was created on) or else the connected account; the event id is
+ * written first so a redelivery is a no-op. Then:
+ *   payment_intent.succeeded          books the rent
+ *   payment_intent.processing/…       keeps the attempt's status current
+ *   payment_intent.payment_failed     after processing (ACH failure): reverse
+ *   charge.refunded (full)            reverse
+ *   charge.dispute.created            reverse
+ *   account.updated                   refreshes the connection status
+ * Reverse = void the booked payment (invoice balance reopens) and email staff.
+ */
+export async function handleStripeEvent(
+  event: Stripe.Event,
+  db: Db,
+  notify: typeof emailStaff = emailStaff,
+): Promise<WebhookOutcome> {
+  if (!event.account) return { ignored: "no connected account on event" };
+  const owner = await orgForEvent(db, event as Stripe.Event & { account: string });
   if (!owner) return { ignored: "unknown connected account" };
-  const orgId = owner.org_id;
+  const { orgId, attempt } = owner;
 
   const { error: insertError } = await db
     .from("stripe_events")
@@ -94,7 +275,8 @@ export async function handleStripeEvent(event: Stripe.Event, db: Db): Promise<We
     // Seen before. Only a PROCESSED event is a true duplicate: if the first
     // delivery threw after the insert (our 500 made Stripe retry), the row
     // exists with processed_at null and the work still has to happen.
-    // record_online_payment is idempotent on the intent, so reprocessing is safe.
+    // record_online_payment and reverse_online_payment are idempotent on the
+    // intent, so reprocessing is safe.
     const { data: seen, error: seenError } = await db
       .from("stripe_events")
       .select("processed_at")
@@ -105,8 +287,35 @@ export async function handleStripeEvent(event: Stripe.Event, db: Db): Promise<We
   }
 
   let paymentId: string | undefined;
+  let reversed: boolean | undefined;
+  const reverse = async (intentId: string, reason: string, alwaysNotify = false) => {
+    const { data, error } = await db.rpc("reverse_online_payment", {
+      p_org: orgId,
+      p_payment_intent: intentId,
+      p_reason: reason,
+      p_event: event.id,
+    });
+    if (error) throw error;
+    const result = data as { voided: boolean; payment_id?: string; amount?: number };
+    paymentId = result.payment_id;
+    reversed = result.voided;
+    if (result.voided || alwaysNotify)
+      await notify(
+        db,
+        orgId,
+        ["admin", "manager"],
+        "An online rent payment did not go through",
+        `<p>${escapeHtml(reason)}</p><p>Stripe payment <strong>${escapeHtml(intentId)}</strong>. ${
+          result.voided
+            ? "Rentio voided the recorded payment, so the invoice is open again."
+            : "Nothing had been recorded in Rentio for it."
+        } Follow up with the tenant; details are in your Stripe dashboard.</p>`,
+      );
+  };
+
   if (event.type === "payment_intent.succeeded") {
     const intent = event.data.object;
+    if (attempt) await setStatus(db, attempt.id, "succeeded");
     const meta = intent.metadata as Partial<IntentMetadata>;
     const rent = Number(meta.rent_amount);
     // The org in the metadata must agree with the account the event came
@@ -131,6 +340,36 @@ export async function handleStripeEvent(event: Stripe.Event, db: Db): Promise<We
     });
     if (error) throw error;
     paymentId = data.payment_id;
+  } else if (event.type === "payment_intent.payment_failed") {
+    const intent = event.data.object;
+    // A card decline happens with the tenant on screen (the intent goes
+    // back to requires_payment_method and stays reusable). Only a failure
+    // AFTER processing (ACH failure or return) touches the books.
+    if (attempt?.status === "processing")
+      await reverse(intent.id, "A bank (ACH) payment failed or was returned.", true);
+    if (attempt) await setStatus(db, attempt.id, intent.status);
+  } else if (
+    event.type === "payment_intent.processing" ||
+    event.type === "payment_intent.canceled" ||
+    event.type === "payment_intent.requires_action"
+  ) {
+    if (attempt) await setStatus(db, attempt.id, event.data.object.status);
+  } else if (event.type === "charge.refunded") {
+    const charge = event.data.object;
+    const intentId = intentIdOf(event);
+    // ponytail: partial refunds only email staff; the booked payment stays, staff adjust by hand.
+    if (intentId && charge.refunded) await reverse(intentId, "The payment was refunded in Stripe.");
+    else if (intentId)
+      await notify(
+        db,
+        orgId,
+        ["admin", "manager"],
+        "An online rent payment was partly refunded",
+        `<p>Stripe payment <strong>${escapeHtml(intentId)}</strong> was partly refunded (${(charge.amount_refunded / 100).toFixed(2)}). Rentio did not change the payment; adjust it if needed.</p>`,
+      );
+  } else if (event.type === "charge.dispute.created") {
+    const intentId = intentIdOf(event);
+    if (intentId) await reverse(intentId, "The tenant disputed the payment (chargeback).");
   } else if (event.type === "account.updated") {
     const account = event.data.object;
     const { error } = await db
@@ -144,6 +383,7 @@ export async function handleStripeEvent(event: Stripe.Event, db: Db): Promise<We
   return finish(db, event.id, {
     processed: event.type,
     ...(paymentId ? { payment_id: paymentId } : {}),
+    ...(reversed !== undefined ? { reversed } : {}),
   });
 }
 

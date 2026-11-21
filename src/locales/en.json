@@ -1502,7 +1502,8 @@
       "processingBody": "Your bank payment is processing. It usually clears in 3–5 business days; you'll see it on your home screen once it does.",
       "notReady": "Online payment isn't available right now. Use one of the other ways to pay.",
       "nothingDue": "You have nothing to pay right now.",
-      "failed": "The payment didn't go through. Check the details and try again."
+      "failed": "The payment didn't go through. Check the details and try again.",
+      "inProgress": "A payment for this rent is already in progress. Bank payments take a few business days; you don't need to pay again."
     }
   }
 }

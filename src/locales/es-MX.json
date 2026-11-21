@@ -1502,7 +1502,8 @@
       "processingBody": "Tu pago bancario está en proceso. Normalmente se acredita en 3 a 5 días hábiles; lo verás en tu pantalla de inicio cuando se complete.",
       "notReady": "El pago en línea no está disponible por ahora. Usa alguna de las otras formas de pago.",
       "nothingDue": "No tienes nada que pagar por ahora.",
-      "failed": "El pago no se completó. Revisa los datos e intenta de nuevo."
+      "failed": "El pago no se completó. Revisa los datos e intenta de nuevo.",
+      "inProgress": "Ya hay un pago de esta renta en proceso. Los pagos bancarios tardan unos días hábiles; no necesitas pagar de nuevo."
     }
   }
 }
