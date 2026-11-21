@@ -207,7 +207,6 @@
     "ranWithErrors": "Finished with {{count}} errors. Open the run history for details.",
     "save": "Save changes",
     "saved": "Automations saved. They apply from the next run.",
-    "readOnly": "Only an admin can change these.",
     "lastRun": {
       "ok": "Ran {{when}} · everything went through",
       "failed": "Ran {{when}} · something failed",

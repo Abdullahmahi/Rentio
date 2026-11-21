@@ -47,7 +47,7 @@ type Form = Pick<Tables<"settings">, (typeof FIELDS)[number]>;
 
 function AutomationsPage() {
   const { t } = useTranslation();
-  const { isAdmin } = useAuth();
+  const { isStaff } = useAuth();
   const actorId = useActorId();
   const settings = useSettings();
 
@@ -126,14 +126,14 @@ function AutomationsPage() {
           <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
-              disabled={!isAdmin || runNow.isPending}
+              disabled={!isStaff || runNow.isPending}
               onClick={() => runNow.mutate(undefined)}
             >
               <Play className="size-4" />
               {t("automations.runNow")}
             </Button>
             <Button
-              disabled={!isAdmin || !dirty || save.isPending}
+              disabled={!isStaff || !dirty || save.isPending}
               onClick={() => save.mutate(undefined)}
             >
               {t("automations.save")}
@@ -158,7 +158,6 @@ function AutomationsPage() {
               <h2 className="text-[17px] font-semibold">{t("automations.panel.title")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {t("automations.panel.description")}
-                {!isAdmin ? ` ${t("automations.readOnly")}` : ""}
               </p>
             </header>
 
@@ -171,7 +170,7 @@ function AutomationsPage() {
                   {t("automations.invoices.dayBefore")}
                   <Input
                     inputMode="numeric"
-                    disabled={!isAdmin}
+                    disabled={!isStaff}
                     className="numeric h-9 w-14 text-center"
                     value={String(form.auto_invoice_day)}
                     onChange={(e) =>
@@ -182,7 +181,7 @@ function AutomationsPage() {
                   {t("automations.invoices.dayAfter")}
                 </label>
                 <Segmented
-                  disabled={!isAdmin}
+                  disabled={!isStaff}
                   value={form.auto_invoice_send ? "send" : "drafts"}
                   options={[
                     ["drafts", t("automations.invoices.drafts")],
@@ -200,7 +199,7 @@ function AutomationsPage() {
               <label className="flex items-center gap-2 text-sm">
                 <Input
                   inputMode="numeric"
-                  disabled={!isAdmin || !form.auto_rent_reminder}
+                  disabled={!isStaff || !form.auto_rent_reminder}
                   className="numeric h-9 w-14 text-center"
                   value={String(form.auto_rent_reminder_days)}
                   onChange={(e) =>
@@ -214,7 +213,7 @@ function AutomationsPage() {
                 {t("automations.reminder.daysAfter")}
               </label>
               <Switch
-                disabled={!isAdmin}
+                disabled={!isStaff}
                 checked={form.auto_rent_reminder}
                 onCheckedChange={(checked) => update("auto_rent_reminder", checked)}
                 aria-label={t("automations.reminder.title")}
@@ -226,7 +225,7 @@ function AutomationsPage() {
               description={t("automations.lateFee.description")}
             >
               <Switch
-                disabled={!isAdmin}
+                disabled={!isStaff}
                 checked={form.auto_late_fee_warning}
                 onCheckedChange={(checked) => update("auto_late_fee_warning", checked)}
                 aria-label={t("automations.lateFee.title")}
@@ -238,7 +237,7 @@ function AutomationsPage() {
               description={t("automations.payments.description")}
             >
               <Switch
-                disabled={!isAdmin}
+                disabled={!isStaff}
                 checked={form.auto_payment_emails}
                 onCheckedChange={(checked) => update("auto_payment_emails", checked)}
                 aria-label={t("automations.payments.title")}
@@ -250,7 +249,7 @@ function AutomationsPage() {
               description={t("automations.repairs.description")}
             >
               <Switch
-                disabled={!isAdmin}
+                disabled={!isStaff}
                 checked={form.auto_repair_emails}
                 onCheckedChange={(checked) => update("auto_repair_emails", checked)}
                 aria-label={t("automations.repairs.title")}
