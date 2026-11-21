@@ -616,6 +616,8 @@ export type Database = {
           created_at: string;
           updated_at: string | null;
           org_id: string;
+          stripe_payment_intent_id: string | null;
+          stripe_charge_id: string | null;
         };
         Insert: {
           id?: string;
@@ -635,6 +637,8 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
           org_id?: string;
+          stripe_payment_intent_id?: string | null;
+          stripe_charge_id?: string | null;
         };
         Update: {
           id?: string;
@@ -654,6 +658,8 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
           org_id?: string;
+          stripe_payment_intent_id?: string | null;
+          stripe_charge_id?: string | null;
         };
         Relationships: [];
       };
@@ -864,6 +870,54 @@ export type Database = {
           card_fee_percent?: number;
           created_at?: string;
           updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      stripe_customers: {
+        Row: {
+          id: string;
+          org_id: string;
+          tenant_id: string;
+          stripe_customer_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          tenant_id: string;
+          stripe_customer_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          tenant_id?: string;
+          stripe_customer_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      stripe_events: {
+        Row: {
+          event_id: string;
+          org_id: string;
+          type: string;
+          received_at: string;
+          processed_at: string | null;
+        };
+        Insert: {
+          event_id: string;
+          org_id?: string;
+          type: string;
+          received_at?: string;
+          processed_at?: string | null;
+        };
+        Update: {
+          event_id?: string;
+          org_id?: string;
+          type?: string;
+          received_at?: string;
+          processed_at?: string | null;
         };
         Relationships: [];
       };
@@ -1282,6 +1336,25 @@ export type Database = {
       void_payment: {
         Args: { p_payment: string; p_reason: string };
         Returns: { allocations: number; amount: number };
+      };
+      record_online_payment: {
+        Args: {
+          p_org: string;
+          p_lease: string;
+          p_amount: number;
+          p_method: Database["public"]["Enums"]["payment_method"];
+          p_payment_intent: string;
+          p_charge?: string | null;
+          p_reference?: string | null;
+          p_notes?: string | null;
+        };
+        Returns: {
+          payment_id: string;
+          duplicate: boolean;
+          allocations?: number;
+          applied?: number;
+          credit?: number;
+        };
       };
       create_lease: {
         Args: {

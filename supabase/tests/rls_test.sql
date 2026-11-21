@@ -945,4 +945,123 @@ begin
 end;
 $$;
 
+-- ======================================= online payments (issue #9)
+-- The webhook (service connection) books rent through record_online_payment,
+-- once per PaymentIntent, inside the lease's org. Nobody with a login can
+-- call it or forge a confirmed online payment. Events and customers are
+-- fenced per org and, for customers, per tenant.
+do $$
+declare
+  admin_id uuid := '00000000-0000-0000-0000-0000000000a1';
+  tenant_a uuid := '00000000-0000-0000-0000-0000000000b1';
+  tenant_b uuid := '00000000-0000-0000-0000-0000000000b2';
+  admin_b  uuid := '00000000-0000-0000-0000-0000000000c1';
+  org_a uuid := (select id from public.organizations order by created_at limit 1);
+  org_b uuid := (select org_id from public.profiles where id = admin_b);
+  t_a uuid := (select tenant_id from public.profiles where id = tenant_a);
+  t_b uuid := (select tenant_id from public.profiles where id = tenant_b);
+  lease_a uuid; pay uuid; n int; before numeric; r jsonb;
+begin
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  select lt.lease_id into lease_a from public.lease_tenants lt where lt.tenant_id = t_a limit 1;
+
+  -- fixtures the webhook and portal routes would write (stripe_accounts rows
+  -- for both orgs exist from the block above)
+  insert into public.stripe_events (event_id, org_id, type) values
+    ('evt_a', org_a, 'payment_intent.succeeded'), ('evt_b', org_b, 'payment_intent.succeeded');
+  insert into public.stripe_customers (tenant_id, stripe_customer_id) values (t_a, 'cus_a'), (t_b, 'cus_b');
+  perform pg_temp.check('stripe_customers takes org_id from the tenant',
+    (select org_id from public.stripe_customers where stripe_customer_id = 'cus_a') = org_a);
+
+  select coalesce(sum(b.balance), 0) into before
+  from public.invoice_balances b join public.invoices i on i.id = b.invoice_id
+  where i.lease_id = lease_a and i.status <> 'cancelado' and b.balance > 0;
+
+  r := public.record_online_payment(org_a, lease_a, 100, 'card', 'pi_test_1', 'ch_test_1', null, 'fee note');
+  pay := (r ->> 'payment_id')::uuid;
+  perform pg_temp.check('record_online_payment inserts a confirmed payment', exists (
+    select 1 from public.payments where id = pay and status = 'confirmado'
+      and reported_by_tenant = false and stripe_payment_intent_id = 'pi_test_1'
+      and stripe_charge_id = 'ch_test_1' and method = 'card'));
+  perform pg_temp.check('record_online_payment allocates oldest-first like confirm',
+    (r ->> 'applied')::numeric = least(100, before));
+  perform pg_temp.check('online payment writes activity_log', exists (
+    select 1 from public.activity_log where entity_id = pay and action = 'online_payment'));
+
+  r := public.record_online_payment(org_a, lease_a, 100, 'card', 'pi_test_1');
+  perform pg_temp.check('the same payment intent twice records once',
+    (r ->> 'duplicate')::boolean and (r ->> 'payment_id')::uuid = pay
+    and (select count(*) from public.payments where stripe_payment_intent_id = 'pi_test_1') = 1);
+
+  begin
+    perform public.record_online_payment(org_b, lease_a, 100, 'card', 'pi_test_2');
+    perform pg_temp.check('record_online_payment refuses a lease outside the org', false);
+  exception when no_data_found then
+    perform pg_temp.check('record_online_payment refuses a lease outside the org', true);
+  end;
+
+  set local role authenticated;
+
+  perform pg_temp.act_as(tenant_a);
+  begin
+    perform public.record_online_payment(org_a, lease_a, 1, 'card', 'pi_tenant');
+    perform pg_temp.check('tenant cannot call record_online_payment', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('tenant cannot call record_online_payment', true);
+  end;
+  begin
+    insert into public.payments (lease_id, amount, method, status, reported_by_tenant, stripe_payment_intent_id)
+    values (lease_a, 100, 'card', 'confirmado', false, 'pi_forged');
+    perform pg_temp.check('tenant cannot forge a confirmed online payment', false);
+  exception when insufficient_privilege or check_violation then
+    perform pg_temp.check('tenant cannot forge a confirmed online payment', true);
+  end;
+  select count(*) into n from public.payments where id = pay;
+  perform pg_temp.check('tenant sees the online payment on their lease', n = 1);
+  select count(*) into n from public.stripe_customers;
+  perform pg_temp.check('tenant reads only their own stripe customer', n = 1
+    and (select stripe_customer_id from public.stripe_customers) = 'cus_a');
+  select count(*) into n from public.stripe_events;
+  perform pg_temp.check('tenant cannot read stripe events', n = 0);
+  begin
+    insert into public.stripe_customers (tenant_id, stripe_customer_id) values (t_a, 'cus_forged');
+    perform pg_temp.check('tenant cannot insert a stripe customer', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('tenant cannot insert a stripe customer', true);
+  end;
+
+  perform pg_temp.act_as(tenant_b);
+  select count(*) into n from public.stripe_customers where stripe_customer_id = 'cus_a';
+  perform pg_temp.check('tenant B cannot read tenant A stripe customer', n = 0);
+
+  perform pg_temp.act_as(admin_id);
+  select count(*) into n from public.stripe_events;
+  perform pg_temp.check('org A staff reads only org A stripe events', n = 1
+    and (select event_id from public.stripe_events) = 'evt_a');
+  select count(*) into n from public.stripe_customers;
+  perform pg_temp.check('org A staff reads org A stripe customers', n = 2);
+  begin
+    perform public.record_online_payment(org_a, lease_a, 1, 'card', 'pi_staff');
+    perform pg_temp.check('staff cannot call record_online_payment', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot call record_online_payment', true);
+  end;
+  begin
+    insert into public.stripe_events (event_id, type) values ('evt_forged', 'x');
+    perform pg_temp.check('staff cannot insert stripe events', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot insert stripe events', true);
+  end;
+
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.stripe_events;
+  perform pg_temp.check('org B reads only its own stripe events', n = 1
+    and (select event_id from public.stripe_events) = 'evt_b');
+  select count(*) into n from public.stripe_customers;
+  perform pg_temp.check('org B cannot read org A stripe customers', n = 0);
+  reset role;
+end;
+$$;
+
 rollback;
