@@ -8,7 +8,12 @@ import {
   openPaymentIntent,
   type OnlineMethod,
 } from "@/lib/server/stripe-payments";
-import { connectedAccount, customerFor, openInvoices } from "@/lib/server/stripe-portal";
+import {
+  connectedAccount,
+  customerFor,
+  openInvoices,
+  saveEnrollment,
+} from "@/lib/server/stripe-portal";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
 
@@ -170,13 +175,9 @@ export const Route = createFileRoute("/api/stripe/portal/$action")({
               method_label: methodLabel(method),
               enabled: true,
             };
-            const { data, error } = await serviceDb()
-              .from("autopay_enrollments")
-              .upsert(row, { onConflict: "lease_id" })
-              .select("*")
-              .single();
-            if (error) throw error;
-            return json(data);
+            const result = await saveEnrollment(serviceDb(), row);
+            if (!result) return json({ error: "autopay_managed_by_co_tenant" }, 409);
+            return json(result);
           }
 
           return json({ error: "not found" }, 404);

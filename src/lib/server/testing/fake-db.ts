@@ -14,6 +14,8 @@ export function fakeDb(
   seed: Record<string, Row[]> = {},
   options: {
     unique?: Record<string, string[]>;
+    /** Extra unique rules (a partial index): true = the new row conflicts. */
+    conflict?: Record<string, (row: Row, existing: Row[]) => boolean>;
     rpc?: Record<string, (args: Row) => Result | Promise<Result>>;
   } = {},
 ) {
@@ -34,6 +36,8 @@ export function fakeDb(
           for (const column of options.unique?.[table] ?? [])
             if (row[column] != null && list.some((other) => other[column] === row[column]))
               return { data: null, error: { code: "23505", message: `duplicate ${column}` } };
+        if (incoming.some((row) => options.conflict?.[table]?.(row, list)))
+          return { data: null, error: { code: "23505", message: "duplicate" } };
         const stored = incoming.map((row) => ({ id: crypto.randomUUID(), ...row }));
         list.push(...stored);
         return { data: returning ? stored.map((row) => ({ ...row })) : null, error: null };

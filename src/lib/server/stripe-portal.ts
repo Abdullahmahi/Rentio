@@ -4,7 +4,41 @@
  * as the tenant, and the tenant's Stripe Customer.
  */
 import type Stripe from "stripe";
-import { serviceDb, type Session } from "@/lib/server/session";
+import type { TablesInsert } from "@/lib/database.types";
+import { serviceDb, type Db, type Session } from "@/lib/server/session";
+
+/**
+ * Save the caller's autopay method for a lease. One enrollment per lease,
+ * and it belongs to the tenant who made it: a co-tenant cannot replace
+ * another tenant's saved method (security review on #72). Null when the
+ * lease's enrollment is someone else's.
+ */
+export async function saveEnrollment(
+  db: Db,
+  row: TablesInsert<"autopay_enrollments"> & { lease_id: string; tenant_id: string },
+) {
+  const { data: existing, error: readError } = await db
+    .from("autopay_enrollments")
+    .select("id, tenant_id")
+    .eq("lease_id", row.lease_id)
+    .maybeSingle();
+  if (readError) throw readError;
+  if (existing && existing.tenant_id !== row.tenant_id) return null;
+  if (existing) {
+    const { data, error } = await db
+      .from("autopay_enrollments")
+      .update(row)
+      .eq("id", existing.id)
+      .eq("tenant_id", row.tenant_id)
+      .select("*");
+    if (error) throw error;
+    return data?.[0] ?? null;
+  }
+  const { data, error } = await db.from("autopay_enrollments").insert(row).select("*");
+  if (error?.code === "23505") return null; // a co-tenant enrolled a moment ago
+  if (error) throw error;
+  return data?.[0] ?? null;
+}
 
 /**
  * The company's connected account, when it can take charges. Tenants cannot

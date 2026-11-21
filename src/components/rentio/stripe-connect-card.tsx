@@ -74,7 +74,8 @@ export function StripeConnectCard() {
       const { error, data } = await db
         .from("autopay_runs")
         .select("id, run_on, error")
-        .eq("status", "failed")
+        // 'unknown' = Stripe timed out; its error text says to check Stripe.
+        .in("status", ["failed", "unknown"])
         .order("created_at", { ascending: false })
         .limit(5);
       if (error) throw error;

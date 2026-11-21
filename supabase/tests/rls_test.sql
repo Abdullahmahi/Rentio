@@ -1182,6 +1182,9 @@ begin
     perform pg_temp.check('one autopay enrollment per lease', true);
   end;
 
+  -- start without the payment attempts the Pay now block left on lease A
+  delete from public.stripe_payment_attempts where lease_id = lease_a;
+
   -- an invoice due today on lease A, sent, with a balance: autopay_due finds it
   insert into public.invoices (lease_id, period_month, due_date, status, total)
   values (lease_a, date '2098-01-01', public.today_el_paso(), 'enviado', 500) returning id into inv;
@@ -1194,12 +1197,44 @@ begin
   perform pg_temp.check('autopay_due skips a disabled enrollment', n = 0);
   update public.autopay_enrollments set enabled = true where id = enr_a;
 
+  -- PR #72 review: never a second debit while a payment is moving
+  insert into public.stripe_payment_attempts
+    (org_id, lease_id, tenant_id, invoice_key, stripe_account_id, payment_intent_id, method, amount_cents, status)
+  values (org_a, lease_a, t_a, 'all', 'acct_a', 'pi_ach_moving', 'ach', 50000, 'processing');
+  select count(*) into n from public.autopay_due(org_a) d where d.invoice_id = inv;
+  perform pg_temp.check('autopay_due skips a lease with an ACH payment processing', n = 0);
+  update public.stripe_payment_attempts set status = 'requires_action' where payment_intent_id = 'pi_ach_moving';
+  select count(*) into n from public.autopay_due(org_a) d where d.invoice_id = inv;
+  perform pg_temp.check('autopay_due skips a lease with an open PaymentIntent', n = 0);
+  update public.stripe_payment_attempts set status = 'requires_payment_method', created_at = now() - interval '3 days'
+  where payment_intent_id = 'pi_ach_moving';
+  select count(*) into n from public.autopay_due(org_a) d where d.invoice_id = inv;
+  perform pg_temp.check('an abandoned Pay now from days ago does not block autopay', n = 1);
+  update public.stripe_payment_attempts set status = 'succeeded' where payment_intent_id = 'pi_ach_moving';
+
+  -- the enrolled tenant must still be on an active lease
+  delete from public.lease_tenants where lease_id = lease_a and tenant_id = t_a;
+  select count(*) into n from public.autopay_due(org_a) d where d.invoice_id = inv;
+  perform pg_temp.check('autopay_due skips a tenant no longer on the lease', n = 0);
+  insert into public.lease_tenants (lease_id, tenant_id) values (lease_a, t_a);
+  select count(*) into n from public.autopay_due(org_a) d where d.invoice_id = inv;
+  perform pg_temp.check('autopay_due lists the invoice again once the tenant is back', n = 1);
+  update public.leases set status = 'terminado' where id = lease_a;
+  select count(*) into n from public.autopay_due(org_a) d where d.invoice_id = inv;
+  perform pg_temp.check('autopay_due skips a lease that is no longer active', n = 0);
+  update public.leases set status = 'activo' where id = lease_a;
+
   insert into public.autopay_runs (enrollment_id, invoice_id, status, error)
   values (enr_a, inv, 'failed', 'Your card was declined.');
   perform pg_temp.check('run takes org_id from its invoice',
     (select org_id from public.autopay_runs where invoice_id = inv) = org_a);
   select count(*) into n from public.autopay_due(org_a) d where d.invoice_id = inv;
   perform pg_temp.check('autopay_due never lists an invoice already attempted', n = 0);
+  update public.autopay_runs set status = 'unknown', error = 'unknown – check Stripe: timeout'
+  where invoice_id = inv;
+  perform pg_temp.check('a run can be recorded as unknown (check Stripe)',
+    (select status from public.autopay_runs where invoice_id = inv) = 'unknown');
+  update public.autopay_runs set status = 'failed', error = 'Your card was declined.' where invoice_id = inv;
 
   set local role authenticated;
 

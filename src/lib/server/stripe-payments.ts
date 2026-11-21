@@ -107,6 +107,18 @@ export async function openPaymentIntent(
   input: AttemptInput,
 ): Promise<AttemptResult> {
   const key = invoiceKey(input.invoiceIds);
+  // Autopay already charging one of these invoices (any tenant on the lease):
+  // wait for it rather than pay it twice.
+  const { data: autopay, error: autopayError } = await db
+    .from("stripe_payment_attempts")
+    .select("invoice_key, status")
+    .eq("lease_id", input.leaseId)
+    .eq("autopay", true)
+    .in("status", ["creating", "processing"]);
+  if (autopayError) throw autopayError;
+  const busy = (autopay ?? []).find((row) => input.invoiceIds.includes(row.invoice_key));
+  if (busy) return { in_progress: true, status: busy.status };
+
   for (let round = 0; round < 2; round += 1) {
     const { data: open, error } = await db
       .from("stripe_payment_attempts")
@@ -235,6 +247,24 @@ async function orgForEvent(db: Db, event: Stripe.Event & { account: string }) {
       .maybeSingle();
     if (error) throw error;
     if (data) return { orgId: data.org_id, attempt: data };
+
+    // An autopay charge whose create call timed out never learned its
+    // intent id: link it now through the attempt id we put in the metadata
+    // (same account only), so its slot settles.
+    const attemptId = (event.data.object as { metadata?: Record<string, string> }).metadata?.[
+      "attempt_id"
+    ];
+    if (attemptId && /^[0-9a-f-]{36}$/i.test(attemptId)) {
+      const { data: linked, error: linkError } = await db
+        .from("stripe_payment_attempts")
+        .update({ payment_intent_id: intentId })
+        .eq("id", attemptId)
+        .eq("stripe_account_id", event.account)
+        .is("payment_intent_id", null)
+        .select("id, org_id, status");
+      if (linkError) throw linkError;
+      if (linked?.[0]) return { orgId: linked[0].org_id, attempt: linked[0] };
+    }
   }
   const { data: owner, error } = await db
     .from("stripe_accounts")
