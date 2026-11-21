@@ -919,6 +919,8 @@
     "sending": "Sending…",
     "sentCount": "{{count}} receipt sent",
     "sentCount_other": "{{count}} receipts sent",
+    "sendFailed": "{{count}} invoice could not be emailed and was not marked as sent: {{names}}",
+    "sendFailed_other": "{{count}} invoices could not be emailed and were not marked as sent: {{names}}",
     "batchTitle": "Review the {{month}} batch",
     "batchSummary": "{{count}} draft about to be invoiced, totalling",
     "batchSummary_other": "{{count}} drafts about to be invoiced, totalling",
