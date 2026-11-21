@@ -1282,7 +1282,11 @@
       "welcomeKitReady": "Kit de bienvenida descargado."
     },
     "roleChanged": "Rol actualizado.",
-    "ownRoleLocked": "Pide a otro administrador que cambie tu rol.",
+    "demoteSelf": {
+      "title": "¿Quitarte tu propio acceso de administrador?",
+      "description": "Pasarás a {{role}} y perderás de inmediato el acceso a Configuración y a la gestión de usuarios. Solo otro administrador podrá volver a hacerte administrador.",
+      "confirm": "Sí, cambiar mi rol"
+    },
     "inviteSent": "Invitación enviada.",
     "adminOnly": "Solo un administrador puede ver esta sección.",
     "inviteUser": "Invitar usuario",

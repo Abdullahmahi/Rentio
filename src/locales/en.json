@@ -1282,7 +1282,11 @@
       "welcomeKitReady": "Welcome kit downloaded."
     },
     "roleChanged": "Role updated.",
-    "ownRoleLocked": "Ask another admin to change your role.",
+    "demoteSelf": {
+      "title": "Remove your own admin access?",
+      "description": "You'll become {{role}} and lose access to Settings and user management right away. Only another admin can make you an admin again.",
+      "confirm": "Yes, change my role"
+    },
     "inviteSent": "Invitation sent.",
     "adminOnly": "Only an administrator can view this section.",
     "inviteUser": "Invite user",
