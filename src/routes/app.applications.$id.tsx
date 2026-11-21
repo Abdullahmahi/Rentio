@@ -250,22 +250,6 @@ function ApplicationDetail() {
     onSuccess: () => setDialog(null),
   });
 
-  // The e-sign lane builds the send flow on the lease's Documents tab.
-  const sendLease = useToastMutation({
-    mutationFn: async () => {
-      const { error: caught } = await db
-        .from("applications")
-        .update({ status: "lease_sent" })
-        .eq("id", id);
-      if (caught) throw caught;
-    },
-    successKey: "applications.form.saved",
-    invalidate,
-    onSuccess: () => {
-      void navigate({ href: `/app/contracts/${application?.lease_id}?tab=documents` });
-    },
-  });
-
   const submitApprove = () => {
     setError(null);
     if (!unitId) return setError(t("applications.detail.noUnit"));
@@ -422,10 +406,15 @@ function ApplicationDetail() {
                   {application.lease_id ? (
                     <div className="flex flex-wrap gap-2">
                       {application.status === "approved" ? (
+                        // The send flow lives on the lease's Documents tab; the
+                        // status flips to lease_sent when the request is created.
                         <Button
                           type="button"
-                          disabled={sendLease.isPending}
-                          onClick={() => sendLease.mutate(undefined)}
+                          onClick={() =>
+                            void navigate({
+                              href: `/app/contracts/${application.lease_id}?tab=documents`,
+                            })
+                          }
                         >
                           {t("applications.detail.sendLease")}
                         </Button>

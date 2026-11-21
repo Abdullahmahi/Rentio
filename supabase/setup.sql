@@ -4571,6 +4571,29 @@ create trigger leases_promote_applicants
   when (new.status = 'activo' and old.status is distinct from 'activo')
   execute function public.promote_applicants();
 
+-- ------------------------------------------------------ lease sent
+-- "Lease sent" means a signature request really went out (e-sign lane's
+-- signature_requests), not that staff clicked through to the lease.
+
+create or replace function public.applications_mark_lease_sent()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.applications set status = 'lease_sent'
+  where lease_id = new.lease_id and org_id = new.org_id and status = 'approved';
+  return null;
+end;
+$$;
+
+revoke all on function public.applications_mark_lease_sent() from public, anon, authenticated;
+
+create trigger applications_mark_lease_sent
+  after insert on public.signature_requests
+  for each row execute function public.applications_mark_lease_sent();
+
 
 -- ============================================================================
 -- 31/31  DEMO DATA

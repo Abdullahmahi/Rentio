@@ -1299,6 +1299,13 @@ begin
   res2 := public.approve_application(app_a, terms);
   perform pg_temp.check('approve is idempotent', res2 = res);
 
+  perform pg_temp.check('approved stays approved until a signature request goes out',
+    (select status from public.applications where id = app_a) = 'approved');
+  insert into public.signature_requests (lease_id, title, original_path, original_sha256, page_count, expires_at)
+    values (lease_a, 'Lease', lease_a || '/lease.pdf', repeat('a', 64), 1, now() + interval '14 days');
+  perform pg_temp.check('sending the lease for signature marks the application lease_sent',
+    (select status from public.applications where id = app_a) = 'lease_sent');
+
   perform pg_temp.act_as(user_a);
   select count(*) into n from public.leases;
   perform pg_temp.check('approved applicant still cannot read the draft lease', n = 0);
