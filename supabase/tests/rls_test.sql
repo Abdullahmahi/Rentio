@@ -858,7 +858,7 @@ declare
   admin_b    uuid := '00000000-0000-0000-0000-0000000000c1';
   org_a uuid := (select id from public.organizations order by created_at limit 1);
   org_b uuid := (select id from public.organizations where slug = 'other-co');
-  vendor_a uuid; vendor_b uuid; wo_a uuid; n int;
+  vendor_a uuid; vendor_b uuid; vendor_tmp uuid; wo_a uuid; n int;
 begin
   perform set_config('request.jwt.claim.sub', '', true);
   perform set_config('request.jwt.claim.org_id', '', true);
@@ -880,9 +880,13 @@ begin
   update public.vendors set company_name = 'pwned' where id = vendor_b;
   get diagnostics n = row_count;
   perform pg_temp.check('org A cannot update org B vendor', n = 0);
-  delete from public.vendors where id = vendor_a;
+  delete from public.vendors where id = vendor_b;
   get diagnostics n = row_count;
-  perform pg_temp.check('manager cannot delete a vendor', n = 0);
+  perform pg_temp.check('org A cannot delete org B vendor', n = 0);
+  insert into public.vendors (company_name) values ('A Temp') returning id into vendor_tmp;
+  delete from public.vendors where id = vendor_tmp;
+  get diagnostics n = row_count;
+  perform pg_temp.check('manager can delete a vendor', n = 1);
 
   begin
     update public.work_orders set vendor_id = vendor_b where id = wo_a;

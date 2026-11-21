@@ -3643,7 +3643,7 @@ grant execute on function public.nightly() to service_role;
 -- 26/28  20261125000100_vendors
 -- ============================================================================
 -- Vendor directory (issue #11). One row per company the org hires for repairs.
--- Staff only: tenants never read this table.
+-- Staff only (admin and manager alike): tenants never read this table.
 --
 -- A later vendor login will add a profile link (profiles.vendor_id or
 -- vendors.profile_id) and a vendor role; nothing here assumes either.
@@ -3686,8 +3686,9 @@ create policy vendors_staff_insert on public.vendors
   for insert to authenticated with check (public.is_staff());
 create policy vendors_staff_update on public.vendors
   for update to authenticated using (public.is_staff()) with check (public.is_staff());
-create policy vendors_admin_delete on public.vendors
-  for delete to authenticated using (public.is_admin());
+-- Owner rule: inside a company, admin and manager may both delete.
+create policy vendors_staff_delete on public.vendors
+  for delete to authenticated using (public.is_staff());
 
 do $$
 declare
