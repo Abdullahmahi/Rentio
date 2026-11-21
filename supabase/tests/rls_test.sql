@@ -849,4 +849,85 @@ begin
 end;
 $$;
 
+-- ============================================ vendors: staff of one org only
+do $$
+declare
+  admin_id   uuid := '00000000-0000-0000-0000-0000000000a1';
+  manager_id uuid := '00000000-0000-0000-0000-0000000000a2';
+  tenant_a   uuid := '00000000-0000-0000-0000-0000000000b1';
+  admin_b    uuid := '00000000-0000-0000-0000-0000000000c1';
+  org_a uuid := (select id from public.organizations order by created_at limit 1);
+  org_b uuid := (select id from public.organizations where slug = 'other-co');
+  vendor_a uuid; vendor_b uuid; wo_a uuid; n int;
+begin
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  insert into public.vendors (org_id, company_name) values (org_b, 'B Plumbing') returning id into vendor_b;
+  select id into wo_a from public.work_orders where org_id = org_a order by created_at limit 1;
+  perform pg_temp.check('fixture: org B and an org A work order', org_b is not null and wo_a is not null);
+
+  set local role authenticated;
+
+  perform pg_temp.act_as(manager_id);
+  insert into public.vendors (company_name, trade) values ('A Electric', 'Electrical') returning id into vendor_a;
+  perform pg_temp.check('staff vendor lands in their own org',
+    (select org_id from public.vendors where id = vendor_a) = org_a);
+  update public.vendors set w9_on_file = true where id = vendor_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('staff can update their vendor', n = 1);
+  select count(*) into n from public.vendors where id = vendor_b;
+  perform pg_temp.check('org A cannot read org B vendor', n = 0);
+  update public.vendors set company_name = 'pwned' where id = vendor_b;
+  get diagnostics n = row_count;
+  perform pg_temp.check('org A cannot update org B vendor', n = 0);
+  delete from public.vendors where id = vendor_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('manager cannot delete a vendor', n = 0);
+
+  begin
+    update public.work_orders set vendor_id = vendor_b where id = wo_a;
+    perform pg_temp.check('work order cannot point at another org vendor', false);
+  exception when foreign_key_violation then
+    perform pg_temp.check('work order cannot point at another org vendor', true);
+  end;
+  update public.work_orders set vendor_id = vendor_a where id = wo_a;
+  perform pg_temp.check('work order can point at its own org vendor',
+    (select vendor_id from public.work_orders where id = wo_a) = vendor_a);
+
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.vendors where id = vendor_a;
+  perform pg_temp.check('org B cannot read org A vendor', n = 0);
+  update public.vendors set company_name = 'pwned' where id = vendor_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('org B cannot update org A vendor', n = 0);
+  delete from public.vendors where id = vendor_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('org B cannot delete org A vendor', n = 0);
+  begin
+    insert into public.vendors (org_id, company_name) values (org_a, 'Planted');
+    perform pg_temp.check('org B cannot insert a vendor into org A', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('org B cannot insert a vendor into org A', true);
+  end;
+
+  perform pg_temp.act_as(tenant_a);
+  select count(*) into n from public.vendors;
+  perform pg_temp.check('tenant cannot read vendors', n = 0);
+  begin
+    insert into public.vendors (company_name) values ('Tenant Co');
+    perform pg_temp.check('tenant cannot insert a vendor', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('tenant cannot insert a vendor', true);
+  end;
+
+  perform pg_temp.act_as(admin_id);
+  delete from public.vendors where id = vendor_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('admin can delete a vendor', n = 1);
+  perform pg_temp.check('deleting a vendor unlinks its work orders, keeps the org',
+    (select vendor_id is null and org_id = org_a from public.work_orders where id = wo_a));
+  reset role;
+end;
+$$;
+
 rollback;
