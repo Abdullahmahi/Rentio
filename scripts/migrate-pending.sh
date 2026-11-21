@@ -52,5 +52,7 @@ apply 20261112000200_nightly_per_org.sql \
   "exists (select 1 from pg_proc p where proname = 'nightly' and pg_get_functiondef(p.oid) like '%orgs_failed%')"
 apply 20261113000100_automations.sql \
   "exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'job_runs')"
+apply 20261121000100_automations_per_org.sql \
+  "to_regprocedure('public.nightly(uuid)') is not null"
 
 echo "done"

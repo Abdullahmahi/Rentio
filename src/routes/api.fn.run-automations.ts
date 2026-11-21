@@ -5,11 +5,12 @@ import { fail, requireSession, serviceDb } from "@/lib/server/session";
 const json = (body: unknown, status = 200) => Response.json(body, { status });
 
 /**
- * "Run now" on the Automations page. Admins only. The pipeline is the same
- * one the nightly cron runs and is idempotent, so pressing it twice, or
- * pressing it right after the cron, does nothing extra. It runs every
- * active company (the pipeline is global), and answers with the caller's
- * company's counts.
+ * "Run now" on the Automations page. Any staff member of the company (admin
+ * or manager; a super_admin for the company they are acting in) may press
+ * it, never a tenant. It runs ONLY the caller's company: the service client
+ * is needed for the SQL pipeline, but every call inside runAutomations is
+ * filtered to this org id. Idempotent, the same pipeline the nightly cron
+ * runs per company.
  */
 export const Route = createFileRoute("/api/fn/run-automations")({
   server: {
@@ -17,11 +18,12 @@ export const Route = createFileRoute("/api/fn/run-automations")({
       POST: async ({ request }) => {
         const session = await requireSession(request);
         if (session instanceof Response) return session;
+        // requireSession already swapped a super_admin's org_id for the
+        // acting company; none picked = the read-only platform view.
         const orgId = session.profile.org_id;
-        if (!session.isAdmin || !orgId) return json({ error: "forbidden" }, 403);
+        if (!session.isStaff || !orgId) return json({ error: "forbidden" }, 403);
         try {
-          const summary = await runAutomations(serviceDb(), "manual", session.profile.id);
-          return json({ started_at: summary.started_at, ...summary.per_org[orgId] });
+          return json(await runAutomations(serviceDb(), orgId, "manual", session.profile.id));
         } catch (caught) {
           return fail(caught, "run-automations");
         }

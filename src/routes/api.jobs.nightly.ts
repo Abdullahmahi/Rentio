@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
-import { runAutomations } from "@/lib/server/automations";
+import { runAllAutomations } from "@/lib/server/automations";
 import { fail, serviceDb } from "@/lib/server/session";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
@@ -17,8 +17,10 @@ function secretMatches(given: string | null) {
  * The scheduled entry point. Coolify runs it daily:
  *   curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" http://localhost:3000/api/jobs/nightly
  *
- * What it does per company is governed by the Automations page
- * (settings.auto_*); see src/lib/server/automations.ts. Idempotent.
+ * Every active company is run separately, with its own settings.auto_*
+ * (the Automations page), and gets its own job_runs row; one company
+ * failing never stops the others. See src/lib/server/automations.ts.
+ * Idempotent.
  */
 export const Route = createFileRoute("/api/jobs/nightly")({
   server: {
@@ -27,7 +29,7 @@ export const Route = createFileRoute("/api/jobs/nightly")({
         if (!secretMatches(request.headers.get("x-cron-secret")))
           return json({ error: "unauthorized" }, 401);
         try {
-          const summary = await runAutomations(serviceDb(), "cron");
+          const summary = await runAllAutomations(serviceDb());
           console.info("nightly", JSON.stringify(summary));
           return json(summary);
         } catch (caught) {
