@@ -4128,6 +4128,12 @@ alter type public.user_role add value if not exists 'applicant';
 --   application_co_applicants other adults on the application
 --   application_files         ID and pay stubs, bucket "applications",
 --                             path <application_id>/<file>
+--   application_reviews       staff only: background-check result and
+--                             notes, the decision note. The applicant sees
+--                             only applications.status.
+--
+-- Admin and manager have the same powers here (owner rule): every write is
+-- is_staff(), nothing is admin-only.
 --
 --   approve_application(..)   staff: tenant(s) + draft lease, one transaction
 --   leases_promote_applicants trigger: lease becomes 'activo' -> applicant
@@ -4176,15 +4182,7 @@ create table public.applications (
   rental_history   jsonb not null default '[]'::jsonb check (jsonb_typeof(rental_history) = 'array'),
   notes            text,
   submitted_at     timestamptz,
-  -- staff only: background check run outside Rentio, then the decision
-  screening_result text check (screening_result in ('approved', 'denied')),
-  screening_note   text,
-  reviewed_by      uuid references public.profiles (id) on delete set null,
-  reviewed_at      timestamptz,
-  decision_note    text,
-  decided_by       uuid references public.profiles (id) on delete set null,
-  decided_at       timestamptz,
-  tenant_id        uuid references public.tenants (id) on delete set null,
+  tenant_id       uuid references public.tenants (id) on delete set null,
   lease_id         uuid references public.leases (id) on delete set null,
   created_at       timestamptz not null default now(),
   updated_at       timestamptz
@@ -4216,7 +4214,26 @@ create table public.application_files (
 );
 create index application_files_app_idx on public.application_files (application_id);
 
+-- Staff only. Kept off applications so the applicant's own row never
+-- carries what the office wrote about them.
+create table public.application_reviews (
+  id               uuid primary key default gen_random_uuid(),
+  org_id           uuid not null default public.current_org_id() references public.organizations (id) on delete restrict,
+  application_id   uuid not null unique references public.applications (id) on delete cascade,
+  screening_result text check (screening_result in ('approved', 'denied')),
+  screening_note   text,
+  reviewed_by      uuid references public.profiles (id) on delete set null,
+  reviewed_at      timestamptz,
+  decision_note    text,
+  decided_by       uuid references public.profiles (id) on delete set null,
+  decided_at       timestamptz,
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz
+);
+
 create trigger set_updated_at before update on public.applications
+  for each row execute function public.set_updated_at();
+create trigger set_updated_at before update on public.application_reviews
   for each row execute function public.set_updated_at();
 
 do $$
@@ -4227,7 +4244,8 @@ begin
     ['application_links',         'units',        'unit_id'],
     ['applications',              'units',        'unit_id'],
     ['application_co_applicants', 'applications', 'application_id'],
-    ['application_files',         'applications', 'application_id']
+    ['application_files',         'applications', 'application_id'],
+    ['application_reviews',       'applications', 'application_id']
   ]
   loop
     execute format(
@@ -4247,7 +4265,8 @@ declare
   platform constant text :=
     '((select public.is_super_admin()) and (select public.current_org_id()) is null)';
 begin
-  foreach t in array array['application_links', 'applications', 'application_co_applicants', 'application_files']
+  foreach t in array array['application_links', 'applications', 'application_co_applicants',
+                           'application_files', 'application_reviews']
   loop
     execute format('alter table public.%I enable row level security', t);
     execute format('revoke all on public.%I from anon', t);
@@ -4262,6 +4281,8 @@ $$;
 -- Links: staff only. Prospects reach them through the app server.
 create policy application_links_staff on public.application_links
   for all to authenticated using (public.is_staff()) with check (public.is_staff());
+create policy application_reviews_staff on public.application_reviews
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 -- Applications: staff read and decide; the applicant reads their own and
 -- edits it while it is a draft. Nobody inserts through PostgREST.
@@ -4274,8 +4295,8 @@ create policy applications_applicant_update on public.applications
   for update to authenticated
   using (profile_id = public.current_user_id() and status = 'draft')
   with check (profile_id = public.current_user_id() and status in ('draft', 'submitted'));
-create policy applications_admin_delete on public.applications
-  for delete to authenticated using (public.is_admin());
+create policy applications_staff_delete on public.applications
+  for delete to authenticated using (public.is_staff());
 
 -- The applicant's own draft, for the child tables' write policies.
 create or replace function public.my_draft_application_ids()
@@ -4324,13 +4345,6 @@ begin
      or new.unit_id is distinct from old.unit_id
      or new.link_id is distinct from old.link_id
      or new.email is distinct from old.email
-     or new.screening_result is distinct from old.screening_result
-     or new.screening_note is distinct from old.screening_note
-     or new.reviewed_by is distinct from old.reviewed_by
-     or new.reviewed_at is distinct from old.reviewed_at
-     or new.decision_note is distinct from old.decision_note
-     or new.decided_by is distinct from old.decided_by
-     or new.decided_at is distinct from old.decided_at
      or new.tenant_id is distinct from old.tenant_id
      or new.lease_id is distinct from old.lease_id
      or not (new.status = old.status or (old.status = 'draft' and new.status = 'submitted')) then
@@ -4506,10 +4520,14 @@ begin
   perform set_config('rentio.applicant_step', 'off', true);
 
   update public.applications
-  set status = 'approved', unit_id = unit, tenant_id = new_tenant, lease_id = new_lease,
-      decision_note = coalesce(nullif(trim(p_note), ''), decision_note),
-      decided_by = public.current_user_id(), decided_at = now()
+  set status = 'approved', unit_id = unit, tenant_id = new_tenant, lease_id = new_lease
   where id = a.id;
+
+  insert into public.application_reviews (org_id, application_id, decision_note, decided_by, decided_at)
+  values (a.org_id, a.id, nullif(trim(p_note), ''), public.current_user_id(), now())
+  on conflict (application_id) do update
+    set decision_note = coalesce(excluded.decision_note, application_reviews.decision_note),
+        decided_by = excluded.decided_by, decided_at = excluded.decided_at;
 
   insert into public.activity_log (actor_id, entity_type, entity_id, action, meta, org_id)
   values (public.current_user_id(), 'application', a.id, 'approve',

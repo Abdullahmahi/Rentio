@@ -1134,6 +1134,7 @@ begin
     values (org_a, user_b, 'Applicant B', 'applicant.b@example.com') returning id into app_b;
   insert into public.application_co_applicants (application_id, full_name) values (app_b, 'B Partner');
   insert into public.application_files (application_id, kind, path) values (app_b, 'id', app_b || '/id.pdf');
+  insert into public.application_reviews (application_id, screening_note) values (app_a, 'Office only');
   perform pg_temp.check('application child rows take org from the application',
     (select org_id from public.application_files where application_id = app_b) = org_a);
 
@@ -1181,12 +1182,14 @@ begin
   end;
   perform pg_temp.check('applicant cannot insert applications directly', refused);
 
+  select count(*) into n from public.application_reviews;
+  perform pg_temp.check('applicant cannot read the review of own application', n = 0);
   refused := false;
   begin
-    update public.applications set screening_result = 'approved' where id = app_a;
-  exception when insufficient_privilege then refused := true;
+    insert into public.application_reviews (application_id, screening_result) values (app_a, 'approved');
+  exception when others then refused := true;
   end;
-  perform pg_temp.check('applicant cannot set screening result', refused);
+  perform pg_temp.check('applicant cannot write a screening result', refused);
   refused := false;
   begin
     update public.applications set status = 'approved' where id = app_a;
@@ -1234,6 +1237,8 @@ begin
   perform pg_temp.check('org B cannot read org A application links', n = 0);
   select count(*) into n from public.application_co_applicants where application_id = app_b;
   perform pg_temp.check('org B cannot read org A co-applicants', n = 0);
+  select count(*) into n from public.application_reviews where application_id = app_a;
+  perform pg_temp.check('org B cannot read org A application reviews', n = 0);
   update public.applications set status = 'denied' where id = app_a;
   get diagnostics n = row_count;
   perform pg_temp.check('org B cannot decide org A applications', n = 0);
@@ -1257,10 +1262,12 @@ begin
   insert into public.application_links (unit_id) values (unit_2);
   perform pg_temp.check('staff create an application link',
     (select count(*) from public.application_links where unit_id = unit_2) = 1);
-  update public.applications
-  set status = 'under_review', screening_result = 'approved', screening_note = 'Clear',
-      reviewed_by = manager_id, reviewed_at = now()
-  where id = app_a;
+  update public.applications set status = 'under_review' where id = app_a;
+  update public.application_reviews
+  set screening_result = 'approved', screening_note = 'Clear', reviewed_by = manager_id, reviewed_at = now()
+  where application_id = app_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('manager records the background check', n = 1);
 
   refused := false;
   begin
@@ -1286,6 +1293,9 @@ begin
     (select tenant_id from public.profiles where id = user_a) = (res ->> 'tenant_id')::uuid);
   perform pg_temp.check('approve writes the activity log',
     exists (select 1 from public.activity_log where entity_id = app_a and action = 'approve'));
+  perform pg_temp.check('approve keeps the decision note in the staff-only review',
+    (select decision_note = 'Welcome' and screening_note = 'Clear'
+     from public.application_reviews where application_id = app_a));
   res2 := public.approve_application(app_a, terms);
   perform pg_temp.check('approve is idempotent', res2 = res);
 

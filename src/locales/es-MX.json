@@ -1715,7 +1715,7 @@
       "answers": "Respuestas",
       "notFound": "No se encontró la solicitud.",
       "screening": "Verificación de antecedentes",
-      "screeningHint": "Registra el resultado de la verificación que hiciste fuera de Rentio. La cuenta del solicitante puede leer este resultado y la nota.",
+      "screeningHint": "Registra el resultado de la verificación que hiciste fuera de Rentio. Solo tu equipo lo ve.",
       "screeningResult": "Resultado",
       "screeningNote": "Nota",
       "result": {
@@ -1731,7 +1731,7 @@
       "approveTitle": "Aprobar y preparar el contrato",
       "approveDescription": "Crea el inquilino y un contrato en borrador que reserva la unidad. Después envíalo a firma.",
       "denyTitle": "Rechazar esta solicitud",
-      "denyDescription": "El solicitante verá que no fue aprobada. Su cuenta también puede leer esta nota.",
+      "denyDescription": "El solicitante solo verá que no fue aprobada. La nota se queda con tu equipo.",
       "approved": "Solicitud aprobada. Contrato en borrador creado.",
       "denied": "Solicitud rechazada",
       "sendLease": "Enviar contrato a firma",

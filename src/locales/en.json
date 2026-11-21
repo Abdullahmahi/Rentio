@@ -1715,7 +1715,7 @@
       "answers": "Answers",
       "notFound": "Application not found.",
       "screening": "Background check",
-      "screeningHint": "Record the result of the check you ran outside Rentio. The applicant's account can read this result and note.",
+      "screeningHint": "Record the result of the check you ran outside Rentio. Only your team sees it.",
       "screeningResult": "Result",
       "screeningNote": "Note",
       "result": {
@@ -1731,7 +1731,7 @@
       "approveTitle": "Approve and draft the lease",
       "approveDescription": "Creates the tenant and a draft lease that reserves the unit. Send it for signature next.",
       "denyTitle": "Deny this application",
-      "denyDescription": "The applicant sees that it was not approved. Their account can also read this note.",
+      "denyDescription": "The applicant only sees that it was not approved. The note stays with your team.",
       "approved": "Application approved. Draft lease created.",
       "denied": "Application denied",
       "sendLease": "Send lease for signature",

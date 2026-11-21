@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,6 +27,7 @@ import {
   useApplication,
 } from "@/components/rentio/application-form";
 import { db } from "@/lib/db";
+import type { TablesInsert } from "@/lib/database.types";
 import { formatMoney, todayIso } from "@/lib/format";
 import {
   capPercentFor,
@@ -92,13 +94,34 @@ function ApplicationDetail() {
     late_fee_over_cap_ack: false,
   });
 
+  // Staff-only table; the applicant's account never sees these.
+  const reviewKey = ["application-review", id];
+  const review = useQuery({
+    queryKey: reviewKey,
+    queryFn: async () => {
+      const { data, error: caught } = await db
+        .from("application_reviews")
+        .select("*")
+        .eq("application_id", id)
+        .maybeSingle();
+      if (caught) throw caught;
+      return data;
+    },
+  });
+
   useEffect(() => {
-    if (!application) return;
     setScreening({
-      result: application.screening_result ?? "",
-      note: application.screening_note ?? "",
+      result: review.data?.screening_result ?? "",
+      note: review.data?.screening_note ?? "",
     });
-  }, [application]);
+  }, [review.data]);
+
+  const writeReview = async (fields: TablesInsert<"application_reviews">) => {
+    const { error: caught } = await db
+      .from("application_reviews")
+      .upsert({ ...fields, application_id: id }, { onConflict: "application_id" });
+    if (caught) throw caught;
+  };
 
   const units = useMemo(() => portfolio.data?.units ?? [], [portfolio.data]);
   const unit = units.find((row) => row.id === unitId);
@@ -150,21 +173,24 @@ function ApplicationDetail() {
     capPercent,
   );
 
-  const invalidate = [applicationKey(id), ["applications"]];
+  const invalidate = [applicationKey(id), ["applications"], reviewKey];
 
   const saveScreening = useToastMutation({
     mutationFn: async () => {
-      const { error: caught } = await db
-        .from("applications")
-        .update({
-          screening_result: (screening.result || null) as "approved" | "denied" | null,
-          screening_note: screening.note.trim() || null,
-          reviewed_by: actorId,
-          reviewed_at: new Date().toISOString(),
-          ...(application?.status === "submitted" ? { status: "under_review" } : {}),
-        })
-        .eq("id", id);
-      if (caught) throw caught;
+      await writeReview({
+        application_id: id,
+        screening_result: screening.result || null,
+        screening_note: screening.note.trim() || null,
+        reviewed_by: actorId,
+        reviewed_at: new Date().toISOString(),
+      });
+      if (application?.status === "submitted") {
+        const { error: caught } = await db
+          .from("applications")
+          .update({ status: "under_review" })
+          .eq("id", id);
+        if (caught) throw caught;
+      }
     },
     successKey: "applications.detail.screeningSaved",
     invalidate,
@@ -206,14 +232,15 @@ function ApplicationDetail() {
 
   const deny = useToastMutation({
     mutationFn: async () => {
+      await writeReview({
+        application_id: id,
+        decision_note: note.trim() || null,
+        decided_by: actorId,
+        decided_at: new Date().toISOString(),
+      });
       const { error: caught } = await db
         .from("applications")
-        .update({
-          status: "denied",
-          decision_note: note.trim() || null,
-          decided_by: actorId,
-          decided_at: new Date().toISOString(),
-        })
+        .update({ status: "denied" })
         .eq("id", id);
       if (caught) throw caught;
       await logActivity(actorId, "application", id, "deny", {});
@@ -372,8 +399,8 @@ function ApplicationDetail() {
 
                 <section className="space-y-3 rounded-xl border border-border bg-surface p-4">
                   <h2 className="text-lg font-semibold">{t("applications.detail.decision")}</h2>
-                  {application.decision_note ? (
-                    <p className="text-sm">{application.decision_note}</p>
+                  {review.data?.decision_note ? (
+                    <p className="text-sm">{review.data.decision_note}</p>
                   ) : null}
                   {decidable ? (
                     <div className="flex flex-wrap gap-2">
@@ -427,7 +454,7 @@ function ApplicationDetail() {
         pending={approve.isPending}
         onSubmit={submitApprove}
       >
-        {application?.screening_result === "denied" ? (
+        {review.data?.screening_result === "denied" ? (
           <p className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning-foreground">
             {t("applications.detail.screeningDenied")}
           </p>

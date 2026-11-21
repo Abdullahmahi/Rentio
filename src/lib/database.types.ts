@@ -189,6 +189,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      application_reviews: {
+        Row: {
+          id: string;
+          org_id: string;
+          application_id: string;
+          screening_result: string | null;
+          screening_note: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          decision_note: string | null;
+          decided_by: string | null;
+          decided_at: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          application_id: string;
+          screening_result?: string | null;
+          screening_note?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          decision_note?: string | null;
+          decided_by?: string | null;
+          decided_at?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          application_id?: string;
+          screening_result?: string | null;
+          screening_note?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          decision_note?: string | null;
+          decided_by?: string | null;
+          decided_at?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       applications: {
         Row: {
           id: string;
@@ -211,13 +256,6 @@ export type Database = {
           rental_history: Json;
           notes: string | null;
           submitted_at: string | null;
-          screening_result: string | null;
-          screening_note: string | null;
-          reviewed_by: string | null;
-          reviewed_at: string | null;
-          decision_note: string | null;
-          decided_by: string | null;
-          decided_at: string | null;
           tenant_id: string | null;
           lease_id: string | null;
           created_at: string;
@@ -244,13 +282,6 @@ export type Database = {
           rental_history?: Json;
           notes?: string | null;
           submitted_at?: string | null;
-          screening_result?: string | null;
-          screening_note?: string | null;
-          reviewed_by?: string | null;
-          reviewed_at?: string | null;
-          decision_note?: string | null;
-          decided_by?: string | null;
-          decided_at?: string | null;
           tenant_id?: string | null;
           lease_id?: string | null;
           created_at?: string;
@@ -277,13 +308,6 @@ export type Database = {
           rental_history?: Json;
           notes?: string | null;
           submitted_at?: string | null;
-          screening_result?: string | null;
-          screening_note?: string | null;
-          reviewed_by?: string | null;
-          reviewed_at?: string | null;
-          decision_note?: string | null;
-          decided_by?: string | null;
-          decided_at?: string | null;
           tenant_id?: string | null;
           lease_id?: string | null;
           created_at?: string;
