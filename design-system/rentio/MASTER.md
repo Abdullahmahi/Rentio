@@ -29,9 +29,8 @@ one-thumb, often on a poor connection).
    composited over the **page background**, not the card — the page is the
    worse of the two. Run `bun scripts/validate_palette.js` and paste the
    numbers; do not eyeball them.
-2. **Body text and all tabular data stay in Inter**, with `tabular-nums` via
-   the `numeric` utility. The heading face goes on `h1`–`h3` and `PageHeader`
-   titles only. Money, table cells, badges and labels are Inter.
+2. **One family: Plus Jakarta Sans**, body and headings. All tabular data and
+   money use `tabular-nums` via the `numeric` utility.
 3. **Chart colours are validated, not picked.** Re-run the validator and
    record the result. See the standing exception below.
 4. **No emoji as icons** (lucide only), no purple/indigo gradients, no
@@ -84,12 +83,15 @@ state. Keep it green.
 
 ## Typography
 
-- **Body, tables, money, badges, labels:** Inter Variable. Unchanged.
-- **Headings (`h1`–`h3`, `PageHeader` titles only):** Source Serif 4 Variable,
-  via `@fontsource-variable/source-serif-4`, on `--font-heading`.
-  A serif says *record*, which is what this product is. Full Latin Extended,
-  so `ñ á é í ó ú ü ¿ ¡` are covered.
-- `--font-subheading` stays Inter italic.
+- **One family, everywhere:** Plus Jakarta Sans Variable, via
+  `@fontsource-variable/plus-jakarta-sans`, on both `--font-sans` and
+  `--font-heading` (owner decision, 2026-11). Full Latin Extended, so
+  `ñ á é í ó ú ü ¿ ¡` are covered.
+- **Headings:** weight 600 (section/page) or 700 (hero), `tracking-tight`.
+  In-app card titles stay `font-semibold` at default tracking.
+- **Money and tables:** always the `numeric` utility (tabular figures).
+- `--font-subheading` is Jakarta's real italic cut (`wght-italic.css`).
+- Emails can't load web fonts reliably: `'Plus Jakarta Sans',Helvetica,Arial,sans-serif`.
 
 ## Radius, shadow, density
 

@@ -15,8 +15,8 @@ Many users will read this on a phone in a hallway.
 - The disabled "Pagar en línea" uses the quiet variant, after the caption.
 
 ## Typography
-- Screen titles: `--font-heading`. Balances and amounts: Inter, `numeric`.
-- Source Serif 4 is wider than Inter. Re-check at 375px in es-MX:
+- Screen titles: `--font-heading`. Balances and amounts: `numeric`.
+- Plus Jakarta Sans runs wider than Inter did. Re-check at 375px in es-MX:
   "Depósito en garantía", "Pendiente de confirmación",
   "Pagos en línea próximamente", and the how-to-pay CopyRow labels.
   Fix by wrapping — never by truncating or shrinking a touch target.

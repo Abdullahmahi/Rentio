@@ -20,7 +20,7 @@ export function SectionHeading({
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="text-balance font-heading text-2xl font-medium !leading-snug md:text-4xl lg:text-5xl">
+        <h2 className="text-balance font-heading text-2xl font-semibold tracking-tight !leading-snug md:text-4xl lg:text-5xl">
           {lead} <span className="font-subheading italic">{emphasis}</span>
         </h2>
         {subhead ? (

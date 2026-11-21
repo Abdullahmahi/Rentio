@@ -44,7 +44,7 @@ const STEPS: [string, string][] = [
     "Inicia sesión con el correo que tu administrador tiene registrado. El correo de invitación trae el enlace.",
   ],
   [
-    "See your balance, download receipts, report a payment and request repairs.",
+    "See your balance, download invoices, report a payment and request repairs.",
     "Consulta tu saldo, descarga recibos, reporta un pago y solicita reparaciones.",
   ],
 ];

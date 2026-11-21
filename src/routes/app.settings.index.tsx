@@ -14,6 +14,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Field, FormDialog } from "@/components/rentio/form-dialog";
 import { MoneyInput } from "@/components/rentio/money-input";
 import { PageHeader } from "@/components/rentio/page-header";
@@ -75,7 +85,7 @@ function SettingsPage() {
   const { t, i18n: i18nInstance } = useTranslation();
   const settings = useSettings();
   const actorId = useActorId();
-  const { isAdmin } = useAuth();
+  const { isAdmin, refreshProfile } = useAuth();
 
   const [company, setCompany] = useState({
     company_name: "",
@@ -111,6 +121,7 @@ function SettingsPage() {
     role: "manager" as Enums<"user_role">,
   });
   const [error, setError] = useState<string | null>(null);
+  const [selfDemotion, setSelfDemotion] = useState<Enums<"user_role"> | null>(null);
 
   const staff = useQuery({
     queryKey: ["staff-users"],
@@ -647,20 +658,25 @@ function SettingsPage() {
                             {t(`roles.${profile.role}`)}
                           </p>
                         </div>
-                        {/* Your own role is locked: the database also refuses
-                            to demote a company's last admin. */}
+                        {/* Demoting yourself asks first: you lose this page the
+                            moment it saves. The database also refuses to
+                            demote a company's last admin. */}
                         <Select
                           value={profile.role}
-                          disabled={profile.id === actorId}
-                          onValueChange={(value) =>
-                            changeRole.mutate({ id: profile.id, role: value as Enums<"user_role"> })
-                          }
+                          onValueChange={(value) => {
+                            const role = value as Enums<"user_role">;
+                            if (
+                              profile.id === actorId &&
+                              profile.role === "admin" &&
+                              role !== "admin"
+                            ) {
+                              setSelfDemotion(role);
+                            } else {
+                              changeRole.mutate({ id: profile.id, role });
+                            }
+                          }}
                         >
-                          <SelectTrigger
-                            className="w-44"
-                            aria-label={t("settings.fields.role")}
-                            title={profile.id === actorId ? t("settings.ownRoleLocked") : undefined}
-                          >
+                          <SelectTrigger className="w-44" aria-label={t("settings.fields.role")}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -812,6 +828,40 @@ function SettingsPage() {
             </Select>
           </Field>
         </FormDialog>
+
+        <AlertDialog
+          open={selfDemotion !== null}
+          onOpenChange={(open) => {
+            if (!open) setSelfDemotion(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("settings.demoteSelf.title")}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("settings.demoteSelf.description", {
+                  role: selfDemotion ? t(`roles.${selfDemotion}`) : "",
+                })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("actions.cancel")}</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (!actorId || !selfDemotion) return;
+                  // Reload our own profile so the admin-only UI drops away.
+                  changeRole.mutate(
+                    { id: actorId, role: selfDemotion },
+                    { onSuccess: () => void refreshProfile() },
+                  );
+                }}
+              >
+                {t("settings.demoteSelf.confirm")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </QueryState>
     </div>
   );

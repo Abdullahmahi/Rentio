@@ -9,6 +9,7 @@ import {
   Users,
   WalletCards,
   Wrench,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,6 +44,8 @@ export const navGroups = [
     items: [
       ["maintenance", "/app/maintenance", Wrench],
       ["parking", "/app/parking", Car],
+      // Owner's call 2026-11-13: a left-bar item, not a Settings tab.
+      ["automations", "/app/automations", Zap],
     ],
   },
 ] as const;

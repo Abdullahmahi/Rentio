@@ -20,7 +20,7 @@ Everything else on the dashboard is reference, and should recede.
 
 ## Typography
 - `PageHeader` title: `--font-heading`. Nothing else on the page.
-- Money columns: Inter, `numeric`, right-aligned. Never the heading face.
+- Money columns: `numeric`, right-aligned, body weight (no heading tracking).
 
 ## Breakpoints to check
 1280px and 768px, light and dark.

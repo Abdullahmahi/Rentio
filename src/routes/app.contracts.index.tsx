@@ -19,7 +19,13 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { LeaseStatusBadge } from "@/components/rentio/status";
 import { StatusBadge } from "@/components/rentio/status-badge";
 import { formatDate } from "@/lib/format";
-import { daysUntilEnd, isExpiringSoon, leaseContexts, type LeaseContext } from "@/lib/portfolio";
+import {
+  daysUntilEnd,
+  isExpiringSoon,
+  isMonthToMonth,
+  leaseContexts,
+  type LeaseContext,
+} from "@/lib/portfolio";
 import { usePortfolio } from "@/lib/queries";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
@@ -95,8 +101,11 @@ function ContractsPage() {
       header: t("contracts.columns.status"),
       sortValue: (row) => row.lease.status,
       cell: (row) =>
-        // A lease inside its last 60 days is flagged even while still `activo`.
-        isExpiringSoon(row.lease) ? (
+        // Both flags show while the lease is still `activo`: past its end date
+        // it is month-to-month (D1), inside its last 60 days it is expiring.
+        isMonthToMonth(row.lease) ? (
+          <StatusBadge status={t("contracts.monthToMonth")} variant="info" />
+        ) : isExpiringSoon(row.lease) ? (
           <StatusBadge status={t("leaseStatus.por_vencer")} variant="warning" />
         ) : (
           <LeaseStatusBadge value={row.lease.status} />

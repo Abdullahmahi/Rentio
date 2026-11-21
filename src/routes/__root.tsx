@@ -14,11 +14,10 @@ import {
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import "@fontsource-variable/inter";
-import "@fontsource-variable/source-serif-4";
+import "@fontsource-variable/plus-jakarta-sans";
 // Real italic cuts, not synthesised obliques — the marketing headings set one
-// italic word per h2 and a faux-italic Inter is visibly wrong at display size.
-import "@fontsource-variable/inter/wght-italic.css";
+// italic word per h2 and a faux italic is visibly wrong at display size.
+import "@fontsource-variable/plus-jakarta-sans/wght-italic.css";
 import appCss from "../styles.css?url";
 import { AuthProvider } from "../lib/auth";
 import { INTERNAL_DEFAULT_LANGUAGE, PORTAL_DEFAULT_LANGUAGE } from "../lib/i18n";
