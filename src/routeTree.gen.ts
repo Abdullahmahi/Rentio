@@ -31,6 +31,7 @@ import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
 import { Route as PortalProfileRouteImport } from './routes/portal.profile'
 import { Route as PortalReportPaymentRouteImport } from './routes/portal.report-payment'
+import { Route as PortalVehiclesRouteImport } from './routes/portal.vehicles'
 import { Route as ApiFilesSplatRouteImport } from './routes/api.files.$'
 import { Route as ApiFnExportAllRouteImport } from './routes/api.fn.export-all'
 import { Route as ApiFnGenerateDepositDispositionRouteImport } from './routes/api.fn.generate-deposit-disposition'
@@ -178,6 +179,11 @@ const PortalProfileRoute = PortalProfileRouteImport.update({
 const PortalReportPaymentRoute = PortalReportPaymentRouteImport.update({
   id: '/report-payment',
   path: '/report-payment',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalVehiclesRoute = PortalVehiclesRouteImport.update({
+  id: '/vehicles',
+  path: '/vehicles',
   getParentRoute: () => PortalRoute,
 } as any)
 const ApiFilesSplatRoute = ApiFilesSplatRouteImport.update({
@@ -395,6 +401,7 @@ export interface FileRoutesByFullPath {
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
+  '/portal/vehicles': typeof PortalVehiclesRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/api/files/$': typeof ApiFilesSplatRoute
@@ -455,6 +462,7 @@ export interface FileRoutesByTo {
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
+  '/portal/vehicles': typeof PortalVehiclesRoute
   '/app': typeof AppIndexRoute
   '/portal': typeof PortalIndexRoute
   '/api/files/$': typeof ApiFilesSplatRoute
@@ -518,6 +526,7 @@ export interface FileRoutesById {
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
+  '/portal/vehicles': typeof PortalVehiclesRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/api/files/$': typeof ApiFilesSplatRoute
@@ -582,6 +591,7 @@ export interface FileRouteTypes {
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
+    | '/portal/vehicles'
     | '/app/'
     | '/portal/'
     | '/api/files/$'
@@ -642,6 +652,7 @@ export interface FileRouteTypes {
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
+    | '/portal/vehicles'
     | '/app'
     | '/portal'
     | '/api/files/$'
@@ -704,6 +715,7 @@ export interface FileRouteTypes {
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
+    | '/portal/vehicles'
     | '/app/'
     | '/portal/'
     | '/api/files/$'
@@ -934,6 +946,13 @@ declare module '@tanstack/react-router' {
       path: '/report-payment'
       fullPath: '/portal/report-payment'
       preLoaderRoute: typeof PortalReportPaymentRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/vehicles': {
+      id: '/portal/vehicles'
+      path: '/vehicles'
+      fullPath: '/portal/vehicles'
+      preLoaderRoute: typeof PortalVehiclesRouteImport
       parentRoute: typeof PortalRoute
     }
     '/api/files/$': {
@@ -1259,6 +1278,7 @@ interface PortalRouteChildren {
   PortalContractsRoute: typeof PortalContractsRoute
   PortalProfileRoute: typeof PortalProfileRoute
   PortalReportPaymentRoute: typeof PortalReportPaymentRoute
+  PortalVehiclesRoute: typeof PortalVehiclesRoute
   PortalIndexRoute: typeof PortalIndexRoute
   PortalMaintenanceIdRoute: typeof PortalMaintenanceIdRoute
   PortalReceiptsIdRoute: typeof PortalReceiptsIdRoute
@@ -1270,6 +1290,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalContractsRoute: PortalContractsRoute,
   PortalProfileRoute: PortalProfileRoute,
   PortalReportPaymentRoute: PortalReportPaymentRoute,
+  PortalVehiclesRoute: PortalVehiclesRoute,
   PortalIndexRoute: PortalIndexRoute,
   PortalMaintenanceIdRoute: PortalMaintenanceIdRoute,
   PortalReceiptsIdRoute: PortalReceiptsIdRoute,

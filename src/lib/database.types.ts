@@ -447,6 +447,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      notifications: {
+        Row: {
+          id: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id: string | null;
+          kind: string;
+          entity_id: string | null;
+          dedupe_key: string;
+          payload: Json;
+          created_at: string;
+          sent_at: string | null;
+          channel: string | null;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id?: string | null;
+          kind: string;
+          entity_id?: string | null;
+          dedupe_key: string;
+          payload?: Json;
+          created_at?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          tenant_id?: string;
+          lease_id?: string | null;
+          kind?: string;
+          entity_id?: string | null;
+          dedupe_key?: string;
+          payload?: Json;
+          created_at?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          read_at?: string | null;
+        };
+        Relationships: [];
+      };
       organizations: {
         Row: {
           id: string;
@@ -954,6 +999,51 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
           org_id?: string;
+        };
+        Relationships: [];
+      };
+      vehicles: {
+        Row: {
+          id: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id: string | null;
+          make: string | null;
+          model: string | null;
+          color: string | null;
+          plate: string;
+          state: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          tenant_id: string;
+          lease_id?: string | null;
+          make?: string | null;
+          model?: string | null;
+          color?: string | null;
+          plate: string;
+          state?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          tenant_id?: string;
+          lease_id?: string | null;
+          make?: string | null;
+          model?: string | null;
+          color?: string | null;
+          plate?: string;
+          state?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };

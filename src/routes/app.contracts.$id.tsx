@@ -21,6 +21,7 @@ import { DocumentsPanel } from "@/components/rentio/documents-panel";
 import { EmptyState } from "@/components/rentio/empty-state";
 import { Field, FormDialog } from "@/components/rentio/form-dialog";
 import { LeaseWizard, seedFromLease, type LeaseWizardSeed } from "@/components/rentio/lease-wizard";
+import { LeaseVehicles } from "@/components/rentio/lease-vehicles";
 import { MoneyInput } from "@/components/rentio/money-input";
 import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
@@ -815,7 +816,8 @@ function ContractDetailPage() {
                 </QueryState>
               </TabsContent>
 
-              <TabsContent value="parking" className="mt-4">
+              <TabsContent value="parking" className="mt-4 space-y-4">
+                <LeaseVehicles context={context} />
                 {context.parking.length === 0 ? (
                   <EmptyState
                     icon={CarFront}
