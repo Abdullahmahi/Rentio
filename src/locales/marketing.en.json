@@ -20,7 +20,7 @@
     "headlineEmphasis": "Texas law is in the form.",
     "subhead": "The bilingual back office for Texas property managers with 50–500 doors. Both portals in English and Mexican Spanish, the §92 deadlines counted for you, and our team moves your units, tenants and leases over in 30 days, or you don't pay until it's done.",
     "primaryCta": "Book a 30-minute walkthrough",
-    "priceLine": "{{monthlyPrice}}/month · everything included · {{setupFee}} setup",
+    "priceLine": "Core {{corePrice}}/month + {{coreSetup}} setup · AI Team {{aiTeamPrice}}/month + {{aiTeamSetup}} setup",
     "secondaryCta": "See the price and what's in it",
     "imageAlt": "The {{brand}} tenant portal in Spanish on a phone, showing the balance due and a button to report a payment",
     "chips": {
@@ -63,7 +63,7 @@
     "eyebrow": "Done for you · set up by our team",
     "headingLead": "The",
     "headingEmphasis": "night shift",
-    "subhead": "Our team sets up and runs an after-hours bilingual service for your company: the phone line, maintenance intake, missed-call text-back and late-fee reminders. It is included in the monthly price.",
+    "subhead": "Our team sets up and runs an after-hours bilingual service for your company: the phone line, maintenance intake, missed-call text-back and late-fee reminders. It is included in the AI Team plan.",
     "items": {
       "voice": {
         "title": "After-hours bilingual phone line",
@@ -195,12 +195,12 @@
   },
   "offer": {
     "eyebrow": "What's included",
-    "headingLead": "One price.",
+    "headingLead": "Two plans.",
     "headingEmphasis": "Everything we do, marked by what's live.",
     "subhead": "Two labels. Live today is software in Rentio now. Done for you is set up and run by our team for your company.",
     "groups": {
       "software": "Software",
-      "ai": "AI · the night shift",
+      "ai": "AI · the night shift (AI Team plan)",
       "people": "People",
       "money": "Money and owners"
     },
@@ -292,7 +292,7 @@
     "valueLabel": "Bought separately, the people, the website and the night shift run about",
     "valueFigure": "$8,000+ a year",
     "valueNote": "for a 200-door company, before the software. Market prices from our 2026 pricing research.",
-    "priceUnit": "per month, the whole Rentio software + AI bundle",
+    "priceUnit": "per month",
     "qualifier": "Built for Texas companies managing 50–500 doors.",
     "cta": "Book a walkthrough",
     "guarantee": {
@@ -301,8 +301,27 @@
       "exitTitle": "Easy to leave.",
       "exit": "After the first 6 months, leave any month. We export every unit, tenant, lease and payment for you within 2 business days."
     },
-    "priceLabel": "Your price",
-    "setup": "{{setupFee}} one-time setup: migration, training, website"
+    "plans": {
+      "core": {
+        "name": "Core",
+        "body": "The Rentio software, the money and owner tools, and our team's migration, training and named person.",
+        "setup": "{{fee}} one-time setup: migration, training, website"
+      },
+      "aiTeam": {
+        "name": "AI Team",
+        "body": "Everything in Core, plus AI agents our team sets up and runs for your company.",
+        "setup": "{{fee}} one-time setup: migration, training, website and your AI agents",
+        "agentsLabel": "AI agents"
+      }
+    },
+    "agents": {
+      "receptionist": "Receptionist",
+      "maintenance": "Maintenance",
+      "rent": "Rent collection",
+      "leasing": "Leasing",
+      "renewals": "Renewals and move-out",
+      "backOffice": "Back office"
+    }
   },
   "faq": {
     "headingLead": "Questions managers",
@@ -318,7 +337,7 @@
       },
       "ai": {
         "q": "Is the AI line live?",
-        "a": "Yes. Our team sets up your after-hours line in English and Spanish during onboarding. It logs requests for your staff; it never changes a balance, waives a fee or sends a legal notice."
+        "a": "Yes. On the AI Team plan, our team sets up your after-hours line in English and Spanish during onboarding. It logs requests for your staff; it never changes a balance, waives a fee or sends a legal notice."
       },
       "spanish": {
         "q": "Is it only in Spanish?",
@@ -334,19 +353,19 @@
       },
       "doors": {
         "q": "How many doors do I need?",
-        "a": "Rentio is built for 50–500 doors; best fit 80–500. The price is the same {{monthlyPrice}} a month at any size. Under 50 doors, we'll tell you on the call that TurboTenant is the cheaper fit."
+        "a": "Rentio is built for 50–500 doors; best fit 80–500. The price is the same at any size: {{corePrice}} a month on Core, {{aiTeamPrice}} a month on AI Team. Under 50 doors, we'll tell you on the call that TurboTenant is the cheaper fit."
       },
       "cost": {
         "q": "What does it cost?",
-        "a": "{{monthlyPrice}} a month for the software, the AI night shift set up by our team, and a named person. {{setupFee}} once for migration, training and your website. No per-door fees, no tenant portal fees."
+        "a": "Two plans. Core is {{corePrice}} a month for the software and a named person, plus {{coreSetup}} once for migration, training and your website. AI Team is {{aiTeamPrice}} a month and adds the AI agents our team sets up and runs for you, plus {{aiTeamSetup}} once. No per-door fees, no tenant portal fees."
       },
       "setupFee": {
         "q": "Why is there a setup fee?",
-        "a": "The {{setupFee}} covers the work we do for you once: moving your data over, configuring Rentio and your AI line for your company, and training your staff."
+        "a": "The setup fee ({{coreSetup}} on Core, {{aiTeamSetup}} on AI Team) covers the work we do for you once: moving your data over, configuring Rentio for your company (and your AI agents on AI Team), and training your staff."
       },
       "hiddenFees": {
         "q": "Are there hidden fees for payments, screening or e-sign?",
-        "a": "No. We don't charge a single extra dollar on top of {{monthlyPrice}} a month. No per-door fees, no per-payment fees, no add-ons."
+        "a": "No. We don't charge a single extra dollar on top of your plan's monthly price. No per-door fees, no per-payment fees, no add-ons."
       },
       "contract": {
         "q": "What's the contract length? Can I cancel?",
