@@ -635,10 +635,10 @@ begin
     perform pg_temp.check('staff cannot call apply_payment() directly', true);
   end;
   begin
-    perform public.nightly();
-    perform pg_temp.check('staff cannot call nightly()', false);
+    perform public.nightly((select id from public.organizations order by created_at limit 1));
+    perform pg_temp.check('staff cannot call nightly(org)', false);
   exception when insufficient_privilege then
-    perform pg_temp.check('staff cannot call nightly()', true);
+    perform pg_temp.check('staff cannot call nightly(org)', true);
   end;
   begin
     perform public.generate_invoices_for_org(current_date, (select org_id from public.profiles where id = admin_b));
@@ -789,16 +789,73 @@ begin
   reset role;
 
   -- reminders are once per invoice and tenant; a claim marks rows sent
-  select public.queue_rent_reminders() into first_run;
-  select public.queue_rent_reminders() into second_run;
+  select coalesce(sum(public.queue_rent_reminders(o.id)), 0) into first_run from public.organizations o;
+  select coalesce(sum(public.queue_rent_reminders(o.id)), 0) into second_run from public.organizations o;
   perform pg_temp.check('rent reminders are idempotent', second_run = 0);
-  perform (select count(*) from public.claim_notifications(1000));
+  perform (select count(*) from public.organizations o, lateral public.claim_notifications(o.id, 1000));
   select count(*) into n from public.notifications where sent_at is null;
   perform pg_temp.check('claim_notifications marks every pending row sent', n = 0);
   perform public.notification_result(
     (select id from public.notifications where entity_id = pay limit 1), null);
   select count(*) into n from public.notifications where entity_id = pay and sent_at is null;
   perform pg_temp.check('a failed send releases the row', n >= 1);
+end;
+$$;
+
+-- ============================================ automations: flags and run log
+do $$
+declare
+  admin_id uuid := '00000000-0000-0000-0000-0000000000a1';
+  tenant_a uuid := '00000000-0000-0000-0000-0000000000b1';
+  admin_b  uuid := '00000000-0000-0000-0000-0000000000c1';
+  org_a uuid; lease_a uuid; pay uuid; n int; run_id uuid;
+begin
+  select org_id into org_a from public.profiles where id = admin_id;
+
+  -- a run row for org A, written the way the server does (service role)
+  insert into public.job_runs (org_id, trigger, started_at, summary)
+  values (org_a, 'cron', now(), '{"invoices_created": 3}') returning id into run_id;
+
+  set local role authenticated;
+  perform pg_temp.act_as(admin_id);
+  select count(*) into n from public.job_runs where id = run_id;
+  perform pg_temp.check('staff read their company run log', n = 1);
+  perform pg_temp.act_as(tenant_a);
+  select count(*) into n from public.job_runs where id = run_id;
+  perform pg_temp.check('a tenant cannot read the run log', n = 0);
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.job_runs where id = run_id;
+  perform pg_temp.check('another company cannot read the run log', n = 0);
+
+  -- payment emails switched off: refusing a reported payment queues nothing
+  perform pg_temp.act_as(admin_id);
+  update public.settings set auto_payment_emails = false where org_id = org_a;
+  perform pg_temp.act_as(tenant_a);
+  select lt.lease_id into lease_a
+  from public.lease_tenants lt join public.profiles p on p.tenant_id = lt.tenant_id
+  where p.id = tenant_a limit 1;
+  insert into public.payments (lease_id, amount, reported_by_tenant, status, method)
+  values (lease_a, 60, true, 'pendiente', 'cash') returning id into pay;
+  perform pg_temp.act_as(admin_id);
+  update public.payments set status = 'cancelado', void_reason = 'test' where id = pay;
+  select count(*) into n from public.notifications where entity_id = pay;
+  perform pg_temp.check('payment emails off: nothing is queued', n = 0);
+  update public.settings set auto_payment_emails = true where org_id = org_a;
+  reset role;
+
+  -- rent reminders switched off: the nightly queue is empty for that company
+  update public.settings set auto_rent_reminder = false where org_id = org_a;
+  perform pg_temp.check('rent reminders off: nothing is queued',
+    (select count(*) from public.notifications where kind = 'rent_reminder' and org_id = org_a
+       and created_at > now() - interval '1 second') = 0
+    and public.queue_rent_reminders(org_a) >= 0);
+  select count(*) into n from public.notifications
+  where kind = 'rent_reminder' and org_id = org_a and created_at >= now();
+  perform pg_temp.check('rent reminders off: still nothing after the queue runs', n = 0);
+  update public.settings set auto_rent_reminder = true where org_id = org_a;
+
+  perform pg_temp.check('nightly() reports per company',
+    jsonb_typeof(public.nightly(org_a) -> 'orgs') = 'array');
 end;
 $$;
 
@@ -845,6 +902,114 @@ begin
     (select status from public.units where id = unit_v) = 'ocupada');
   select count(*) into n from public.unit_turnover_checklist where lease_id = new_lease;
   perform pg_temp.check('create_lease seeds the turnover checklist', n = 1);
+  reset role;
+end;
+$$;
+
+-- ================= automations: company A's run never touches company B
+-- Issue #13/#14. The server runs the pipeline as service_role (RLS off), so
+-- the org filter inside each function is the only thing keeping companies
+-- apart. Company B gets one of everything the pipeline acts on; company A
+-- runs every step; B must be byte-for-byte unchanged.
+
+create or replace function pg_temp.org_fingerprint(o uuid) returns text
+language sql as $$
+  select md5(concat_ws('|',
+    (select string_agg(i::text, ',' order by i.id) from public.invoices i where i.org_id = o),
+    (select string_agg(l::text, ',' order by l.id) from public.invoice_lines l
+       join public.invoices i on i.id = l.invoice_id where i.org_id = o),
+    (select string_agg(n::text, ',' order by n.id) from public.notifications n where n.org_id = o),
+    (select string_agg(w::text, ',' order by w.invoice_id) from public.late_fee_warnings w where w.org_id = o),
+    (select string_agg(j::text, ',' order by j.id) from public.job_runs j where j.org_id = o)));
+$$;
+
+do $$
+declare
+  org_a uuid := (select id from public.organizations order by created_at limit 1);
+  org_b uuid := (select id from public.organizations where slug = 'other-co');
+  prop_b uuid; unit_b2 uuid; lease_b2 uuid; tenant_b2 uuid; inv_late uuid; inv_soon uuid;
+  tenant_a uuid; lease_a uuid;
+  before_b text; n int; bad int;
+begin
+  perform pg_temp.check('fixture: company B exists', org_b is not null and org_b <> org_a);
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+
+  -- Company B: a lease with no invoice this month, an overdue invoice on its
+  -- last grace day, one due tomorrow, a pending email, a pending warning.
+  select id into prop_b from public.properties where org_id = org_b limit 1;
+  insert into public.units (property_id, unit_number) values (prop_b, 'B2') returning id into unit_b2;
+  insert into public.tenants (org_id, full_name, email) values (org_b, 'B Two', 'b2@example.com')
+    returning id into tenant_b2;
+  insert into public.leases (unit_id, start_date, end_date, rent_amount, late_fee_type, late_fee_amount)
+    values (unit_b2, public.today_el_paso() - 60, public.today_el_paso() + 300, 900, 'fixed', 50)
+    returning id into lease_b2;
+  insert into public.lease_tenants (lease_id, tenant_id) values (lease_b2, tenant_b2);
+  insert into public.invoices (lease_id, period_month, due_date, status, total)
+    values (lease_b2, '2001-01-01', public.today_el_paso() - 5, 'enviado', 900) returning id into inv_late;
+  insert into public.invoices (lease_id, period_month, due_date, status, total)
+    values (lease_b2, '2001-02-01', public.today_el_paso() + 1, 'enviado', 900) returning id into inv_soon;
+  insert into public.notifications (org_id, tenant_id, lease_id, kind, dedupe_key)
+    values (org_b, tenant_b2, lease_b2, 'rent_reminder', 'isolation-test-b');
+  insert into public.late_fee_warnings (invoice_id, org_id, eligible_on)
+    values (inv_soon, org_b, public.today_el_paso() + 3);
+
+  -- Company A has a pending email of its own, so A's claim is not vacuous.
+  select lt.tenant_id, lt.lease_id into tenant_a, lease_a
+  from public.lease_tenants lt join public.leases l on l.id = lt.lease_id
+  where l.org_id = org_a limit 1;
+  insert into public.notifications (org_id, tenant_id, lease_id, kind, dedupe_key)
+    values (org_a, tenant_a, lease_a, 'rent_reminder', 'isolation-test-a');
+
+  before_b := pg_temp.org_fingerprint(org_b);
+
+  -- Company A runs every step of the pipeline, the way the server does.
+  perform public.nightly(org_a);
+  select count(*) filter (where org_id <> org_a) into bad from public.late_fee_warnings_to_send(org_a);
+  perform pg_temp.check('A: late-fee warnings to send are only A''s', bad = 0);
+  perform public.queue_rent_reminders(org_a);
+  select count(*), count(*) filter (where org_id <> org_a) into n, bad
+  from public.claim_notifications(org_a, 1000);
+  perform pg_temp.check('A: claim returns only A''s notifications', bad = 0);
+  perform pg_temp.check('A: claim did pick up A''s pending email', n >= 1);
+  insert into public.job_runs (org_id, trigger, started_at) values (org_a, 'manual', now());
+
+  perform pg_temp.check('A''s run changed nothing of company B',
+    pg_temp.org_fingerprint(org_b) = before_b);
+  perform pg_temp.check('A''s run drafted no invoice for B''s lease',
+    not exists (select 1 from public.invoices where lease_id = lease_b2
+                and period_month = date_trunc('month', public.today_el_paso())::date));
+  perform pg_temp.check('A''s run queued no warning or reminder for B',
+    not exists (select 1 from public.late_fee_warnings where invoice_id = inv_late)
+    and not exists (select 1 from public.notifications where org_id = org_b and entity_id = inv_soon));
+  perform pg_temp.check('A''s run left B''s pending email unsent',
+    (select sent_at from public.notifications where dedupe_key = 'isolation-test-b') is null);
+
+  -- Not vacuous: the same rows are there for B's own run to find.
+  perform pg_temp.check('B: its own claim finds its pending email',
+    exists (select 1 from public.claim_notifications(org_b, 1000) c
+            where c.org_id = org_b and c.tenant_email = 'b2@example.com'));
+  perform public.queue_late_fee_warnings(org_b);
+  perform pg_temp.check('B: its own queue finds its overdue invoice',
+    exists (select 1 from public.late_fee_warnings where invoice_id = inv_late));
+
+  -- The all-companies versions are gone, so nothing can call them by mistake.
+  perform pg_temp.check('no global nightly() / claim / queue functions remain',
+    to_regprocedure('public.nightly()') is null
+    and to_regprocedure('public.claim_notifications(integer)') is null
+    and to_regprocedure('public.queue_rent_reminders()') is null
+    and to_regprocedure('public.queue_late_fee_warnings()') is null
+    and to_regprocedure('public.late_fee_warnings_to_send()') is null);
+
+  -- And a person still cannot call the per-company ones through the API.
+  set local role authenticated;
+  perform pg_temp.act_as('00000000-0000-0000-0000-0000000000a1');
+  begin
+    perform public.claim_notifications(org_b, 1);
+    perform pg_temp.check('staff cannot call claim_notifications(org)', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot call claim_notifications(org)', true);
+  end;
   reset role;
 end;
 $$;
