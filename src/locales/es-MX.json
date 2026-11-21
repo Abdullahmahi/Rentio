@@ -207,7 +207,6 @@
     "ranWithErrors": "Terminó con {{count}} errores. Abre el historial para ver los detalles.",
     "save": "Guardar cambios",
     "saved": "Automatizaciones guardadas. Aplican a partir de la próxima corrida.",
-    "readOnly": "Solo un administrador puede cambiar esto.",
     "lastRun": {
       "ok": "Corrió {{when}} · todo salió bien",
       "failed": "Corrió {{when}} · algo falló",
