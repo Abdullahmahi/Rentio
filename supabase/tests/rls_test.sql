@@ -850,7 +850,7 @@ end;
 $$;
 
 -- ============================================ stripe_accounts (issue #8)
--- The server writes the account; an admin may only flip the card fee; a
+-- The server writes the account; staff may only flip the card fee; a
 -- tenant never sees the table; org B never sees org A.
 do $$
 declare
@@ -922,7 +922,13 @@ begin
   perform pg_temp.check('manager reads the stripe account', n = 1);
   update public.stripe_accounts set card_fee_enabled = false where org_id = org_a;
   get diagnostics n = row_count;
-  perform pg_temp.check('manager cannot change the card fee', n = 0);
+  perform pg_temp.check('manager CAN set the card fee (owner rule: staff do everything)', n = 1);
+  begin
+    update public.stripe_accounts set stripe_account_id = 'acct_evil' where org_id = org_a;
+    perform pg_temp.check('manager cannot rewrite the stripe account id', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('manager cannot rewrite the stripe account id', true);
+  end;
 
   perform pg_temp.act_as(tenant_a);
   select count(*) into n from public.stripe_accounts;

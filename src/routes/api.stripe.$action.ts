@@ -24,11 +24,12 @@ const backToSettings = (request: Request, result: string) =>
 /**
  * Stripe Connect for the company (issue #8). Standard account, OAuth.
  *   GET  account     { configured, publishableKey, account }  any signed-in user
- *   POST connect     { url }                                  admin
- *   GET  callback    ?code&state  → /app/settings?stripe=…    admin (the one who started)
- *   POST refresh     re-read the account from Stripe          admin
- *   POST disconnect  revoke access, clear the row             admin
- * Account id and status are written here only, through the service
+ *   POST connect     { url }                                  staff
+ *   GET  callback    ?code&state  → /app/settings?stripe=…    staff (the org that started)
+ *   POST refresh     re-read the account from Stripe          staff
+ *   POST disconnect  revoke access, clear the row             staff
+ * Any staff of the company (admin or manager, owner rule) may do all of
+ * this. Account id and status are written here only, through the service
  * connection, always for the caller's own organization.
  */
 export const Route = createFileRoute("/api/stripe/$action")({
@@ -60,7 +61,7 @@ export const Route = createFileRoute("/api/stripe/$action")({
         }
 
         if (params.action === "callback") {
-          if (!session.isAdmin) return json({ error: "forbidden" }, 403);
+          if (!session.isStaff) return json({ error: "forbidden" }, 403);
           const stripe = getStripe();
           if (!stripe) return notConfigured();
           const url = new URL(request.url);
@@ -101,7 +102,7 @@ export const Route = createFileRoute("/api/stripe/$action")({
         if (session instanceof Response) return session;
         const orgId = session.profile.org_id;
         if (!orgId) return json({ error: "no organization" }, 403);
-        if (!session.isAdmin) return json({ error: "forbidden" }, 403);
+        if (!session.isStaff) return json({ error: "forbidden" }, 403);
         const stripe = getStripe();
         if (!stripe) return notConfigured();
         const service = serviceDb();

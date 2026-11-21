@@ -520,9 +520,7 @@ function SettingsPage() {
                 {t("actions.save")}
               </Button>
             </form>
-            <AdminOnly>
-              <StripeConnectCard />
-            </AdminOnly>
+            <StripeConnectCard />
           </TabsContent>
 
           {/* ------------------------------------------------- recibos */}

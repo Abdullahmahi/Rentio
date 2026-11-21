@@ -17,9 +17,9 @@ import { STRIPE_ACCOUNT_KEY, stripePost, useStripeAccount } from "@/lib/stripe";
 const BADGE = { not_connected: "neutral", pending: "warning", ready: "success" } as const;
 
 /**
- * Settings → "Connect Stripe" (admin). Renders nothing when the platform has
+ * Settings → "Connect Stripe" (any staff of the company). Renders nothing when the platform has
  * no Stripe keys, so a company that never asked for online rent never sees
- * it. The fee toggle writes stripe_accounts directly (admin column grant);
+ * it. The fee toggle writes stripe_accounts directly (staff column grant);
  * everything about the account itself goes through /api/stripe/*.
  */
 export function StripeConnectCard() {
