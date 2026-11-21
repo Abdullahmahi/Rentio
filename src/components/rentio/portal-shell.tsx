@@ -26,7 +26,8 @@ const isActive = (pathname: string, path: string) =>
     ? pathname === "/portal" ||
       pathname.startsWith("/portal/receipts") ||
       pathname.startsWith("/portal/report-payment") ||
-      pathname.startsWith("/portal/pay")
+      pathname.startsWith("/portal/pay") ||
+      pathname.startsWith("/portal/autopay")
     : pathname.startsWith(path);
 
 export function PortalShell() {

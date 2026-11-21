@@ -1501,6 +1501,31 @@
       "notReady": "Online payment isn't available right now. Use one of the other ways to pay.",
       "nothingDue": "You have nothing to pay right now.",
       "failed": "The payment didn't go through. Check the details and try again."
+    },
+    "autopay": {
+      "title": "Autopay",
+      "hint": "Rent is charged to your saved card or bank account on the due date. Turn it off any time.",
+      "statusLabel": "Autopay",
+      "on": "On",
+      "off": "Off",
+      "noMethod": "No payment method saved yet.",
+      "howItWorks": "On each due date we charge the balance of that month's invoice to your saved method. You'll see every charge in your activity; if one fails, we tell you why and you can pay by hand.",
+      "setUp": "Set up autopay",
+      "changeMethod": "Change payment method",
+      "saveMethod": "Save and turn on autopay",
+      "turnOn": "Turn autopay on",
+      "turnOff": "Turn autopay off",
+      "enrolled": "Autopay is on.",
+      "saved": "Autopay updated.",
+      "failedTitle": "A recent automatic charge failed",
+      "failedHint": "We don't retry automatically. Pay now, or change your payment method.",
+      "manage": "Manage autopay",
+      "homeOn": "Autopay on · {{method}}",
+      "homeOff": "Autopay off",
+      "runNow": "Run autopay now",
+      "runResult": "Autopay: {{created}} charged, {{failed}} failed.",
+      "staffFailed": "Failed autopay charges",
+      "running": "Charging today's enrolled invoices…"
     }
   }
 }

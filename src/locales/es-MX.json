@@ -1501,6 +1501,31 @@
       "notReady": "El pago en línea no está disponible por ahora. Usa alguna de las otras formas de pago.",
       "nothingDue": "No tienes nada que pagar por ahora.",
       "failed": "El pago no se completó. Revisa los datos e intenta de nuevo."
+    },
+    "autopay": {
+      "title": "Pago automático",
+      "hint": "La renta se cobra a tu tarjeta o cuenta bancaria guardada en la fecha de vencimiento. Puedes desactivarlo cuando quieras.",
+      "statusLabel": "Pago automático",
+      "on": "Activado",
+      "off": "Desactivado",
+      "noMethod": "Aún no hay un método de pago guardado.",
+      "howItWorks": "En cada fecha de vencimiento cobramos el saldo del recibo de ese mes a tu método guardado. Verás cada cobro en tu actividad; si alguno falla, te decimos por qué y puedes pagar manualmente.",
+      "setUp": "Configurar pago automático",
+      "changeMethod": "Cambiar método de pago",
+      "saveMethod": "Guardar y activar el pago automático",
+      "turnOn": "Activar pago automático",
+      "turnOff": "Desactivar pago automático",
+      "enrolled": "El pago automático está activado.",
+      "saved": "Pago automático actualizado.",
+      "failedTitle": "Un cobro automático reciente falló",
+      "failedHint": "No reintentamos automáticamente. Paga ahora o cambia tu método de pago.",
+      "manage": "Administrar pago automático",
+      "homeOn": "Pago automático activado · {{method}}",
+      "homeOff": "Pago automático desactivado",
+      "runNow": "Ejecutar pago automático ahora",
+      "runResult": "Pago automático: {{created}} cobrados, {{failed}} fallidos.",
+      "staffFailed": "Cobros automáticos fallidos",
+      "running": "Cobrando los recibos inscritos de hoy…"
     }
   }
 }

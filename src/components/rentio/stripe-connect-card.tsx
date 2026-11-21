@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreditCard, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { StatusBadge } from "@/components/rentio/status-badge";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { formatDate } from "@/lib/format";
 import { logActivity, useActorId, useToastMutation } from "@/lib/queries";
 import { STRIPE_ACCOUNT_KEY, stripePost, useStripeAccount } from "@/lib/stripe";
 
@@ -53,6 +54,29 @@ export function StripeConnectCard() {
     mutationFn: () => stripePost("disconnect"),
     successKey: "stripe.disconnected",
     invalidate: [STRIPE_ACCOUNT_KEY],
+  });
+  // Issue #10: charge today's enrolled invoices by hand until the nightly
+  // job calls runAutopay; the last failures, so staff can call the tenant.
+  const runAutopay = useToastMutation({
+    mutationFn: () => stripePost<{ created: number; failed: number }>("autopay-run"),
+    successKey: "stripe.autopay.saved",
+    pendingKey: "stripe.autopay.running",
+    resultMessage: (result) => t("stripe.autopay.runResult", result),
+    invalidate: [["autopay-runs-failed"]],
+  });
+  const failedRuns = useQuery({
+    queryKey: ["autopay-runs-failed"],
+    enabled: Boolean(account?.stripe_account_id),
+    queryFn: async () => {
+      const { error, data } = await db
+        .from("autopay_runs")
+        .select("id, run_on, error")
+        .eq("status", "failed")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data;
+    },
   });
   const saveFee = useToastMutation({
     mutationFn: async () => {
@@ -131,7 +155,27 @@ export function StripeConnectCard() {
                 destructive
                 onConfirm={() => disconnect.mutate(undefined)}
               />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={runAutopay.isPending || !account?.charges_enabled}
+                onClick={() => runAutopay.mutate(undefined)}
+              >
+                {t("stripe.autopay.runNow")}
+              </Button>
             </div>
+            {failedRuns.data?.length ? (
+              <div className="rounded-lg border border-danger/25 bg-danger/5 px-3 py-2 text-sm">
+                <p className="font-medium text-danger">{t("stripe.autopay.staffFailed")}</p>
+                <ul className="mt-1 space-y-0.5 text-muted-foreground">
+                  {failedRuns.data.map((run) => (
+                    <li key={run.id}>
+                      <span className="numeric">{formatDate(run.run_on)}</span> — {run.error}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             <form
               className="space-y-3 border-t border-border pt-4"
