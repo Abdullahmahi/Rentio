@@ -1478,6 +1478,29 @@
       "hint": "Trasladar el costo de la tarjeta al inquilino es una decisión legal tuya: las reglas de las redes de tarjetas y la ley estatal fijan lo permitido, y Rentio no lo verifica por ti. Las transferencias bancarias (ACH) nunca llevan comisión.",
       "percent": "Comisión (porcentaje del monto)",
       "saved": "Comisión guardada."
+    },
+    "pay": {
+      "title": "Pagar ahora",
+      "hint": "Paga tu saldo de forma segura. Los pagos con tarjeta se registran al momento; los pagos desde tu banco tardan unos días hábiles.",
+      "amount": "Monto a pagar",
+      "chooseMethod": "¿Cómo quieres pagar?",
+      "card": "Tarjeta",
+      "cardHint": "Tarjeta de débito o crédito, Apple Pay, Google Pay.",
+      "bank": "Cuenta bancaria (ACH)",
+      "bankHint": "Sin comisión. Se conecta a tu banco de forma segura; se acredita en 3 a 5 días hábiles.",
+      "feeNotice": "Tu arrendador agrega una comisión de {{percent}}% por tarjeta ({{fee}}). Paga desde tu cuenta bancaria para evitarla.",
+      "feeLine": "Comisión por tarjeta ({{percent}}%)",
+      "total": "Total",
+      "saveMethod": "Guardar este método de pago para la próxima vez",
+      "continue": "Continuar",
+      "payButton": "Pagar {{amount}}",
+      "successTitle": "Pago recibido",
+      "successBody": "¡Gracias! Aparecerá en tu pantalla de inicio en un momento.",
+      "processingTitle": "Pago en camino",
+      "processingBody": "Tu pago bancario está en proceso. Normalmente se acredita en 3 a 5 días hábiles; lo verás en tu pantalla de inicio cuando se complete.",
+      "notReady": "El pago en línea no está disponible por ahora. Usa alguna de las otras formas de pago.",
+      "nothingDue": "No tienes nada que pagar por ahora.",
+      "failed": "El pago no se completó. Revisa los datos e intenta de nuevo."
     }
   }
 }

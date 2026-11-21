@@ -29,6 +29,7 @@ import { Route as ApiOrgRouteImport } from './routes/api.org'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
+import { Route as PortalPayRouteImport } from './routes/portal.pay'
 import { Route as PortalProfileRouteImport } from './routes/portal.profile'
 import { Route as PortalReportPaymentRouteImport } from './routes/portal.report-payment'
 import { Route as ApiFilesSplatRouteImport } from './routes/api.files.$'
@@ -45,6 +46,7 @@ import { Route as ApiFnSubmitAccessRequestRouteImport } from './routes/api.fn.su
 import { Route as ApiJobsNightlyRouteImport } from './routes/api.jobs.nightly'
 import { Route as ApiStorageActionRouteImport } from './routes/api.storage.$action'
 import { Route as ApiStripeActionRouteImport } from './routes/api.stripe.$action'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api.stripe.webhook'
 import { Route as AppContractsIndexRouteImport } from './routes/app.contracts.index'
 import { Route as AppContractsIdRouteImport } from './routes/app.contracts.$id'
 import { Route as AppExpensesIndexRouteImport } from './routes/app.expenses.index'
@@ -70,6 +72,7 @@ import { Route as PortalMaintenanceIdRouteImport } from './routes/portal.mainten
 import { Route as PortalReceiptsIndexRouteImport } from './routes/portal.receipts.index'
 import { Route as PortalReceiptsIdRouteImport } from './routes/portal.receipts.$id'
 import { Route as RestV1SplatRouteImport } from './routes/rest.v1.$'
+import { Route as ApiStripePortalActionRouteImport } from './routes/api.stripe.portal.$action'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -171,6 +174,11 @@ const PortalContractsRoute = PortalContractsRouteImport.update({
   path: '/contracts',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalPayRoute = PortalPayRouteImport.update({
+  id: '/pay',
+  path: '/pay',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalProfileRoute = PortalProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -252,6 +260,11 @@ const ApiStorageActionRoute = ApiStorageActionRouteImport.update({
 const ApiStripeActionRoute = ApiStripeActionRouteImport.update({
   id: '/api/stripe/$action',
   path: '/api/stripe/$action',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe/webhook',
+  path: '/api/stripe/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppContractsIndexRoute = AppContractsIndexRouteImport.update({
@@ -379,6 +392,11 @@ const RestV1SplatRoute = RestV1SplatRouteImport.update({
   path: '/rest/v1/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStripePortalActionRoute = ApiStripePortalActionRouteImport.update({
+  id: '/api/stripe/portal/$action',
+  path: '/api/stripe/portal/$action',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -399,6 +417,7 @@ export interface FileRoutesByFullPath {
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
   '/portal/contracts': typeof PortalContractsRoute
+  '/portal/pay': typeof PortalPayRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
   '/app/': typeof AppIndexRoute
@@ -417,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
   '/api/stripe/$action': typeof ApiStripeActionRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
   '/app/properties/$id': typeof AppPropertiesIdRoute
@@ -442,6 +462,7 @@ export interface FileRoutesByFullPath {
   '/app/units/': typeof AppUnitsIndexRoute
   '/portal/maintenance/': typeof PortalMaintenanceIndexRoute
   '/portal/receipts/': typeof PortalReceiptsIndexRoute
+  '/api/stripe/portal/$action': typeof ApiStripePortalActionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -460,6 +481,7 @@ export interface FileRoutesByTo {
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
   '/portal/contracts': typeof PortalContractsRoute
+  '/portal/pay': typeof PortalPayRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
   '/app': typeof AppIndexRoute
@@ -478,6 +500,7 @@ export interface FileRoutesByTo {
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
   '/api/stripe/$action': typeof ApiStripeActionRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
   '/app/properties/$id': typeof AppPropertiesIdRoute
@@ -503,6 +526,7 @@ export interface FileRoutesByTo {
   '/app/units': typeof AppUnitsIndexRoute
   '/portal/maintenance': typeof PortalMaintenanceIndexRoute
   '/portal/receipts': typeof PortalReceiptsIndexRoute
+  '/api/stripe/portal/$action': typeof ApiStripePortalActionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -524,6 +548,7 @@ export interface FileRoutesById {
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
   '/portal/contracts': typeof PortalContractsRoute
+  '/portal/pay': typeof PortalPayRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
   '/app/': typeof AppIndexRoute
@@ -542,6 +567,7 @@ export interface FileRoutesById {
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
   '/api/stripe/$action': typeof ApiStripeActionRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
   '/app/properties/$id': typeof AppPropertiesIdRoute
@@ -567,6 +593,7 @@ export interface FileRoutesById {
   '/app/units/': typeof AppUnitsIndexRoute
   '/portal/maintenance/': typeof PortalMaintenanceIndexRoute
   '/portal/receipts/': typeof PortalReceiptsIndexRoute
+  '/api/stripe/portal/$action': typeof ApiStripePortalActionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -589,6 +616,7 @@ export interface FileRouteTypes {
     | '/api/me'
     | '/api/org'
     | '/portal/contracts'
+    | '/portal/pay'
     | '/portal/profile'
     | '/portal/report-payment'
     | '/app/'
@@ -607,6 +635,7 @@ export interface FileRouteTypes {
     | '/api/jobs/nightly'
     | '/api/storage/$action'
     | '/api/stripe/$action'
+    | '/api/stripe/webhook'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
     | '/app/properties/$id'
@@ -632,6 +661,7 @@ export interface FileRouteTypes {
     | '/app/units/'
     | '/portal/maintenance/'
     | '/portal/receipts/'
+    | '/api/stripe/portal/$action'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -650,6 +680,7 @@ export interface FileRouteTypes {
     | '/api/me'
     | '/api/org'
     | '/portal/contracts'
+    | '/portal/pay'
     | '/portal/profile'
     | '/portal/report-payment'
     | '/app'
@@ -668,6 +699,7 @@ export interface FileRouteTypes {
     | '/api/jobs/nightly'
     | '/api/storage/$action'
     | '/api/stripe/$action'
+    | '/api/stripe/webhook'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
     | '/app/properties/$id'
@@ -693,6 +725,7 @@ export interface FileRouteTypes {
     | '/app/units'
     | '/portal/maintenance'
     | '/portal/receipts'
+    | '/api/stripe/portal/$action'
   id:
     | '__root__'
     | '/'
@@ -713,6 +746,7 @@ export interface FileRouteTypes {
     | '/api/me'
     | '/api/org'
     | '/portal/contracts'
+    | '/portal/pay'
     | '/portal/profile'
     | '/portal/report-payment'
     | '/app/'
@@ -731,6 +765,7 @@ export interface FileRouteTypes {
     | '/api/jobs/nightly'
     | '/api/storage/$action'
     | '/api/stripe/$action'
+    | '/api/stripe/webhook'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
     | '/app/properties/$id'
@@ -756,6 +791,7 @@ export interface FileRouteTypes {
     | '/app/units/'
     | '/portal/maintenance/'
     | '/portal/receipts/'
+    | '/api/stripe/portal/$action'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -790,7 +826,9 @@ export interface RootRouteChildren {
   ApiJobsNightlyRoute: typeof ApiJobsNightlyRoute
   ApiStorageActionRoute: typeof ApiStorageActionRoute
   ApiStripeActionRoute: typeof ApiStripeActionRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   RestV1SplatRoute: typeof RestV1SplatRoute
+  ApiStripePortalActionRoute: typeof ApiStripePortalActionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -935,6 +973,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalContractsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/pay': {
+      id: '/portal/pay'
+      path: '/pay'
+      fullPath: '/portal/pay'
+      preLoaderRoute: typeof PortalPayRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/profile': {
       id: '/portal/profile'
       path: '/profile'
@@ -1045,6 +1090,13 @@ declare module '@tanstack/react-router' {
       path: '/api/stripe/$action'
       fullPath: '/api/stripe/$action'
       preLoaderRoute: typeof ApiStripeActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe/webhook': {
+      id: '/api/stripe/webhook'
+      path: '/api/stripe/webhook'
+      fullPath: '/api/stripe/webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/contracts/': {
@@ -1222,6 +1274,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestV1SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/stripe/portal/$action': {
+      id: '/api/stripe/portal/$action'
+      path: '/api/stripe/portal/$action'
+      fullPath: '/api/stripe/portal/$action'
+      preLoaderRoute: typeof ApiStripePortalActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1277,6 +1336,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface PortalRouteChildren {
   PortalContractsRoute: typeof PortalContractsRoute
+  PortalPayRoute: typeof PortalPayRoute
   PortalProfileRoute: typeof PortalProfileRoute
   PortalReportPaymentRoute: typeof PortalReportPaymentRoute
   PortalIndexRoute: typeof PortalIndexRoute
@@ -1288,6 +1348,7 @@ interface PortalRouteChildren {
 
 const PortalRouteChildren: PortalRouteChildren = {
   PortalContractsRoute: PortalContractsRoute,
+  PortalPayRoute: PortalPayRoute,
   PortalProfileRoute: PortalProfileRoute,
   PortalReportPaymentRoute: PortalReportPaymentRoute,
   PortalIndexRoute: PortalIndexRoute,
@@ -1332,7 +1393,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiJobsNightlyRoute: ApiJobsNightlyRoute,
   ApiStorageActionRoute: ApiStorageActionRoute,
   ApiStripeActionRoute: ApiStripeActionRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   RestV1SplatRoute: RestV1SplatRoute,
+  ApiStripePortalActionRoute: ApiStripePortalActionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
