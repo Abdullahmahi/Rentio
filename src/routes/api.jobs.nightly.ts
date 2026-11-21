@@ -14,8 +14,10 @@ function secretMatches(given: string | null) {
 }
 
 /**
- * The scheduled entry point. Coolify runs it daily:
- *   curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" http://localhost:3000/api/jobs/nightly
+ * The scheduled entry point. Coolify runs it daily at 07:15 UTC (after
+ * local midnight in Mountain and Central time, DST or not; see SETUP.md §5
+ * for the exact command, the app image has no curl). Every "today" in the
+ * pipeline is today_el_paso() in SQL, never the server's UTC date.
  *
  * Every active company is run separately, with its own settings.auto_*
  * (the Automations page), and gets its own job_runs row; one company
