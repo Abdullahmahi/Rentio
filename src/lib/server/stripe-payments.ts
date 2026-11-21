@@ -90,8 +90,18 @@ export async function handleStripeEvent(event: Stripe.Event, db: Db): Promise<We
     .from("stripe_events")
     .insert({ event_id: event.id, org_id: orgId, type: event.type });
   if (insertError) {
-    if (insertError.code === "23505") return { duplicate: true };
-    throw insertError;
+    if (insertError.code !== "23505") throw insertError;
+    // Seen before. Only a PROCESSED event is a true duplicate: if the first
+    // delivery threw after the insert (our 500 made Stripe retry), the row
+    // exists with processed_at null and the work still has to happen.
+    // record_online_payment is idempotent on the intent, so reprocessing is safe.
+    const { data: seen, error: seenError } = await db
+      .from("stripe_events")
+      .select("processed_at")
+      .eq("event_id", event.id)
+      .maybeSingle();
+    if (seenError) throw seenError;
+    if (seen?.processed_at) return { duplicate: true };
   }
 
   let paymentId: string | undefined;
@@ -113,7 +123,7 @@ export async function handleStripeEvent(event: Stripe.Event, db: Db): Promise<We
       p_org: orgId,
       p_lease: meta.lease_id,
       p_amount: rent,
-      p_method: meta.method === "ach" ? "ach" : "card",
+      p_method: chargedMethod(intent, meta),
       p_payment_intent: intent.id,
       p_charge: charge ?? null,
       p_reference: charge ?? intent.id,
@@ -135,6 +145,25 @@ export async function handleStripeEvent(event: Stripe.Event, db: Db): Promise<We
     processed: event.type,
     ...(paymentId ? { payment_id: paymentId } : {}),
   });
+}
+
+/**
+ * ach or card from what Stripe actually charged: the charge's payment method
+ * details when the event carries them, else the intent's payment method
+ * type(s) (set server-side to exactly one), and only then our metadata.
+ */
+export function chargedMethod(
+  intent: Pick<Stripe.PaymentIntent, "latest_charge" | "payment_method_types" | "payment_method">,
+  meta: Partial<IntentMetadata>,
+): OnlineMethod {
+  const charge = typeof intent.latest_charge === "object" ? intent.latest_charge : null;
+  const pm = typeof intent.payment_method === "object" ? intent.payment_method : null;
+  const type =
+    charge?.payment_method_details?.type ??
+    (pm && "type" in pm ? pm.type : undefined) ??
+    (intent.payment_method_types?.length === 1 ? intent.payment_method_types[0] : undefined) ??
+    (meta.method === "ach" ? "us_bank_account" : "card");
+  return type === "us_bank_account" ? "ach" : "card";
 }
 
 async function finish<T extends WebhookOutcome>(db: Db, eventId: string, outcome: T) {
