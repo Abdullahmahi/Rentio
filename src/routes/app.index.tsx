@@ -29,11 +29,11 @@ import {
 } from "@/components/ui/chart";
 import { CHART, UNIT_STATUS_COLOR, compactMoney } from "@/lib/chart";
 import { daysBetween, formatDate, formatMoney, todayIso } from "@/lib/format";
-import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
+import { cashByMonth, currentPeriod, shiftPeriod } from "@/lib/invoicing";
 import { daysUntilEnd, isActive, isExpiringSoon, leaseContexts, occupancy } from "@/lib/portfolio";
 import { depositClock } from "@/lib/deposit";
 import { REKEY_ITEM_KEY, rekeyClock, repairClock } from "@/lib/texas";
-import { qk, usePortfolio } from "@/lib/queries";
+import { qk, useCashReceived, usePortfolio } from "@/lib/queries";
 import { db } from "@/lib/db";
 import type { Enums } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
@@ -231,30 +231,22 @@ function DashboardPage() {
   const lastMonth = shiftPeriod(thisMonth, -1);
   const firstMonth = shiftPeriod(thisMonth, -(MONTHS_BACK - 1));
 
-  /** Six months of invoices plus their paid amounts, for the trend chart. */
+  /** Six months of invoiced totals, for the trend chart. */
   const trend = useQuery({
     queryKey: ["dashboard-trend", firstMonth],
     queryFn: async () => {
-      const [{ data: invoices, error }, { data: balances }] = await Promise.all([
-        db
-          .from("invoices")
-          .select("id, period_month, total, status")
-          .gte("period_month", firstMonth),
-        db.from("invoice_balances").select("invoice_id, paid"),
-      ]);
+      const { data: invoices, error } = await db
+        .from("invoices")
+        .select("period_month, total, status")
+        .gte("period_month", firstMonth);
       if (error) throw error;
-      const paidById = new Map(
-        (balances ?? []).map((row) => [row.invoice_id, Number(row.paid ?? 0)]),
-      );
       return (invoices ?? [])
         .filter((invoice) => invoice.status !== "cancelado")
-        .map((invoice) => ({
-          period: invoice.period_month,
-          invoiced: Number(invoice.total),
-          collected: paidById.get(invoice.id) ?? 0,
-        }));
+        .map((invoice) => ({ period: invoice.period_month, invoiced: Number(invoice.total) }));
     },
   });
+  /** "Collected" is cash received by payment date (D5), the same number Reports shows. */
+  const received = useCashReceived(firstMonth);
 
   const pendingPayments = useQuery({
     queryKey: [...qk.payments, "pending-count"],
@@ -362,16 +354,16 @@ function DashboardPage() {
     }
     for (const row of trend.data ?? []) {
       const bucket = buckets.get(row.period);
-      if (!bucket) continue;
-      bucket.invoiced += row.invoiced;
-      bucket.collected += row.collected;
+      if (bucket) bucket.invoiced += row.invoiced;
     }
+    const cash = cashByMonth(received.data ?? []);
+    for (const [period, bucket] of buckets) bucket.collected = cash.get(period) ?? 0;
     return [...buckets.entries()].map(([period, value]) => ({
       period,
       label: formatPeriod(period, i18nInstance.language).split(" ")[0] ?? period,
       ...value,
     }));
-  }, [trend.data, thisMonth, i18nInstance.language]);
+  }, [trend.data, received.data, thisMonth, i18nInstance.language]);
 
   const current = monthly.at(-1) ?? { invoiced: 0, collected: 0 };
   const previous = monthly.at(-2) ?? { invoiced: 0, collected: 0 };

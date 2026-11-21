@@ -25,8 +25,8 @@ import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { formatPeriod } from "@/components/rentio/month-selector";
 import { CHART, compactMoney } from "@/lib/chart";
 import { formatMoney } from "@/lib/format";
-import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
-import { usePortfolio } from "@/lib/queries";
+import { cashByMonth, currentPeriod, shiftPeriod } from "@/lib/invoicing";
+import { useCashReceived, usePortfolio } from "@/lib/queries";
 import { db } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import i18n from "@/lib/i18n";
@@ -68,18 +68,7 @@ function ReportsPage() {
   const thisMonth = currentPeriod();
   const firstMonth = shiftPeriod(thisMonth, -(MONTHS - 1));
 
-  const payments = useQuery({
-    queryKey: ["report-income", firstMonth],
-    queryFn: async () => {
-      const { data, error } = await db
-        .from("payments")
-        .select("lease_id, amount, paid_at")
-        .eq("status", "confirmado")
-        .gte("paid_at", firstMonth);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
+  const payments = useCashReceived(firstMonth);
 
   const expenses = useQuery({
     queryKey: ["report-expenses", firstMonth],
@@ -135,10 +124,10 @@ function ReportsPage() {
     for (let index = MONTHS - 1; index >= 0; index -= 1) {
       buckets.set(shiftPeriod(thisMonth, -index), { income: 0, expenses: 0 });
     }
-    for (const row of payments.data ?? []) {
-      const bucket = buckets.get(`${row.paid_at.slice(0, 7)}-01`);
-      if (bucket && matches(leaseUnit.get(row.lease_id))) bucket.income += Number(row.amount);
-    }
+    const income = cashByMonth(
+      (payments.data ?? []).filter((row) => matches(leaseUnit.get(row.lease_id))),
+    );
+    for (const [period, bucket] of buckets) bucket.income = income.get(period) ?? 0;
     for (const row of expenses.data ?? []) {
       const bucket = buckets.get(`${row.spent_at.slice(0, 7)}-01`);
       if (bucket && matches(row.unit_id)) bucket.expenses += Number(row.amount);
