@@ -64,6 +64,7 @@ import { Route as AppTenantsIndexRouteImport } from './routes/app.tenants.index'
 import { Route as AppTenantsIdRouteImport } from './routes/app.tenants.$id'
 import { Route as AppUnitsIndexRouteImport } from './routes/app.units.index'
 import { Route as AppUnitsIdRouteImport } from './routes/app.units.$id'
+import { Route as AppVendorsIndexRouteImport } from './routes/app.vendors.index'
 import { Route as PortalMaintenanceIndexRouteImport } from './routes/portal.maintenance.index'
 import { Route as PortalMaintenanceIdRouteImport } from './routes/portal.maintenance.$id'
 import { Route as PortalReceiptsIndexRouteImport } from './routes/portal.receipts.index'
@@ -348,6 +349,11 @@ const AppUnitsIdRoute = AppUnitsIdRouteImport.update({
   path: '/units/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppVendorsIndexRoute = AppVendorsIndexRouteImport.update({
+  id: '/vendors/',
+  path: '/vendors/',
+  getParentRoute: () => AppRoute,
+} as any)
 const PortalMaintenanceIndexRoute = PortalMaintenanceIndexRouteImport.update({
   id: '/maintenance/',
   path: '/maintenance/',
@@ -433,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tenants/': typeof AppTenantsIndexRoute
   '/app/units/': typeof AppUnitsIndexRoute
+  '/app/vendors/': typeof AppVendorsIndexRoute
   '/portal/maintenance/': typeof PortalMaintenanceIndexRoute
   '/portal/receipts/': typeof PortalReceiptsIndexRoute
 }
@@ -493,6 +500,7 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsIndexRoute
   '/app/tenants': typeof AppTenantsIndexRoute
   '/app/units': typeof AppUnitsIndexRoute
+  '/app/vendors': typeof AppVendorsIndexRoute
   '/portal/maintenance': typeof PortalMaintenanceIndexRoute
   '/portal/receipts': typeof PortalReceiptsIndexRoute
 }
@@ -556,6 +564,7 @@ export interface FileRoutesById {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tenants/': typeof AppTenantsIndexRoute
   '/app/units/': typeof AppUnitsIndexRoute
+  '/app/vendors/': typeof AppVendorsIndexRoute
   '/portal/maintenance/': typeof PortalMaintenanceIndexRoute
   '/portal/receipts/': typeof PortalReceiptsIndexRoute
 }
@@ -620,6 +629,7 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/tenants/'
     | '/app/units/'
+    | '/app/vendors/'
     | '/portal/maintenance/'
     | '/portal/receipts/'
   fileRoutesByTo: FileRoutesByTo
@@ -680,6 +690,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/tenants'
     | '/app/units'
+    | '/app/vendors'
     | '/portal/maintenance'
     | '/portal/receipts'
   id:
@@ -742,6 +753,7 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/tenants/'
     | '/app/units/'
+    | '/app/vendors/'
     | '/portal/maintenance/'
     | '/portal/receipts/'
   fileRoutesById: FileRoutesById
@@ -1167,6 +1179,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUnitsIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/vendors/': {
+      id: '/app/vendors/'
+      path: '/vendors'
+      fullPath: '/app/vendors/'
+      preLoaderRoute: typeof AppVendorsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/portal/maintenance/': {
       id: '/portal/maintenance/'
       path: '/maintenance'
@@ -1227,6 +1246,7 @@ interface AppRouteChildren {
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
   AppTenantsIndexRoute: typeof AppTenantsIndexRoute
   AppUnitsIndexRoute: typeof AppUnitsIndexRoute
+  AppVendorsIndexRoute: typeof AppVendorsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1251,6 +1271,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsIndexRoute: AppSettingsIndexRoute,
   AppTenantsIndexRoute: AppTenantsIndexRoute,
   AppUnitsIndexRoute: AppUnitsIndexRoute,
+  AppVendorsIndexRoute: AppVendorsIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

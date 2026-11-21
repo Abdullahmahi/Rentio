@@ -4,6 +4,7 @@ import {
   Building2,
   DoorClosed,
   FileText,
+  HardHat,
   LayoutDashboard,
   Receipt,
   Users,
@@ -42,6 +43,7 @@ export const navGroups = [
     label: "operations",
     items: [
       ["maintenance", "/app/maintenance", Wrench],
+      ["vendors", "/app/vendors", HardHat],
       ["parking", "/app/parking", Car],
     ],
   },

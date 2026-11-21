@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Eye, Lock, Send, ShieldAlert, Wrench } from "lucide-react";
+import { Eye, Lock, Plus, Send, ShieldAlert, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Combobox, type ComboboxOption } from "@/components/rentio/combobox";
 import { EmptyState } from "@/components/rentio/empty-state";
+import { VendorDialog } from "@/components/rentio/vendor-dialog";
 import { Field } from "@/components/rentio/form-dialog";
 import { MoneyInput } from "@/components/rentio/money-input";
 import { MoneyText } from "@/components/rentio/money-text";
@@ -34,6 +36,7 @@ import type { Enums, TablesUpdate } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 import { formatUsPhone } from "@/lib/us";
+import { useVendors } from "@/lib/vendors";
 
 export const Route = createFileRoute("/app/maintenance/$id")({
   head: () => ({
@@ -62,7 +65,10 @@ function WorkOrderDetailPage() {
 
   const [noteBody, setNoteBody] = useState("");
   const [noteInternal, setNoteInternal] = useState(true);
+  const vendors = useVendors();
+  const [addVendorOpen, setAddVendorOpen] = useState(false);
   const [vendor, setVendor] = useState({
+    vendor_id: null as string | null,
     vendor_name: "",
     vendor_phone: "",
     cost: "" as number | "",
@@ -122,6 +128,7 @@ function WorkOrderDetailPage() {
   useEffect(() => {
     if (order.data) {
       setVendor({
+        vendor_id: order.data.vendor_id,
         vendor_name: order.data.vendor_name ?? "",
         vendor_phone: order.data.vendor_phone ?? "",
         cost: order.data.cost === null ? "" : Number(order.data.cost),
@@ -195,19 +202,39 @@ function WorkOrderDetailPage() {
     invalidate: [qk.workOrder(id), qk.workOrders, [...qk.workOrder(id), "timeline"]],
   });
 
+  const linkedVendor = vendors.data?.find((row) => row.id === vendor.vendor_id);
+  const vendorOptions = useMemo<ComboboxOption[]>(
+    () =>
+      (vendors.data ?? [])
+        .filter((row) => row.active || row.id === vendor.vendor_id)
+        .map((row) => ({
+          value: row.id,
+          label: row.company_name,
+          hint: row.trade ?? "",
+          keywords: row.contact_name ?? "",
+        })),
+    [vendors.data, vendor.vendor_id],
+  );
+
   const saveVendor = useToastMutation({
     mutationFn: async () => {
+      // A linked vendor's name and phone are copied into the text columns so
+      // the list, exports and older screens keep reading them.
+      const name = linkedVendor ? linkedVendor.company_name : vendor.vendor_name.trim();
+      const phone = linkedVendor ? (linkedVendor.phone ?? "") : vendor.vendor_phone.trim();
       const { error } = await db
         .from("work_orders")
         .update({
-          vendor_name: vendor.vendor_name.trim() || null,
-          vendor_phone: vendor.vendor_phone.trim() || null,
+          vendor_id: vendor.vendor_id,
+          vendor_name: name || null,
+          vendor_phone: phone || null,
           cost: vendor.cost === "" ? null : vendor.cost,
         })
         .eq("id", id);
       if (error) throw error;
       await logActivity(actorId, "work_order", id, "assign_vendor", {
-        vendor: vendor.vendor_name,
+        vendor: name,
+        vendor_id: vendor.vendor_id,
         cost: vendor.cost,
       });
     },
@@ -544,26 +571,82 @@ function WorkOrderDetailPage() {
                 <section className="rounded-lg border border-border bg-surface p-5 shadow-subtle">
                   <h2 className="text-base font-semibold">{t("maintenance.assignment")}</h2>
                   <div className="mt-3 space-y-4">
-                    <Field label={t("maintenance.fields.vendorName")} htmlFor="vendor-name">
-                      <Input
-                        id="vendor-name"
-                        value={vendor.vendor_name}
-                        onChange={(event) =>
-                          setVendor({ ...vendor, vendor_name: event.target.value })
-                        }
-                      />
+                    <Field label={t("maintenance.fields.vendorName")} htmlFor="vendor-picker">
+                      <div className="flex gap-2">
+                        <Combobox
+                          id="vendor-picker"
+                          options={vendorOptions}
+                          value={vendor.vendor_id}
+                          onChange={(value) => setVendor({ ...vendor, vendor_id: value })}
+                          placeholder={t("vendors.picker.placeholder")}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          aria-label={t("vendors.new")}
+                          title={t("vendors.new")}
+                          onClick={() => setAddVendorOpen(true)}
+                        >
+                          <Plus className="size-4" />
+                        </Button>
+                      </div>
                     </Field>
-                    <Field label={t("maintenance.fields.vendorPhone")} htmlFor="vendor-phone">
-                      <Input
-                        id="vendor-phone"
-                        inputMode="tel"
-                        className="numeric"
-                        value={vendor.vendor_phone}
-                        onChange={(event) =>
-                          setVendor({ ...vendor, vendor_phone: formatUsPhone(event.target.value) })
-                        }
-                      />
-                    </Field>
+                    {linkedVendor ? (
+                      <div className="space-y-1 text-sm">
+                        {linkedVendor.contact_name ? <p>{linkedVendor.contact_name}</p> : null}
+                        {linkedVendor.phone ? (
+                          <a
+                            className="numeric block hover:underline"
+                            href={`tel:${linkedVendor.phone}`}
+                          >
+                            {linkedVendor.phone}
+                          </a>
+                        ) : null}
+                        {linkedVendor.email ? (
+                          <p className="text-muted-foreground">{linkedVendor.email}</p>
+                        ) : null}
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto px-0"
+                          onClick={() => setVendor({ ...vendor, vendor_id: null })}
+                        >
+                          {t("vendors.picker.clear")}
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <Field
+                          label={t("vendors.picker.fallbackName")}
+                          htmlFor="vendor-name"
+                          hint={t("vendors.picker.fallbackHint")}
+                        >
+                          <Input
+                            id="vendor-name"
+                            value={vendor.vendor_name}
+                            onChange={(event) =>
+                              setVendor({ ...vendor, vendor_name: event.target.value })
+                            }
+                          />
+                        </Field>
+                        <Field label={t("maintenance.fields.vendorPhone")} htmlFor="vendor-phone">
+                          <Input
+                            id="vendor-phone"
+                            inputMode="tel"
+                            className="numeric"
+                            value={vendor.vendor_phone}
+                            onChange={(event) =>
+                              setVendor({
+                                ...vendor,
+                                vendor_phone: formatUsPhone(event.target.value),
+                              })
+                            }
+                          />
+                        </Field>
+                      </>
+                    )}
                     <Field
                       label={t("maintenance.fields.cost")}
                       hint={t("maintenance.fields.costHint")}
@@ -575,7 +658,7 @@ function WorkOrderDetailPage() {
                     </Field>
                     <Button
                       variant="outline"
-                      disabled={saveVendor.isPending}
+                      disabled={saveVendor.isPending || vendors.isLoading}
                       onClick={() => saveVendor.mutate(undefined)}
                     >
                       {t("actions.save")}
@@ -641,6 +724,12 @@ function WorkOrderDetailPage() {
                 </section>
               </div>
             </div>
+
+            <VendorDialog
+              open={addVendorOpen}
+              onOpenChange={setAddVendorOpen}
+              onSaved={(saved) => setVendor({ ...vendor, vendor_id: saved.id })}
+            />
 
             <Dialog
               open={lightbox !== null}

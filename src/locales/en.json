@@ -26,7 +26,8 @@
     },
     "requests": "Access requests",
     "expenses": "Expenses",
-    "serviceRequests": "Service requests"
+    "serviceRequests": "Service requests",
+    "vendors": "Vendors"
   },
   "pages": {
     "dashboard": {
@@ -1448,6 +1449,59 @@
       "amountRequired": "Enter an amount greater than zero.",
       "dateRequired": "Choose a date.",
       "descriptionRequired": "Describe the expense."
+    }
+  },
+  "vendors": {
+    "title": "Vendors",
+    "description": "The companies you hire for repairs: contacts, insurance and W-9.",
+    "new": "Add vendor",
+    "edit": "Edit vendor",
+    "saved": "Vendor saved.",
+    "errors": {
+      "companyRequired": "Enter the company name."
+    },
+    "fields": {
+      "company": "Company",
+      "contact": "Contact",
+      "phone": "Phone",
+      "email": "Email",
+      "trade": "Trade",
+      "insurance": "Insurance expires",
+      "w9": "W-9 on file",
+      "w9Short": "W-9",
+      "notes": "Notes",
+      "active": "Active"
+    },
+    "trades": {
+      "plumbing": "Plumbing",
+      "electrical": "Electrical",
+      "hvac": "HVAC",
+      "appliances": "Appliances",
+      "locksmith": "Locksmith",
+      "cleaning": "Cleaning",
+      "landscaping": "Landscaping",
+      "pest_control": "Pest control",
+      "roofing": "Roofing",
+      "painting": "Painting",
+      "general": "General repairs"
+    },
+    "insurance": {
+      "expired": "Expired {{date}}",
+      "expiring": "Expires {{date}}"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "inactive": "Inactive",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "showInactive": "Show inactive vendors",
+    "emptyTitle": "No vendors yet",
+    "emptyDescription": "Add the plumbers, electricians and other companies you call, then assign them to work orders.",
+    "picker": {
+      "placeholder": "Choose a vendor",
+      "clear": "Remove vendor",
+      "fallbackName": "Vendor (not in the directory)",
+      "fallbackHint": "Pick a vendor above, or keep this name as typed."
     }
   }
 }
