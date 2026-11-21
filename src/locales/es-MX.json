@@ -976,6 +976,8 @@
     "sending": "Enviando…",
     "sentCount": "{{count}} recibo enviado",
     "sentCount_other": "{{count}} recibos enviados",
+    "sendFailed": "{{count}} recibo no se pudo enviar por correo y no se marcó como enviado: {{names}}",
+    "sendFailed_other": "{{count}} recibos no se pudieron enviar por correo y no se marcaron como enviados: {{names}}",
     "batchTitle": "Revisa el lote de {{month}}",
     "batchSummary": "{{count}} borrador por facturar, por un total de",
     "batchSummary_other": "{{count}} borradores por facturar, por un total de",
