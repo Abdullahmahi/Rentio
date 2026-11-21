@@ -21,7 +21,7 @@
 
 
 -- ============================================================================
--- 1/27  20260919000100_schema
+-- 1/28  20260919000100_schema
 -- ============================================================================
 -- Rentio — core schema
 -- All money is numeric(12,2). Never float.
@@ -436,7 +436,7 @@ insert into public.settings (company_name, invoice_prefix) values ('Rentio', 'RE
 
 
 -- ============================================================================
--- 2/27  20260919000200_rls
+-- 2/28  20260919000200_rls
 -- ============================================================================
 -- Rentio — row level security. Deny by default, everywhere.
 --
@@ -834,7 +834,7 @@ create policy storage_tenant_write on storage.objects
 
 
 -- ============================================================================
--- 3/27  20260919000300_portal_views
+-- 3/28  20260919000300_portal_views
 -- ============================================================================
 -- The tenant portal needs the tenant's OWN unit number and building address:
 -- it is the payment reference on the Inicio screen and the whole of the
@@ -869,7 +869,7 @@ grant select on public.my_lease_details to authenticated;
 
 
 -- ============================================================================
--- 4/27  20260919000400_public_settings_address
+-- 4/28  20260919000400_public_settings_address
 -- ============================================================================
 -- The recibo PDF prints the landlord's letterhead — company name, address and
 -- bank details — and a tenant must be able to render their own receipt. The
@@ -905,7 +905,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 5/27  20260920000500_us_localization
+-- 5/28  20260920000500_us_localization
 -- ============================================================================
 -- Prompt 15 — the properties are in El Paso, Texas, not Mexico.
 -- Addresses become US addresses. No business logic changes here.
@@ -995,7 +995,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 6/27  20260920000501_drop_rfc
+-- 6/28  20260920000501_drop_rfc
 -- ============================================================================
 -- Prompt 20's cleanup, pulled forward: `rfc` was captured for Mexican tax
 -- invoicing (CFDI) that will never happen for a Texas landlord. Removing it
@@ -1025,7 +1025,7 @@ $$;
 
 
 -- ============================================================================
--- 7/27  20260920000600_us_payment_methods
+-- 7/28  20260920000600_us_payment_methods
 -- ============================================================================
 -- Prompt 16 — US payment rails.
 --
@@ -1110,7 +1110,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 8/27  20260920000700_texas_late_fees
+-- 8/28  20260920000700_texas_late_fees
 -- ============================================================================
 -- Prompt 17 — Texas Property Code §92.019 constrains residential late fees.
 --
@@ -1185,7 +1185,7 @@ alter table public.settings
 
 
 -- ============================================================================
--- 9/27  20260920000800_deposit_clock
+-- 9/28  20260920000800_deposit_clock
 -- ============================================================================
 -- Prompt 18 — Texas Property Code §92.103–92.109, security deposit returns.
 --
@@ -1253,7 +1253,7 @@ grant select on public.deposit_obligations to authenticated;
 
 
 -- ============================================================================
--- 10/27  20260920000900_texas_repairs_notices_turnover
+-- 10/28  20260920000900_texas_repairs_notices_turnover
 -- ============================================================================
 -- Prompt 19 — three smaller Texas Property Code obligations.
 
@@ -1403,7 +1403,7 @@ create policy turnover_admin_delete on public.unit_turnover_checklist
 
 
 -- ============================================================================
--- 11/27  20260920001000_late_fee_guard
+-- 11/28  20260920001000_late_fee_guard
 -- ============================================================================
 -- Prompt 17 said "do not let a manager bypass the 2-day rule anywhere in the
 -- UI". The gated "Apply late fee" button honoured it; "Add line" did not.
@@ -1476,7 +1476,7 @@ create trigger invoice_lines_enforce_late_fee_rules
 
 
 -- ============================================================================
--- 12/27  20260922001100_access_requests
+-- 12/28  20260922001100_access_requests
 -- ============================================================================
 -- A tenant with no invite needs somewhere to go.
 --
@@ -1540,7 +1540,7 @@ create policy access_requests_admin_delete on public.access_requests
 
 
 -- ============================================================================
--- 13/27  20260925001200_expenses
+-- 13/28  20260925001200_expenses
 -- ============================================================================
 -- Gastos: landlord expenses, entered by hand, one row per unit.
 -- The property is reached through units.property_id, like utility_charges.
@@ -1583,7 +1583,7 @@ create policy expenses_admin_delete on public.expenses
 
 
 -- ============================================================================
--- 14/27  20261024001300_super_admin_role
+-- 14/28  20261024001300_super_admin_role
 -- ============================================================================
 -- PortfolioAI staff: a role that spans every organization.
 --
@@ -1594,7 +1594,7 @@ alter type public.user_role add value if not exists 'super_admin';
 
 
 -- ============================================================================
--- 15/27  20261024001400_self_hosted_multi_tenant
+-- 15/28  20261024001400_self_hosted_multi_tenant
 -- ============================================================================
 -- Off Supabase, onto self-hosted Postgres + PostgREST, and multi-tenant.
 --
@@ -2131,7 +2131,7 @@ grant select on public.my_lease_details, public.public_settings to authenticated
 
 
 -- ============================================================================
--- 16/27  20261027001500_super_admin_acts_in_org
+-- 16/28  20261027001500_super_admin_acts_in_org
 -- ============================================================================
 -- super_admin: a real platform role, and a way to work inside a company.
 --
@@ -2303,7 +2303,7 @@ create trigger organizations_create_settings
 
 
 -- ============================================================================
--- 17/27  20261027001600_el_paso_dates
+-- 17/28  20261027001600_el_paso_dates
 -- ============================================================================
 -- Dates are El Paso dates. current_date was the server's UTC date, so every
 -- evening after 6pm Mountain time a receipt due "today" read as overdue,
@@ -2318,7 +2318,7 @@ $$;
 
 
 -- ============================================================================
--- 18/27  20261028002100_confirm_payment
+-- 18/28  20261028002100_confirm_payment
 -- ============================================================================
 -- B-013: confirming a payment was four browser writes with no transaction
 -- (status, allocations, invoice statuses, activity log). A failed insert or a
@@ -2427,7 +2427,7 @@ grant execute on function public.confirm_payment(uuid) to authenticated, service
 
 
 -- ============================================================================
--- 19/27  20261028002200_nightly_job
+-- 19/28  20261028002200_nightly_job
 -- ============================================================================
 -- The nightly job (execution.md A1, A3, A4; owner decisions D1, D2, D3).
 --
@@ -2828,7 +2828,7 @@ grant execute on function public.nightly() to service_role;
 
 
 -- ============================================================================
--- 20/27  20261028002300_record_and_void_payment
+-- 20/28  20261028002300_record_and_void_payment
 -- ============================================================================
 -- B-013 continued: "Record payment" and "Void" were several browser writes
 -- each (payment, allocations, invoice statuses, activity log) with no
@@ -3160,7 +3160,7 @@ grant execute on function public.void_payment(uuid, text) to authenticated, serv
 
 
 -- ============================================================================
--- 21/27  20261111000100_tenants_cannot_read_drafts
+-- 21/28  20261111000100_tenants_cannot_read_drafts
 -- ============================================================================
 -- Tenants must not see draft invoices. The nightly job drafts the month on
 -- the 1st for staff review; until staff send it, the tenant has nothing to
@@ -3177,7 +3177,7 @@ create policy invoices_select on public.invoices
 
 
 -- ============================================================================
--- 22/27  20261111000200_create_lease
+-- 22/28  20261111000200_create_lease
 -- ============================================================================
 -- A lease was five browser writes (lease, lease_tenants, turnover checklist,
 -- unit status, activity) with no transaction: a failed link insert left an
@@ -3267,7 +3267,7 @@ grant execute on function public.create_lease(uuid, jsonb, uuid, uuid[], uuid[],
 
 
 -- ============================================================================
--- 23/27  20261111000300_last_admin_and_append_only_log
+-- 23/28  20261111000300_last_admin_and_append_only_log
 -- ============================================================================
 -- Two guards the audit found missing (audit-product-2026-10-28.md §1).
 --
@@ -3316,7 +3316,7 @@ drop policy if exists admin_delete on public.activity_log;
 
 
 -- ============================================================================
--- 24/27  20261112000100_notifications
+-- 24/28  20261112000100_notifications
 -- ============================================================================
 -- Tenants never heard back (audit-product-2026-10-28.md §2.1 #8): no
 -- "payment confirmed", no "payment rejected, and why", no repair update, no
@@ -3584,7 +3584,7 @@ grant execute on function public.notification_result(uuid, text) to service_role
 
 
 -- ============================================================================
--- 25/27  20261112000200_nightly_per_org
+-- 25/28  20261112000200_nightly_per_org
 -- ============================================================================
 -- nightly() ran every company in one transaction: one bad lease in org A
 -- aborted invoicing for org B (audit-product-2026-10-28.md §4.3). Each
@@ -3640,7 +3640,7 @@ grant execute on function public.nightly() to service_role;
 
 
 -- ============================================================================
--- 26/27  20261124000100_stripe_accounts
+-- 26/28  20261124000100_stripe_accounts
 -- ============================================================================
 -- Stripe Connect (issue #8): each company connects its OWN Stripe account
 -- (Standard account, direct charges). Rent goes straight to the company's
@@ -3697,7 +3697,28 @@ create policy org_isolation on public.stripe_accounts as restrictive for all to 
 
 
 -- ============================================================================
--- 27/27  DEMO DATA
+-- 27/28  20261124000110_stripe_oauth_states
+-- ============================================================================
+-- Stripe Connect OAuth state is single-use and bound to the admin who
+-- started it (security review on PR #70). The signed state carries a nonce;
+-- the nonce lives here until the callback consumes it (delete ... returning),
+-- so a state cannot be replayed or finished by another user of the company.
+-- Server routes only (service connection): no grant to anon/authenticated.
+
+create table public.stripe_oauth_states (
+  nonce       text primary key,
+  org_id      uuid not null references public.organizations (id) on delete cascade,
+  profile_id  uuid not null references public.profiles (id) on delete cascade,
+  expires_at  timestamptz not null,
+  created_at  timestamptz not null default now()
+);
+
+alter table public.stripe_oauth_states enable row level security;
+revoke all on public.stripe_oauth_states from anon, authenticated;
+
+
+-- ============================================================================
+-- 28/28  DEMO DATA
 -- ============================================================================
 -- Rentio — demo data (El Paso, Texas).
 -- Safe to re-run: it clears the demo tables first.

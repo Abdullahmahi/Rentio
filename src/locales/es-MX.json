@@ -1467,6 +1467,8 @@
     "disconnected": "Stripe desconectado.",
     "connected": "Stripe conectado.",
     "connectError": "La conexión con Stripe no se completó. Intenta de nuevo.",
+    "alreadyConnected": "Ya hay una cuenta de Stripe conectada. Un administrador debe desconectarla primero.",
+    "adminOnly": "Solo un administrador de la empresa puede conectar o desconectar Stripe.",
     "pendingHint": "Stripe todavía necesita información antes de que esta cuenta pueda recibir pagos. Termina la configuración en tu panel de Stripe y luego actualiza el estado.",
     "accountId": "Cuenta",
     "payouts": "Depósitos habilitados",

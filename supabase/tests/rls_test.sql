@@ -941,6 +941,22 @@ begin
   select count(*) into n from public.stripe_accounts where stripe_account_id = 'acct_b';
   perform pg_temp.check('org B sees only its own stripe account', n = 1
     and (select count(*) from public.stripe_accounts) = 1);
+
+  -- OAuth nonces (PR #70 review): server only, even for the company's admin.
+  perform pg_temp.act_as(admin_id);
+  begin
+    perform count(*) from public.stripe_oauth_states;
+    perform pg_temp.check('admin cannot read oauth nonces', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('admin cannot read oauth nonces', true);
+  end;
+  begin
+    insert into public.stripe_oauth_states (nonce, org_id, profile_id, expires_at)
+      values ('planted', org_a, admin_id, now() + interval '1 hour');
+    perform pg_temp.check('admin cannot plant an oauth nonce', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('admin cannot plant an oauth nonce', true);
+  end;
   reset role;
 end;
 $$;
