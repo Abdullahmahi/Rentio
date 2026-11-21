@@ -1449,5 +1449,35 @@
       "dateRequired": "Elige una fecha.",
       "descriptionRequired": "Describe el gasto."
     }
+  },
+  "stripe": {
+    "title": "Pagos en línea (Stripe)",
+    "description": "Conecta la cuenta de Stripe de tu empresa para que los inquilinos paguen la renta con tarjeta o transferencia bancaria. El dinero llega directo a tu cuenta de Stripe; Rentio nunca lo retiene.",
+    "status": {
+      "not_connected": "Sin conectar",
+      "pending": "Verificación pendiente",
+      "ready": "Lista"
+    },
+    "connect": "Conectar Stripe",
+    "redirecting": "Te llevamos a Stripe…",
+    "refresh": "Actualizar estado",
+    "refreshed": "Estado actualizado.",
+    "disconnect": "Desconectar",
+    "disconnectConfirm": "¿Desconectar Stripe? Los inquilinos ya no podrán pagar en línea. Tu cuenta de Stripe no se modifica.",
+    "disconnected": "Stripe desconectado.",
+    "connected": "Stripe conectado.",
+    "connectError": "La conexión con Stripe no se completó. Intenta de nuevo.",
+    "pendingHint": "Stripe todavía necesita información antes de que esta cuenta pueda recibir pagos. Termina la configuración en tu panel de Stripe y luego actualiza el estado.",
+    "accountId": "Cuenta",
+    "payouts": "Depósitos habilitados",
+    "yes": "Sí",
+    "no": "No",
+    "cardFee": {
+      "title": "Comisión por pago con tarjeta",
+      "label": "Agregar una comisión cuando el inquilino paga con tarjeta",
+      "hint": "Trasladar el costo de la tarjeta al inquilino es una decisión legal tuya: las reglas de las redes de tarjetas y la ley estatal fijan lo permitido, y Rentio no lo verifica por ti. Las transferencias bancarias (ACH) nunca llevan comisión.",
+      "percent": "Comisión (porcentaje del monto)",
+      "saved": "Comisión guardada."
+    }
   }
 }

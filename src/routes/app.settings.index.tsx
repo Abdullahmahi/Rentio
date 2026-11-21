@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Download, Moon, Shield, Sun, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { StripeConnectCard } from "@/components/rentio/stripe-connect-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,6 +45,11 @@ import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 
 export const Route = createFileRoute("/app/settings/")({
+  // /api/stripe/callback lands here with ?stripe=connected|error.
+  validateSearch: (search: Record<string, unknown>): { stripe?: "connected" | "error" } =>
+    search["stripe"] === "connected" || search["stripe"] === "error"
+      ? { stripe: search["stripe"] }
+      : {},
   head: () => ({
     meta: [
       { title: pageTitle(i18n.t("pages.settings.title")) },
@@ -162,6 +169,16 @@ function SettingsPage() {
     document.documentElement.classList.toggle("dark", stored);
     setPalette(readPalette());
   }, []);
+
+  // Back from Stripe's OAuth page: say how it went, once, then drop the param.
+  const stripeResult = Route.useSearch({ select: (search) => search.stripe });
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!stripeResult) return;
+    if (stripeResult === "connected") toast.success(t("stripe.connected"));
+    else toast.error(t("stripe.connectError"));
+    void navigate({ to: "/app/settings", search: {}, replace: true });
+  }, [stripeResult, navigate, t]);
 
   const [palette, setPalette] = useState<PaletteId>("harbor");
   const choosePalette = (id: PaletteId) => {
@@ -503,6 +520,7 @@ function SettingsPage() {
                 {t("actions.save")}
               </Button>
             </form>
+            <StripeConnectCard />
           </TabsContent>
 
           {/* ------------------------------------------------- recibos */}

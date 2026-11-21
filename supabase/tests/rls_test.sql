@@ -849,4 +849,100 @@ begin
 end;
 $$;
 
+-- ============================================ stripe_accounts (issue #8)
+-- The server writes the account; staff may only flip the card fee; a
+-- tenant never sees the table; org B never sees org A.
+do $$
+declare
+  admin_id   uuid := '00000000-0000-0000-0000-0000000000a1';
+  manager_id uuid := '00000000-0000-0000-0000-0000000000a2';
+  tenant_a   uuid := '00000000-0000-0000-0000-0000000000b1';
+  admin_b    uuid := '00000000-0000-0000-0000-0000000000c1';
+  org_a uuid := (select id from public.organizations order by created_at limit 1);
+  org_b uuid := (select org_id from public.profiles where id = admin_b);
+  n int;
+begin
+  -- the server connected both companies (service connection, no caller)
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  insert into public.stripe_accounts (org_id, stripe_account_id, charges_enabled, status) values
+    (org_a, 'acct_a', true, 'ready'), (org_b, 'acct_b', false, 'pending');
+  begin
+    insert into public.stripe_accounts (org_id, stripe_account_id) values (org_a, 'acct_a2');
+    perform pg_temp.check('one stripe account per organization', false);
+  exception when unique_violation then
+    perform pg_temp.check('one stripe account per organization', true);
+  end;
+
+  set local role authenticated;
+  perform pg_temp.act_as(admin_id);
+  select count(*) into n from public.stripe_accounts where stripe_account_id = 'acct_a';
+  perform pg_temp.check('org A admin reads its own stripe account', n = 1);
+  select count(*) into n from public.stripe_accounts;
+  perform pg_temp.check('org A cannot read org B stripe account', n = 1);
+  update public.stripe_accounts set card_fee_enabled = true, card_fee_percent = 3 where org_id = org_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('admin CAN set the card fee', n = 1);
+  begin
+    update public.stripe_accounts set card_fee_percent = 9 where org_id = org_a;
+    perform pg_temp.check('card fee percent is capped', false);
+  exception when check_violation then
+    perform pg_temp.check('card fee percent is capped', true);
+  end;
+  begin
+    update public.stripe_accounts set stripe_account_id = 'acct_evil' where org_id = org_a;
+    perform pg_temp.check('admin cannot rewrite the stripe account id', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('admin cannot rewrite the stripe account id', true);
+  end;
+  begin
+    update public.stripe_accounts set status = 'ready', charges_enabled = true where org_id = org_a;
+    perform pg_temp.check('admin cannot rewrite the stripe account status', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('admin cannot rewrite the stripe account status', true);
+  end;
+  begin
+    insert into public.stripe_accounts (stripe_account_id) values ('acct_planted');
+    perform pg_temp.check('staff cannot insert a stripe account', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot insert a stripe account', true);
+  end;
+  begin
+    delete from public.stripe_accounts where org_id = org_a;
+    perform pg_temp.check('staff cannot delete a stripe account', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('staff cannot delete a stripe account', true);
+  end;
+  update public.stripe_accounts set card_fee_enabled = true where org_id = org_b;
+  get diagnostics n = row_count;
+  perform pg_temp.check('org A cannot update org B stripe account', n = 0);
+
+  perform pg_temp.act_as(manager_id);
+  select count(*) into n from public.stripe_accounts;
+  perform pg_temp.check('manager reads the stripe account', n = 1);
+  update public.stripe_accounts set card_fee_enabled = false where org_id = org_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('manager CAN set the card fee (owner rule: staff do everything)', n = 1);
+  begin
+    update public.stripe_accounts set stripe_account_id = 'acct_evil' where org_id = org_a;
+    perform pg_temp.check('manager cannot rewrite the stripe account id', false);
+  exception when insufficient_privilege then
+    perform pg_temp.check('manager cannot rewrite the stripe account id', true);
+  end;
+
+  perform pg_temp.act_as(tenant_a);
+  select count(*) into n from public.stripe_accounts;
+  perform pg_temp.check('tenant cannot read stripe accounts', n = 0);
+  update public.stripe_accounts set card_fee_enabled = false where org_id = org_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('tenant cannot update stripe accounts', n = 0);
+
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.stripe_accounts where stripe_account_id = 'acct_b';
+  perform pg_temp.check('org B sees only its own stripe account', n = 1
+    and (select count(*) from public.stripe_accounts) = 1);
+  reset role;
+end;
+$$;
+
 rollback;
