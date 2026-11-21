@@ -1438,7 +1438,9 @@
     "emptyDescription": "Registra lo que gastas en cada unidad para compararlo con la renta en Reportes.",
     "columns": {
       "date": "Fecha",
-      "description": "Descripción"
+      "description": "Descripción",
+      "category": "Categoría",
+      "vendor": "Proveedor"
     },
     "summary": {
       "total": "Total del mes",
@@ -1449,6 +1451,27 @@
       "amountRequired": "Escribe un monto mayor a cero.",
       "dateRequired": "Elige una fecha.",
       "descriptionRequired": "Describe el gasto."
+    },
+    "allCategories": "Todas las categorías",
+    "categories": {
+      "repairs_maintenance": "Reparaciones y mantenimiento",
+      "utilities": "Servicios",
+      "insurance": "Seguros",
+      "taxes": "Impuestos",
+      "management": "Administración",
+      "supplies": "Materiales",
+      "cleaning": "Limpieza",
+      "landscaping": "Jardinería",
+      "legal_professional": "Legales y profesionales",
+      "capital_improvement": "Mejoras de capital",
+      "other": "Otro"
+    },
+    "fromWorkOrder": {
+      "create": "Crear gasto",
+      "hint": "Registra el costo de esta orden de trabajo como gasto de su unidad. Revisa el monto y la fecha antes.",
+      "created": "Gasto creado.",
+      "done": "Gasto creado ({{date}}).",
+      "view": "Ver gastos"
     }
   },
   "vendors": {

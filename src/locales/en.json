@@ -1438,7 +1438,9 @@
     "emptyDescription": "Record what you spend on each unit to see it against rent income in Reports.",
     "columns": {
       "date": "Date",
-      "description": "Description"
+      "description": "Description",
+      "category": "Category",
+      "vendor": "Vendor"
     },
     "summary": {
       "total": "Total this month",
@@ -1449,6 +1451,27 @@
       "amountRequired": "Enter an amount greater than zero.",
       "dateRequired": "Choose a date.",
       "descriptionRequired": "Describe the expense."
+    },
+    "allCategories": "All categories",
+    "categories": {
+      "repairs_maintenance": "Repairs & maintenance",
+      "utilities": "Utilities",
+      "insurance": "Insurance",
+      "taxes": "Taxes",
+      "management": "Management",
+      "supplies": "Supplies",
+      "cleaning": "Cleaning",
+      "landscaping": "Landscaping",
+      "legal_professional": "Legal & professional",
+      "capital_improvement": "Capital improvement",
+      "other": "Other"
+    },
+    "fromWorkOrder": {
+      "create": "Create expense",
+      "hint": "Records this work order's cost as an expense on its unit. Check the amount and date first.",
+      "created": "Expense created.",
+      "done": "Expense created ({{date}}).",
+      "view": "View expenses"
     }
   },
   "vendors": {
