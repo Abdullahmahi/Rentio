@@ -1449,5 +1449,35 @@
       "dateRequired": "Choose a date.",
       "descriptionRequired": "Describe the expense."
     }
+  },
+  "stripe": {
+    "title": "Online payments (Stripe)",
+    "description": "Connect your company's Stripe account so tenants can pay rent by card or bank transfer. Money goes straight to your Stripe account; Rentio never holds it.",
+    "status": {
+      "not_connected": "Not connected",
+      "pending": "Pending verification",
+      "ready": "Ready"
+    },
+    "connect": "Connect Stripe",
+    "redirecting": "Taking you to Stripe…",
+    "refresh": "Refresh status",
+    "refreshed": "Status updated.",
+    "disconnect": "Disconnect",
+    "disconnectConfirm": "Disconnect Stripe? Tenants will no longer be able to pay online. Your Stripe account itself is not affected.",
+    "disconnected": "Stripe disconnected.",
+    "connected": "Stripe connected.",
+    "connectError": "The Stripe connection didn't complete. Try again.",
+    "pendingHint": "Stripe still needs information before this account can take payments. Finish setup in your Stripe dashboard, then refresh the status.",
+    "accountId": "Account",
+    "payouts": "Payouts enabled",
+    "yes": "Yes",
+    "no": "No",
+    "cardFee": {
+      "title": "Card convenience fee",
+      "label": "Add a fee when a tenant pays by card",
+      "hint": "Passing card costs on to tenants is your legal call: card-network rules and state law set what is allowed, and Rentio does not check it for you. Bank transfers (ACH) never carry a fee.",
+      "percent": "Fee (percent of the amount)",
+      "saved": "Fee setting saved."
+    }
   }
 }

@@ -44,6 +44,7 @@ import { Route as ApiFnSendTenantInviteRouteImport } from './routes/api.fn.send-
 import { Route as ApiFnSubmitAccessRequestRouteImport } from './routes/api.fn.submit-access-request'
 import { Route as ApiJobsNightlyRouteImport } from './routes/api.jobs.nightly'
 import { Route as ApiStorageActionRouteImport } from './routes/api.storage.$action'
+import { Route as ApiStripeActionRouteImport } from './routes/api.stripe.$action'
 import { Route as AppContractsIndexRouteImport } from './routes/app.contracts.index'
 import { Route as AppContractsIdRouteImport } from './routes/app.contracts.$id'
 import { Route as AppExpensesIndexRouteImport } from './routes/app.expenses.index'
@@ -248,6 +249,11 @@ const ApiStorageActionRoute = ApiStorageActionRouteImport.update({
   path: '/api/storage/$action',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStripeActionRoute = ApiStripeActionRouteImport.update({
+  id: '/api/stripe/$action',
+  path: '/api/stripe/$action',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppContractsIndexRoute = AppContractsIndexRouteImport.update({
   id: '/contracts/',
   path: '/contracts/',
@@ -410,6 +416,7 @@ export interface FileRoutesByFullPath {
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
+  '/api/stripe/$action': typeof ApiStripeActionRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
   '/app/properties/$id': typeof AppPropertiesIdRoute
@@ -470,6 +477,7 @@ export interface FileRoutesByTo {
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
+  '/api/stripe/$action': typeof ApiStripeActionRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
   '/app/properties/$id': typeof AppPropertiesIdRoute
@@ -533,6 +541,7 @@ export interface FileRoutesById {
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
+  '/api/stripe/$action': typeof ApiStripeActionRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
   '/app/properties/$id': typeof AppPropertiesIdRoute
@@ -597,6 +606,7 @@ export interface FileRouteTypes {
     | '/api/fn/submit-access-request'
     | '/api/jobs/nightly'
     | '/api/storage/$action'
+    | '/api/stripe/$action'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
     | '/app/properties/$id'
@@ -657,6 +667,7 @@ export interface FileRouteTypes {
     | '/api/fn/submit-access-request'
     | '/api/jobs/nightly'
     | '/api/storage/$action'
+    | '/api/stripe/$action'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
     | '/app/properties/$id'
@@ -719,6 +730,7 @@ export interface FileRouteTypes {
     | '/api/fn/submit-access-request'
     | '/api/jobs/nightly'
     | '/api/storage/$action'
+    | '/api/stripe/$action'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
     | '/app/properties/$id'
@@ -777,6 +789,7 @@ export interface RootRouteChildren {
   ApiFnSubmitAccessRequestRoute: typeof ApiFnSubmitAccessRequestRoute
   ApiJobsNightlyRoute: typeof ApiJobsNightlyRoute
   ApiStorageActionRoute: typeof ApiStorageActionRoute
+  ApiStripeActionRoute: typeof ApiStripeActionRoute
   RestV1SplatRoute: typeof RestV1SplatRoute
 }
 
@@ -1025,6 +1038,13 @@ declare module '@tanstack/react-router' {
       path: '/api/storage/$action'
       fullPath: '/api/storage/$action'
       preLoaderRoute: typeof ApiStorageActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe/$action': {
+      id: '/api/stripe/$action'
+      path: '/api/stripe/$action'
+      fullPath: '/api/stripe/$action'
+      preLoaderRoute: typeof ApiStripeActionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/contracts/': {
@@ -1311,6 +1331,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFnSubmitAccessRequestRoute: ApiFnSubmitAccessRequestRoute,
   ApiJobsNightlyRoute: ApiJobsNightlyRoute,
   ApiStorageActionRoute: ApiStorageActionRoute,
+  ApiStripeActionRoute: ApiStripeActionRoute,
   RestV1SplatRoute: RestV1SplatRoute,
 }
 export const routeTree = rootRouteImport
