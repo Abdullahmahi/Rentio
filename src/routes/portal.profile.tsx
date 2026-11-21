@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { LogOut, Moon, Sun } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { CarFront, ChevronRight, LogOut, Moon, Sun } from "lucide-react";
 import { useClerk } from "@clerk/tanstack-react-start";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -168,6 +168,15 @@ function PortalProfile() {
             {t("actions.save")}
           </Button>
         </form>
+
+        <Link
+          to="/portal/vehicles"
+          className="flex min-h-12 items-center gap-3 rounded-lg border border-border bg-surface p-5 hover:bg-muted"
+        >
+          <CarFront className="size-5 text-muted-foreground" />
+          <span className="flex-1 text-base font-semibold">{t("vehicles.title")}</span>
+          <ChevronRight className="size-4 text-muted-foreground" />
+        </Link>
 
         {/* Password, email and Google sign-in all live in Clerk's own panel. */}
         <section className="space-y-4 rounded-lg border border-border bg-surface p-5">

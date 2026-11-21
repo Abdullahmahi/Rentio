@@ -1449,5 +1449,32 @@
       "dateRequired": "Elige una fecha.",
       "descriptionRequired": "Describe el gasto."
     }
+  },
+  "vehicles": {
+    "title": "Vehículos",
+    "description": "Los autos que estacionas aquí, para que la oficina sepa que son tuyos.",
+    "staffHint": "Los registran los residentes en su portal.",
+    "new": "Agregar vehículo",
+    "edit": "Editar vehículo",
+    "empty": "Aún no hay vehículos",
+    "emptyDescription": "Agrega los autos que estacionas en la propiedad.",
+    "none": "No hay vehículos registrados.",
+    "saved": "Vehículo guardado",
+    "removed": "Vehículo eliminado",
+    "remove": "Eliminar",
+    "removeTitle": "¿Eliminar {{plate}}?",
+    "removeDescription": "La oficina ya no verá este vehículo.",
+    "fields": {
+      "plate": "Placa",
+      "state": "Estado",
+      "make": "Marca",
+      "model": "Modelo",
+      "color": "Color",
+      "notes": "Notas"
+    },
+    "errors": {
+      "plateRequired": "Escribe la placa.",
+      "stateInvalid": "Usa la clave de dos letras del estado, como TX."
+    }
   }
 }

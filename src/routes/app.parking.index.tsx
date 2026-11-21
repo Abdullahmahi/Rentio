@@ -27,6 +27,7 @@ import { db } from "@/lib/db";
 import type { Tables } from "@/lib/database.types";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
+import { useVehicles, vehiclePlate, vehiclesOfLease } from "@/lib/vehicles";
 
 export const Route = createFileRoute("/app/parking/")({
   head: () => ({
@@ -55,6 +56,7 @@ function statusOf(space: Space): keyof typeof STATUS_VARIANT {
 function ParkingPage() {
   const { t } = useTranslation();
   const portfolio = usePortfolio();
+  const vehicles = useVehicles();
   const actorId = useActorId();
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -299,6 +301,18 @@ function ParkingPage() {
                               : t("parking.unknownLease")}
                           </p>
                         ) : null}
+                        {lease && vehicles.data
+                          ? vehiclesOfLease(vehicles.data, lease).map((vehicle) => (
+                              <p
+                                key={vehicle.id}
+                                className="numeric mt-1 truncate text-xs text-muted-foreground"
+                                title={t("vehicles.title")}
+                              >
+                                <CarFront className="mr-1 inline size-3" />
+                                {vehiclePlate(vehicle)}
+                              </p>
+                            ))
+                          : null}
 
                         <div className="mt-4">
                           {status === "asignado" ? (

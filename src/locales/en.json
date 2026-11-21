@@ -1449,5 +1449,32 @@
       "dateRequired": "Choose a date.",
       "descriptionRequired": "Describe the expense."
     }
+  },
+  "vehicles": {
+    "title": "Vehicles",
+    "description": "The cars you park here, so the office knows they are yours.",
+    "staffHint": "Registered by the residents in their portal.",
+    "new": "Add vehicle",
+    "edit": "Edit vehicle",
+    "empty": "No vehicles yet",
+    "emptyDescription": "Add the cars you park at the property.",
+    "none": "No vehicles registered.",
+    "saved": "Vehicle saved",
+    "removed": "Vehicle removed",
+    "remove": "Remove",
+    "removeTitle": "Remove {{plate}}?",
+    "removeDescription": "The office will no longer see this vehicle.",
+    "fields": {
+      "plate": "License plate",
+      "state": "State",
+      "make": "Make",
+      "model": "Model",
+      "color": "Color",
+      "notes": "Notes"
+    },
+    "errors": {
+      "plateRequired": "Enter the license plate.",
+      "stateInvalid": "Use the two-letter state code, like TX."
+    }
   }
 }
