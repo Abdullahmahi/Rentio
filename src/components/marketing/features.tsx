@@ -42,7 +42,7 @@ export function Features() {
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
         <Container>
           <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-            <h2 className="text-balance font-heading text-2xl font-medium !leading-snug md:text-4xl lg:text-5xl">
+            <h2 className="text-balance font-heading text-2xl font-semibold tracking-tight !leading-snug md:text-4xl lg:text-5xl">
               {t("features.headingLead")}{" "}
               <span className="font-subheading italic">{t("features.headingEmphasis")}</span>
             </h2>

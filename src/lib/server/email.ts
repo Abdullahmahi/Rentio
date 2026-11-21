@@ -51,7 +51,7 @@ export const escapeHtml = (value: string | null | undefined) =>
 /** Shared email chrome. `lang` follows the recipient's language. */
 export function emailLayout(title: string, body: string, companyName: string, lang = "en") {
   const company = escapeHtml(companyName);
-  return `<!doctype html><html lang="${lang}"><body style="margin:0;background:#FAF9F7;font-family:Inter,Helvetica,Arial,sans-serif;color:#1C1A17">
+  return `<!doctype html><html lang="${lang}"><body style="margin:0;background:#FAF9F7;font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;color:#1C1A17">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px">
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #E7E3DD;border-radius:10px">

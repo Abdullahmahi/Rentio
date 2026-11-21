@@ -5,6 +5,7 @@
 import { expect, test } from "bun:test";
 import {
   allocateOldestFirst,
+  cashByMonth,
   dueDateFor,
   periodKey,
   planMonthlyInvoices,
@@ -306,4 +307,15 @@ test("a lease that starts mid-month is not due before move-in", () => {
     `${PERIOD.slice(0, 8)}27`,
   );
   expect(plan.toCreate.find((row) => row.leaseId === "l1")?.dueDate).toBe(dueDateFor(PERIOD, 1));
+});
+
+test("cashByMonth buckets cash by the month it was paid, not the invoice period (D5)", () => {
+  const cash = cashByMonth([
+    { amount: "1200.50", paid_at: "2026-11-01" },
+    { amount: 800, paid_at: "2026-11-30" },
+    { amount: 500, paid_at: "2026-10-31" },
+  ]);
+  expect(cash.get("2026-11-01")).toBe(2000.5);
+  expect(cash.get("2026-10-01")).toBe(500);
+  expect(cash.get("2026-12-01")).toBeUndefined();
 });
