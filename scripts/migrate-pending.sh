@@ -56,5 +56,7 @@ apply 20261121000100_automations_per_org.sql \
   "to_regprocedure('public.nightly(uuid)') is not null"
 apply 20261121000200_tenant_work_order_insert.sql \
   "exists (select 1 from pg_trigger where tgname = 'guard_tenant_work_order_insert')"
+apply 20261121000300_staff_can_void_payments.sql \
+  "exists (select 1 from pg_proc p where proname = 'void_payment' and pg_get_functiondef(p.oid) like '%Only staff can void%')"
 
 echo "done"

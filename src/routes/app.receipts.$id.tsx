@@ -25,7 +25,6 @@ import {
   PaymentStatusBadge,
   effectiveInvoiceStatus,
 } from "@/components/rentio/status";
-import { AdminOnly } from "@/lib/auth";
 import { formatMoney, formatDate } from "@/lib/format";
 import { MINIMUM_GRACE_DAYS, lateFeeAmount, lateFeeEligibility } from "@/lib/late-fee";
 import { formatPeriod } from "@/components/rentio/month-selector";
@@ -346,11 +345,9 @@ function ReceiptDetailPage() {
                     {t("receipts.downloadPdf")}
                   </Button>
                   {!isCancelled ? (
-                    <AdminOnly>
-                      <Button variant="outline" onClick={() => setCancelOpen(true)}>
-                        {t("receipts.cancel")}
-                      </Button>
-                    </AdminOnly>
+                    <Button variant="outline" onClick={() => setCancelOpen(true)}>
+                      {t("receipts.cancel")}
+                    </Button>
                   ) : null}
                 </div>
               }
@@ -656,7 +653,7 @@ function ReceiptDetailPage() {
               </Field>
             </FormDialog>
 
-            {/* ------------------------------------------- cancel (admin) */}
+            {/* ------------------------------------------- cancel (staff) */}
             <FormDialog
               open={cancelOpen}
               onOpenChange={(next) => {

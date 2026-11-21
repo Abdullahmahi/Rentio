@@ -287,13 +287,11 @@ begin
   select count(*) into n from public.unit_turnover_checklist;
   perform pg_temp.check('staff CAN read the turnover checklist', n > 0);
 
+  -- Owner rule (#50): staff do everything in their company, voids included.
   select id into pay_id from public.payments where status = 'confirmado' limit 1;
-  begin
-    update public.payments set status = 'cancelado', void_reason = 'test' where id = pay_id;
-    perform pg_temp.check('manager cannot void a payment', false);
-  exception when insufficient_privilege or check_violation then
-    perform pg_temp.check('manager cannot void a payment', true);
-  end;
+  update public.payments set status = 'cancelado', void_reason = 'test' where id = pay_id;
+  get diagnostics n = row_count;
+  perform pg_temp.check('manager CAN void a payment', n = 1);
 
   begin
     delete from public.properties where true;
@@ -304,6 +302,7 @@ begin
   end;
 
   perform pg_temp.act_as(admin_id);
+  select id into pay_id from public.payments where status = 'confirmado' limit 1;
   update public.payments set status = 'cancelado', void_reason = 'test' where id = pay_id;
   get diagnostics n = row_count;
   perform pg_temp.check('admin CAN void a payment', n = 1);
@@ -632,18 +631,15 @@ begin
   result := public.record_payment(pay.lease_id, 10, current_date, 'cash');
   perform pg_temp.check('manager CAN record a payment', exists (
     select 1 from public.payments where id = (result ->> 'payment_id')::uuid and status = 'confirmado'));
-  begin
-    perform public.void_payment(pay.id, 'manager');
-    perform pg_temp.check('manager cannot void a payment (rpc)', false);
-  exception when insufficient_privilege then
-    perform pg_temp.check('manager cannot void a payment (rpc)', true);
-  end;
-
-  perform pg_temp.act_as(admin_id);
-  perform public.void_payment(pay.id, 'rls test');
-  perform pg_temp.check('admin CAN void a payment (rpc)',
+  perform public.void_payment(pay.id, 'manager');
+  perform pg_temp.check('manager CAN void a payment (rpc)',
     (select status from public.payments where id = pay.id) = 'cancelado'
     and not exists (select 1 from public.payment_allocations where payment_id = pay.id));
+
+  perform pg_temp.act_as(admin_id);
+  perform public.void_payment((result ->> 'payment_id')::uuid, 'rls test');
+  perform pg_temp.check('admin CAN void a payment (rpc)',
+    (select status from public.payments where id = (result ->> 'payment_id')::uuid) = 'cancelado');
   begin
     perform public.void_payment(pay.id, 'twice');
     perform pg_temp.check('second void is refused', false);

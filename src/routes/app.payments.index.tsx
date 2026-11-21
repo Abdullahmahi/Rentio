@@ -37,7 +37,6 @@ import { MoneyText } from "@/components/rentio/money-text";
 import { PageHeader } from "@/components/rentio/page-header";
 import { CardsSkeleton, QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { PaymentStatusBadge } from "@/components/rentio/status";
-import { AdminOnly } from "@/lib/auth";
 import { formatDate, formatMoney, todayIso } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { allocateOldestFirst, type OpenInvoice } from "@/lib/invoicing";
@@ -507,19 +506,17 @@ function PaymentsPage() {
       header: "",
       cell: (row) =>
         row.status === "confirmado" ? (
-          <AdminOnly>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={(event) => {
-                event.stopPropagation();
-                setVoidFor(row);
-                setReason("");
-              }}
-            >
-              {t("payments.void")}
-            </Button>
-          </AdminOnly>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(event) => {
+              event.stopPropagation();
+              setVoidFor(row);
+              setReason("");
+            }}
+          >
+            {t("payments.void")}
+          </Button>
         ) : null,
     },
   ];
@@ -1073,7 +1070,7 @@ function PaymentsPage() {
         </Field>
       </FormDialog>
 
-      {/* -------------------------------------------------- void (admin) */}
+      {/* -------------------------------------------------- void (staff) */}
       <FormDialog
         open={voidFor !== null}
         onOpenChange={(next) => {
