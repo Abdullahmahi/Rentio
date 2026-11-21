@@ -54,5 +54,7 @@ apply 20261113000100_automations.sql \
   "exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'job_runs')"
 apply 20261121000100_automations_per_org.sql \
   "to_regprocedure('public.nightly(uuid)') is not null"
+apply 20261121000200_tenant_work_order_insert.sql \
+  "exists (select 1 from pg_trigger where tgname = 'guard_tenant_work_order_insert')"
 
 echo "done"
