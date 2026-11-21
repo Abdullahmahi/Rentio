@@ -37,14 +37,14 @@ export function RequireRole({
   allow,
   children,
 }: {
-  allow: "staff" | "tenant";
+  allow: "staff" | "tenant" | "applicant";
   children: ReactNode;
 }) {
   const { loading, user, role, isStaff } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
-  const permitted = allow === "staff" ? isStaff : role === "tenant";
+  const permitted = allow === "staff" ? isStaff : role === allow;
 
   useEffect(() => {
     if (loading) return;

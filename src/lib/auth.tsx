@@ -65,7 +65,9 @@ export const clerkAppearance = {
 
 /** Where a role belongs when it lands on the wrong shell. */
 export function homeFor(role: Role | null) {
-  return role === "tenant" ? "/portal" : "/app";
+  if (role === "tenant") return "/portal";
+  if (role === "applicant") return "/apply/status";
+  return "/app";
 }
 
 /**

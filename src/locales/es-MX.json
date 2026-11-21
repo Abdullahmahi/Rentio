@@ -26,7 +26,8 @@
     },
     "requests": "Solicitudes de acceso",
     "expenses": "Gastos",
-    "serviceRequests": "Solicitudes de servicio"
+    "serviceRequests": "Solicitudes de servicio",
+    "applications": "Solicitudes"
   },
   "pages": {
     "dashboard": {
@@ -1588,6 +1589,155 @@
       "noSigners": "Agrega al menos un firmante.",
       "nameEmail": "Cada firmante necesita nombre completo y un correo válido.",
       "unplaced": "Coloca un lugar de firma para: {{names}}."
+    }
+  },
+  "applications": {
+    "title": "Solicitudes",
+    "description": "Solicitudes de renta de prospectos. Revisa, registra la verificación de antecedentes y aprueba o rechaza.",
+    "status": {
+      "draft": "Borrador",
+      "submitted": "Enviada",
+      "under_review": "En revisión",
+      "approved": "Aprobada",
+      "denied": "Rechazada",
+      "lease_sent": "Contrato enviado"
+    },
+    "statusHint": {
+      "draft": "Aún no la envías. Completa los pasos y envíala.",
+      "submitted": "La oficina recibió tu solicitud.",
+      "under_review": "La oficina está revisando tu solicitud.",
+      "approved": "Aprobada. La oficina te enviará el contrato para firmar.",
+      "denied": "La oficina no pudo aprobar esta solicitud.",
+      "lease_sent": "Tu contrato está listo para firmar. Revisa tu correo."
+    },
+    "fields": {
+      "fullName": "Nombre completo",
+      "email": "Correo",
+      "phone": "Teléfono",
+      "dateOfBirth": "Fecha de nacimiento",
+      "currentAddress": "Domicilio actual",
+      "desiredMoveIn": "Fecha deseada de mudanza",
+      "employer": "Empleador",
+      "jobTitle": "Puesto",
+      "employerPhone": "Teléfono del empleador",
+      "employmentStart": "Trabajas ahí desde",
+      "monthlyIncome": "Ingreso mensual (antes de impuestos)",
+      "notes": "Algo más que la oficina deba saber",
+      "relationship": "Parentesco",
+      "address": "Domicilio",
+      "landlordName": "Nombre del arrendador",
+      "landlordPhone": "Teléfono del arrendador",
+      "rent": "Renta mensual",
+      "from": "Desde",
+      "to": "Hasta",
+      "unit": "Unidad",
+      "kind": "Tipo de documento",
+      "file": "Archivo"
+    },
+    "kinds": {
+      "id": "Identificación con foto",
+      "pay_stub": "Talón de pago",
+      "other": "Otro"
+    },
+    "steps": {
+      "personal": "Sobre ti",
+      "work": "Trabajo e ingresos",
+      "history": "Historial de renta",
+      "coApplicants": "Cosolicitantes",
+      "documents": "Documentos",
+      "review": "Revisar y enviar"
+    },
+    "stepOf": "Paso {{current}} de {{total}}",
+    "apply": {
+      "title": "Solicitar una renta",
+      "description": "Crea una cuenta o inicia sesión con tu correo para empezar. Tus respuestas se guardan conforme avanzas.",
+      "signInInstead": "¿Ya tienes cuenta? Inicia sesión",
+      "signUpInstead": "¿Eres nuevo? Crea una cuenta",
+      "starting": "Abriendo tu solicitud…",
+      "invalidLink": "Este enlace de solicitud no es válido o fue desactivado. Pide uno nuevo a la oficina.",
+      "accountExists": "Este correo ya tiene una cuenta de Rentio. Inicia sesión con ella o usa otro correo para solicitar.",
+      "otherCompany": "Tu cuenta ya está solicitando con otra empresa. Usa otro correo para esta.",
+      "emailNotVerified": "Primero verifica tu correo y vuelve a intentarlo.",
+      "failed": "No pudimos abrir tu solicitud. Inténtalo de nuevo.",
+      "oneEmail": "Un correo es una cuenta de Rentio."
+    },
+    "form": {
+      "next": "Guardar y continuar",
+      "back": "Atrás",
+      "save": "Guardar",
+      "saved": "Guardado",
+      "submit": "Enviar solicitud",
+      "submitted": "Solicitud enviada",
+      "reviewHint": "Revisa tus respuestas. Después de enviarla ya no podrás cambiarlas.",
+      "nameRequired": "Escribe tu nombre completo y teléfono.",
+      "addHistory": "Agregar un domicilio anterior",
+      "noHistory": "No has agregado domicilios anteriores.",
+      "addCoApplicant": "Agregar cosolicitante",
+      "noCoApplicants": "Sin cosolicitantes. Agrega a cada adulto que vivirá en la unidad.",
+      "coApplicantAdded": "Cosolicitante agregado",
+      "removed": "Eliminado",
+      "upload": "Subir",
+      "uploaded": "Archivo subido",
+      "noFiles": "Aún no hay documentos. Agrega una identificación y talones de pago recientes.",
+      "fileRequired": "Elige un archivo."
+    },
+    "dashboard": {
+      "title": "Tus solicitudes",
+      "empty": "Aún no tienes solicitudes. Abre el enlace que te envió la oficina.",
+      "continue": "Continuar solicitud",
+      "submittedOn": "Enviada el {{date}}"
+    },
+    "queue": {
+      "emptyTitle": "Sin solicitudes",
+      "emptyDescription": "Envía un enlace de solicitud a un prospecto. Su solicitud aparecerá aquí.",
+      "allStatuses": "Todos los estados",
+      "applicant": "Solicitante",
+      "received": "Recibida",
+      "income": "Ingreso mensual",
+      "anyUnit": "Cualquier unidad",
+      "review": "Revisar"
+    },
+    "links": {
+      "title": "Enlaces de solicitud",
+      "description": "Envía uno de estos a un prospecto. Un enlace de unidad aplica solo a esa unidad.",
+      "unitOptional": "Unidad (opcional)",
+      "create": "Nuevo enlace",
+      "created": "Enlace creado",
+      "copy": "Copiar enlace",
+      "copied": "Enlace copiado",
+      "deactivate": "Desactivar",
+      "deactivated": "Enlace desactivado",
+      "none": "Aún no hay enlaces.",
+      "manage": "Enlaces"
+    },
+    "detail": {
+      "back": "Todas las solicitudes",
+      "answers": "Respuestas",
+      "notFound": "No se encontró la solicitud.",
+      "screening": "Verificación de antecedentes",
+      "screeningHint": "Registra el resultado de la verificación que hiciste fuera de Rentio. La cuenta del solicitante puede leer este resultado y la nota.",
+      "screeningResult": "Resultado",
+      "screeningNote": "Nota",
+      "result": {
+        "approved": "Aprobó",
+        "denied": "No aprobó"
+      },
+      "saveScreening": "Guardar resultado",
+      "screeningSaved": "Verificación guardada",
+      "decision": "Decisión",
+      "decisionNote": "Nota",
+      "approve": "Aprobar",
+      "deny": "Rechazar",
+      "approveTitle": "Aprobar y preparar el contrato",
+      "approveDescription": "Crea el inquilino y un contrato en borrador que reserva la unidad. Después envíalo a firma.",
+      "denyTitle": "Rechazar esta solicitud",
+      "denyDescription": "El solicitante verá que no fue aprobada. Su cuenta también puede leer esta nota.",
+      "approved": "Solicitud aprobada. Contrato en borrador creado.",
+      "denied": "Solicitud rechazada",
+      "sendLease": "Enviar contrato a firma",
+      "openLease": "Abrir contrato",
+      "screeningDenied": "La verificación de antecedentes no aprobó.",
+      "noUnit": "Elige una unidad."
     }
   }
 }

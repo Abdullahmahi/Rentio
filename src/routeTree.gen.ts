@@ -27,6 +27,8 @@ import { Route as VslRouteImport } from './routes/vsl'
 import { Route as ApiMeRouteImport } from './routes/api.me'
 import { Route as ApiOrgRouteImport } from './routes/api.org'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as ApplySlugRouteImport } from './routes/apply.$slug'
+import { Route as ApplyStatusRouteImport } from './routes/apply.status'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
 import { Route as PortalProfileRouteImport } from './routes/portal.profile'
@@ -44,10 +46,13 @@ import { Route as ApiFnSendInvoiceEmailRouteImport } from './routes/api.fn.send-
 import { Route as ApiFnSendNotificationsRouteImport } from './routes/api.fn.send-notifications'
 import { Route as ApiFnSendStaffInviteRouteImport } from './routes/api.fn.send-staff-invite'
 import { Route as ApiFnSendTenantInviteRouteImport } from './routes/api.fn.send-tenant-invite'
+import { Route as ApiFnStartApplicationRouteImport } from './routes/api.fn.start-application'
 import { Route as ApiFnSubmitAccessRequestRouteImport } from './routes/api.fn.submit-access-request'
 import { Route as ApiJobsNightlyRouteImport } from './routes/api.jobs.nightly'
 import { Route as ApiSignTokenRouteImport } from './routes/api.sign.$token'
 import { Route as ApiStorageActionRouteImport } from './routes/api.storage.$action'
+import { Route as AppApplicationsIndexRouteImport } from './routes/app.applications.index'
+import { Route as AppApplicationsIdRouteImport } from './routes/app.applications.$id'
 import { Route as AppContractsIndexRouteImport } from './routes/app.contracts.index'
 import { Route as AppContractsIdRouteImport } from './routes/app.contracts.$id'
 import { Route as AppExpensesIndexRouteImport } from './routes/app.expenses.index'
@@ -165,6 +170,16 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const ApplySlugRoute = ApplySlugRouteImport.update({
+  id: '/apply/$slug',
+  path: '/apply/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplyStatusRoute = ApplyStatusRouteImport.update({
+  id: '/apply/status',
+  path: '/apply/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortalIndexRoute = PortalIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -252,6 +267,11 @@ const ApiFnSendTenantInviteRoute = ApiFnSendTenantInviteRouteImport.update({
   path: '/api/fn/send-tenant-invite',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiFnStartApplicationRoute = ApiFnStartApplicationRouteImport.update({
+  id: '/api/fn/start-application',
+  path: '/api/fn/start-application',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFnSubmitAccessRequestRoute =
   ApiFnSubmitAccessRequestRouteImport.update({
     id: '/api/fn/submit-access-request',
@@ -272,6 +292,16 @@ const ApiStorageActionRoute = ApiStorageActionRouteImport.update({
   id: '/api/storage/$action',
   path: '/api/storage/$action',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppApplicationsIndexRoute = AppApplicationsIndexRouteImport.update({
+  id: '/applications/',
+  path: '/applications/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppApplicationsIdRoute = AppApplicationsIdRouteImport.update({
+  id: '/applications/$id',
+  path: '/applications/$id',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppContractsIndexRoute = AppContractsIndexRouteImport.update({
   id: '/contracts/',
@@ -422,6 +452,8 @@ export interface FileRoutesByFullPath {
   '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
+  '/apply/$slug': typeof ApplySlugRoute
+  '/apply/status': typeof ApplyStatusRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -440,10 +472,12 @@ export interface FileRoutesByFullPath {
   '/api/fn/send-notifications': typeof ApiFnSendNotificationsRoute
   '/api/fn/send-staff-invite': typeof ApiFnSendStaffInviteRoute
   '/api/fn/send-tenant-invite': typeof ApiFnSendTenantInviteRoute
+  '/api/fn/start-application': typeof ApiFnStartApplicationRoute
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/sign/$token': typeof ApiSignTokenRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
+  '/app/applications/$id': typeof AppApplicationsIdRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
   '/app/properties/$id': typeof AppPropertiesIdRoute
@@ -453,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
   '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/rest/v1/$': typeof RestV1SplatRoute
+  '/app/applications/': typeof AppApplicationsIndexRoute
   '/app/contracts/': typeof AppContractsIndexRoute
   '/app/expenses/': typeof AppExpensesIndexRoute
   '/app/import/': typeof AppImportIndexRoute
@@ -487,6 +522,8 @@ export interface FileRoutesByTo {
   '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
+  '/apply/$slug': typeof ApplySlugRoute
+  '/apply/status': typeof ApplyStatusRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -505,10 +542,12 @@ export interface FileRoutesByTo {
   '/api/fn/send-notifications': typeof ApiFnSendNotificationsRoute
   '/api/fn/send-staff-invite': typeof ApiFnSendStaffInviteRoute
   '/api/fn/send-tenant-invite': typeof ApiFnSendTenantInviteRoute
+  '/api/fn/start-application': typeof ApiFnStartApplicationRoute
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/sign/$token': typeof ApiSignTokenRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
+  '/app/applications/$id': typeof AppApplicationsIdRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
   '/app/properties/$id': typeof AppPropertiesIdRoute
@@ -518,6 +557,7 @@ export interface FileRoutesByTo {
   '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
   '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/rest/v1/$': typeof RestV1SplatRoute
+  '/app/applications': typeof AppApplicationsIndexRoute
   '/app/contracts': typeof AppContractsIndexRoute
   '/app/expenses': typeof AppExpensesIndexRoute
   '/app/import': typeof AppImportIndexRoute
@@ -555,6 +595,8 @@ export interface FileRoutesById {
   '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
+  '/apply/$slug': typeof ApplySlugRoute
+  '/apply/status': typeof ApplyStatusRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/report-payment': typeof PortalReportPaymentRoute
@@ -573,10 +615,12 @@ export interface FileRoutesById {
   '/api/fn/send-notifications': typeof ApiFnSendNotificationsRoute
   '/api/fn/send-staff-invite': typeof ApiFnSendStaffInviteRoute
   '/api/fn/send-tenant-invite': typeof ApiFnSendTenantInviteRoute
+  '/api/fn/start-application': typeof ApiFnStartApplicationRoute
   '/api/fn/submit-access-request': typeof ApiFnSubmitAccessRequestRoute
   '/api/jobs/nightly': typeof ApiJobsNightlyRoute
   '/api/sign/$token': typeof ApiSignTokenRoute
   '/api/storage/$action': typeof ApiStorageActionRoute
+  '/app/applications/$id': typeof AppApplicationsIdRoute
   '/app/contracts/$id': typeof AppContractsIdRoute
   '/app/maintenance/$id': typeof AppMaintenanceIdRoute
   '/app/properties/$id': typeof AppPropertiesIdRoute
@@ -586,6 +630,7 @@ export interface FileRoutesById {
   '/portal/maintenance/$id': typeof PortalMaintenanceIdRoute
   '/portal/receipts/$id': typeof PortalReceiptsIdRoute
   '/rest/v1/$': typeof RestV1SplatRoute
+  '/app/applications/': typeof AppApplicationsIndexRoute
   '/app/contracts/': typeof AppContractsIndexRoute
   '/app/expenses/': typeof AppExpensesIndexRoute
   '/app/import/': typeof AppImportIndexRoute
@@ -624,6 +669,8 @@ export interface FileRouteTypes {
     | '/vsl'
     | '/api/me'
     | '/api/org'
+    | '/apply/$slug'
+    | '/apply/status'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -642,10 +689,12 @@ export interface FileRouteTypes {
     | '/api/fn/send-notifications'
     | '/api/fn/send-staff-invite'
     | '/api/fn/send-tenant-invite'
+    | '/api/fn/start-application'
     | '/api/fn/submit-access-request'
     | '/api/jobs/nightly'
     | '/api/sign/$token'
     | '/api/storage/$action'
+    | '/app/applications/$id'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
     | '/app/properties/$id'
@@ -655,6 +704,7 @@ export interface FileRouteTypes {
     | '/portal/maintenance/$id'
     | '/portal/receipts/$id'
     | '/rest/v1/$'
+    | '/app/applications/'
     | '/app/contracts/'
     | '/app/expenses/'
     | '/app/import/'
@@ -689,6 +739,8 @@ export interface FileRouteTypes {
     | '/vsl'
     | '/api/me'
     | '/api/org'
+    | '/apply/$slug'
+    | '/apply/status'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -707,10 +759,12 @@ export interface FileRouteTypes {
     | '/api/fn/send-notifications'
     | '/api/fn/send-staff-invite'
     | '/api/fn/send-tenant-invite'
+    | '/api/fn/start-application'
     | '/api/fn/submit-access-request'
     | '/api/jobs/nightly'
     | '/api/sign/$token'
     | '/api/storage/$action'
+    | '/app/applications/$id'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
     | '/app/properties/$id'
@@ -720,6 +774,7 @@ export interface FileRouteTypes {
     | '/portal/maintenance/$id'
     | '/portal/receipts/$id'
     | '/rest/v1/$'
+    | '/app/applications'
     | '/app/contracts'
     | '/app/expenses'
     | '/app/import'
@@ -756,6 +811,8 @@ export interface FileRouteTypes {
     | '/vsl'
     | '/api/me'
     | '/api/org'
+    | '/apply/$slug'
+    | '/apply/status'
     | '/portal/contracts'
     | '/portal/profile'
     | '/portal/report-payment'
@@ -774,10 +831,12 @@ export interface FileRouteTypes {
     | '/api/fn/send-notifications'
     | '/api/fn/send-staff-invite'
     | '/api/fn/send-tenant-invite'
+    | '/api/fn/start-application'
     | '/api/fn/submit-access-request'
     | '/api/jobs/nightly'
     | '/api/sign/$token'
     | '/api/storage/$action'
+    | '/app/applications/$id'
     | '/app/contracts/$id'
     | '/app/maintenance/$id'
     | '/app/properties/$id'
@@ -787,6 +846,7 @@ export interface FileRouteTypes {
     | '/portal/maintenance/$id'
     | '/portal/receipts/$id'
     | '/rest/v1/$'
+    | '/app/applications/'
     | '/app/contracts/'
     | '/app/expenses/'
     | '/app/import/'
@@ -824,6 +884,8 @@ export interface RootRouteChildren {
   VslRoute: typeof VslRoute
   ApiMeRoute: typeof ApiMeRoute
   ApiOrgRoute: typeof ApiOrgRoute
+  ApplySlugRoute: typeof ApplySlugRoute
+  ApplyStatusRoute: typeof ApplyStatusRoute
   SignTokenRoute: typeof SignTokenRoute
   ApiFilesSplatRoute: typeof ApiFilesSplatRoute
   ApiFnEsignManageRoute: typeof ApiFnEsignManageRoute
@@ -837,6 +899,7 @@ export interface RootRouteChildren {
   ApiFnSendNotificationsRoute: typeof ApiFnSendNotificationsRoute
   ApiFnSendStaffInviteRoute: typeof ApiFnSendStaffInviteRoute
   ApiFnSendTenantInviteRoute: typeof ApiFnSendTenantInviteRoute
+  ApiFnStartApplicationRoute: typeof ApiFnStartApplicationRoute
   ApiFnSubmitAccessRequestRoute: typeof ApiFnSubmitAccessRequestRoute
   ApiJobsNightlyRoute: typeof ApiJobsNightlyRoute
   ApiSignTokenRoute: typeof ApiSignTokenRoute
@@ -972,6 +1035,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/apply/$slug': {
+      id: '/apply/$slug'
+      path: '/apply/$slug'
+      fullPath: '/apply/$slug'
+      preLoaderRoute: typeof ApplySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply/status': {
+      id: '/apply/status'
+      path: '/apply/status'
+      fullPath: '/apply/status'
+      preLoaderRoute: typeof ApplyStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portal/': {
       id: '/portal/'
       path: '/'
@@ -1091,6 +1168,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFnSendTenantInviteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/fn/start-application': {
+      id: '/api/fn/start-application'
+      path: '/api/fn/start-application'
+      fullPath: '/api/fn/start-application'
+      preLoaderRoute: typeof ApiFnStartApplicationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/fn/submit-access-request': {
       id: '/api/fn/submit-access-request'
       path: '/api/fn/submit-access-request'
@@ -1118,6 +1202,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/storage/$action'
       preLoaderRoute: typeof ApiStorageActionRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/applications/': {
+      id: '/app/applications/'
+      path: '/applications'
+      fullPath: '/app/applications/'
+      preLoaderRoute: typeof AppApplicationsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/applications/$id': {
+      id: '/app/applications/$id'
+      path: '/applications/$id'
+      fullPath: '/app/applications/$id'
+      preLoaderRoute: typeof AppApplicationsIdRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/contracts/': {
       id: '/app/contracts/'
@@ -1306,12 +1404,14 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
+  AppApplicationsIdRoute: typeof AppApplicationsIdRoute
   AppContractsIdRoute: typeof AppContractsIdRoute
   AppMaintenanceIdRoute: typeof AppMaintenanceIdRoute
   AppPropertiesIdRoute: typeof AppPropertiesIdRoute
   AppReceiptsIdRoute: typeof AppReceiptsIdRoute
   AppTenantsIdRoute: typeof AppTenantsIdRoute
   AppUnitsIdRoute: typeof AppUnitsIdRoute
+  AppApplicationsIndexRoute: typeof AppApplicationsIndexRoute
   AppContractsIndexRoute: typeof AppContractsIndexRoute
   AppExpensesIndexRoute: typeof AppExpensesIndexRoute
   AppImportIndexRoute: typeof AppImportIndexRoute
@@ -1331,12 +1431,14 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
+  AppApplicationsIdRoute: AppApplicationsIdRoute,
   AppContractsIdRoute: AppContractsIdRoute,
   AppMaintenanceIdRoute: AppMaintenanceIdRoute,
   AppPropertiesIdRoute: AppPropertiesIdRoute,
   AppReceiptsIdRoute: AppReceiptsIdRoute,
   AppTenantsIdRoute: AppTenantsIdRoute,
   AppUnitsIdRoute: AppUnitsIdRoute,
+  AppApplicationsIndexRoute: AppApplicationsIndexRoute,
   AppContractsIndexRoute: AppContractsIndexRoute,
   AppExpensesIndexRoute: AppExpensesIndexRoute,
   AppImportIndexRoute: AppImportIndexRoute,
@@ -1399,6 +1501,8 @@ const rootRouteChildren: RootRouteChildren = {
   VslRoute: VslRoute,
   ApiMeRoute: ApiMeRoute,
   ApiOrgRoute: ApiOrgRoute,
+  ApplySlugRoute: ApplySlugRoute,
+  ApplyStatusRoute: ApplyStatusRoute,
   SignTokenRoute: SignTokenRoute,
   ApiFilesSplatRoute: ApiFilesSplatRoute,
   ApiFnEsignManageRoute: ApiFnEsignManageRoute,
@@ -1412,6 +1516,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFnSendNotificationsRoute: ApiFnSendNotificationsRoute,
   ApiFnSendStaffInviteRoute: ApiFnSendStaffInviteRoute,
   ApiFnSendTenantInviteRoute: ApiFnSendTenantInviteRoute,
+  ApiFnStartApplicationRoute: ApiFnStartApplicationRoute,
   ApiFnSubmitAccessRequestRoute: ApiFnSubmitAccessRequestRoute,
   ApiJobsNightlyRoute: ApiJobsNightlyRoute,
   ApiSignTokenRoute: ApiSignTokenRoute,

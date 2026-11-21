@@ -1,7 +1,12 @@
 import { apiFetch } from "@/lib/db";
 
 export type Bucket =
-  "contracts" | "tenant-docs" | "payment-receipts" | "work-order-photos" | "company";
+  | "contracts"
+  | "tenant-docs"
+  | "payment-receipts"
+  | "work-order-photos"
+  | "company"
+  | "applications";
 
 /** Calls /api/storage/<action>; the server repeats every access check. */
 async function storage<T>(action: string, init: RequestInit): Promise<T> {

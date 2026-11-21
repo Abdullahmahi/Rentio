@@ -2,6 +2,7 @@ import {
   BarChart3,
   Car,
   Building2,
+  ClipboardList,
   DoorClosed,
   FileText,
   LayoutDashboard,
@@ -28,6 +29,7 @@ export const navGroups = [
       ["units", "/app/units", DoorClosed],
       ["tenants", "/app/tenants", Users],
       ["contracts", "/app/contracts", FileText],
+      ["applications", "/app/applications", ClipboardList],
     ],
   },
   {
