@@ -138,6 +138,8 @@ export type Database = {
           path: string;
           file_name: string | null;
           created_at: string;
+          size_bytes: number;
+          content_type: string | null;
         };
         Insert: {
           id?: string;
@@ -147,6 +149,8 @@ export type Database = {
           path: string;
           file_name?: string | null;
           created_at?: string;
+          size_bytes?: number;
+          content_type?: string | null;
         };
         Update: {
           id?: string;
@@ -156,6 +160,8 @@ export type Database = {
           path?: string;
           file_name?: string | null;
           created_at?: string;
+          size_bytes?: number;
+          content_type?: string | null;
         };
         Relationships: [];
       };
@@ -1744,6 +1750,10 @@ export type Database = {
           p_tenant_paths: Json;
         };
         Returns: undefined;
+      };
+      purge_closed_application_pii: {
+        Args: { p_days?: number };
+        Returns: { org_id: string; path: string }[];
       };
       approve_application: {
         Args: {

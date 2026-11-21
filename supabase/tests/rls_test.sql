@@ -1507,7 +1507,7 @@ begin
   insert into public.applications (org_id, profile_id, full_name, email)
     values (org_a, user_b, 'Applicant B', 'applicant.b@example.com') returning id into app_b;
   insert into public.application_co_applicants (application_id, full_name) values (app_b, 'B Partner');
-  insert into public.application_files (application_id, kind, path) values (app_b, 'id', app_b || '/id.pdf');
+  insert into public.application_files (application_id, kind, path) values (app_b, 'id', app_b || '/' || gen_random_uuid() || '.pdf');
   insert into public.application_reviews (application_id, screening_note) values (app_a, 'Office only');
   perform pg_temp.check('application child rows take org from the application',
     (select org_id from public.application_files where application_id = app_b) = org_a);
@@ -1711,6 +1711,173 @@ begin
   perform public.activate_lease(lease_b);
   perform pg_temp.check('activating (service connection) promotes the applicant',
     (select role from public.profiles where id = user_b) = 'tenant');
+end;
+$$;
+
+-- ============================== applications: security review fixes (#75)
+do $$
+declare
+  admin_b    uuid := '00000000-0000-0000-0000-0000000000c1';
+  manager_id uuid := '00000000-0000-0000-0000-0000000000a2';
+  user_c     uuid := '00000000-0000-0000-0000-0000000000e3';
+  user_d     uuid := '00000000-0000-0000-0000-0000000000e4';
+  org_a uuid := (select id from public.organizations order by created_at limit 1);
+  org_b uuid := (select id from public.organizations where slug = 'other-co');
+  unit_c uuid; app_c uuid; app_d uuid; app_x uuid; res jsonb; tenant_c uuid; f uuid;
+  n int; refused boolean; stmt text;
+  terms jsonb := jsonb_build_object('start_date', current_date + 14, 'end_date', current_date + 379,
+    'rent_amount', 1000, 'rent_due_day', 1, 'grace_days', 3, 'late_fee_type', 'fixed',
+    'late_fee_amount', 50, 'deposit_amount', 1000);
+begin
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  insert into public.units (property_id, unit_number)
+    select id, 'AP3' from public.properties where name = 'Apply Court' returning id into unit_c;
+  insert into public.profiles (id, full_name, role, org_id, email) values
+    (user_c, 'Applicant C', 'applicant', org_a, 'applicant.c@example.com'),
+    (user_d, 'Applicant D', 'applicant', org_b, 'applicant.d@example.com');
+  insert into public.applications (org_id, unit_id, profile_id, full_name, email, status, date_of_birth)
+    values (org_a, unit_c, user_c, 'Applicant C', 'applicant.c@example.com', 'submitted', '1990-01-01')
+    returning id into app_c;
+
+  -- Files: only the server writes rows, under the application's own prefix, within limits.
+  refused := false;
+  begin
+    insert into public.application_files (application_id, kind, path) values (app_c, 'id', 'elsewhere/x.pdf');
+  exception when check_violation then refused := true;
+  end;
+  perform pg_temp.check('application_files.path must sit under its own application', refused);
+  refused := false;
+  begin
+    insert into public.application_files (application_id, kind, path) values (app_c, 'id', app_c || '/../x.pdf');
+  exception when check_violation then refused := true;
+  end;
+  perform pg_temp.check('application_files.path must be a server-made name', refused);
+  insert into public.application_files (application_id, kind, path, size_bytes)
+    select app_c, 'other', app_c || '/' || gen_random_uuid() || '.png', 1024 from generate_series(1, 9);
+  insert into public.application_files (application_id, kind, path, size_bytes)
+    values (app_c, 'id', app_c || '/' || gen_random_uuid() || '.pdf', 1024);
+  refused := false;
+  begin
+    insert into public.application_files (application_id, kind, path, size_bytes)
+      values (app_c, 'other', app_c || '/' || gen_random_uuid() || '.pdf', 1);
+  exception when program_limit_exceeded then refused := true;
+  end;
+  perform pg_temp.check('an application holds at most 10 files', refused);
+  delete from public.application_files where application_id = app_c and kind = 'other';
+  refused := false;
+  begin
+    insert into public.application_files (application_id, kind, path, size_bytes)
+      values (app_c, 'other', app_c || '/' || gen_random_uuid() || '.pdf', 50 * 1024 * 1024);
+  exception when program_limit_exceeded then refused := true;
+  end;
+  perform pg_temp.check('an application holds at most 50 MB', refused);
+
+  -- Rate limit: five new applications a day per login.
+  insert into public.applications (org_id, profile_id) select org_a, user_c from generate_series(1, 4);
+  refused := false;
+  begin
+    insert into public.applications (org_id, profile_id) values (org_a, user_c);
+  exception when program_limit_exceeded then refused := true;
+  end;
+  perform pg_temp.check('a login opens at most 5 applications a day', refused);
+
+  set local role authenticated;
+  perform pg_temp.act_as(user_c);
+  refused := false;
+  begin
+    insert into public.application_files (application_id, kind, path)
+      values (app_c, 'id', app_c || '/' || gen_random_uuid() || '.pdf');
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('an applicant cannot file an application_files row', refused);
+
+  -- Staff cannot re-point who applied.
+  perform pg_temp.act_as(manager_id);
+  foreach stmt in array array[
+    format('update public.applications set profile_id = %L where id = %L', user_d, app_c),
+    format('update public.applications set email = %L where id = %L', 'x@example.com', app_c),
+    format('update public.applications set link_id = (select id from public.application_links limit 1) where id = %L', app_c),
+    format('insert into public.application_files (application_id, kind, path) values (%L, %L, %L)', app_c, 'id', app_c || '/' || gen_random_uuid() || '.pdf')
+  ] loop
+    refused := false;
+    begin
+      execute stmt;
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('staff refused: ' || left(stmt, 50), refused);
+  end loop;
+
+  -- approve uses the original applicant, and only one of this company.
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  insert into public.applications (org_id, unit_id, profile_id, full_name, status)
+    values (org_a, unit_c, user_d, 'Planted', 'submitted') returning id into app_x;
+  insert into public.applications (org_id, unit_id, profile_id, full_name, status)
+    values (org_a, unit_c, manager_id, 'Staff login', 'submitted') returning id into app_d;
+  set local role authenticated;
+  perform pg_temp.act_as(manager_id);
+  foreach stmt in array array[
+    format('select public.approve_application(%L, %L::jsonb)', app_x, terms),
+    format('select public.approve_application(%L, %L::jsonb)', app_d, terms)
+  ] loop
+    refused := false;
+    begin
+      execute stmt;
+    exception when insufficient_privilege then refused := true;
+    end;
+    perform pg_temp.check('approve refuses a login that is not this company''s applicant', refused);
+  end loop;
+  res := public.approve_application(app_c, terms);
+  tenant_c := (res ->> 'tenant_id')::uuid;
+  perform pg_temp.check('approve links the original applicant',
+    (select tenant_id from public.profiles where id = user_c) = tenant_c);
+
+  -- Approved but not yet a tenant: no tenant notifications.
+  reset role;
+  insert into public.notifications (org_id, tenant_id, kind, dedupe_key)
+    values (org_a, tenant_c, 'rent_reminder', 'apply-test-' || tenant_c);
+  set local role authenticated;
+  perform pg_temp.act_as(user_c);
+  select count(*) into n from public.notifications;
+  perform pg_temp.check('an approved applicant cannot read tenant notifications', n = 0);
+  perform pg_temp.act_as(manager_id);
+  select count(*) into n from public.notifications where tenant_id = tenant_c;
+  perform pg_temp.check('staff still read the notification', n = 1);
+
+  -- Retention: ID scans and DOB of a denied application go after 90 days.
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  perform pg_temp.check('the other company''s applicant was not touched',
+    (select tenant_id is null from public.profiles where id = user_d));
+  update public.applications set status = 'denied', date_of_birth = '1991-02-02' where id = app_x;
+  insert into public.application_files (application_id, kind, path)
+    values (app_x, 'id', app_x || '/' || gen_random_uuid() || '.pdf'),
+           (app_x, 'pay_stub', app_x || '/' || gen_random_uuid() || '.pdf');
+  select count(*) into n from public.purge_closed_application_pii(90);
+  perform pg_temp.check('retention keeps a recent denial', n = 0);
+  alter table public.applications disable trigger set_updated_at;
+  update public.applications set updated_at = now() - interval '91 days' where id = app_x;
+  alter table public.applications enable trigger set_updated_at;
+  select count(*) into n from public.purge_closed_application_pii(90);
+  perform pg_temp.check('retention returns the ID scan to delete', n = 1);
+  perform pg_temp.check('retention deletes the ID scan row, keeps the pay stub',
+    (select array_agg(kind) from public.application_files where application_id = app_x) = array['pay_stub']);
+  perform pg_temp.check('retention clears the date of birth',
+    (select date_of_birth is null from public.applications where id = app_x));
+  perform pg_temp.check('retention leaves open applications alone',
+    (select date_of_birth is not null from public.applications where id = app_c));
+  set local role authenticated;
+  perform pg_temp.act_as(manager_id);
+  refused := false;
+  begin
+    perform public.purge_closed_application_pii(0);
+  exception when insufficient_privilege then refused := true;
+  end;
+  perform pg_temp.check('retention is service-only', refused);
+  reset role;
 end;
 $$;
 

@@ -217,7 +217,10 @@
       "next": "Runs every night around 11 pm",
       "history": "See the last 30 runs",
       "hide": "Hide the run history",
-      "trigger": { "cron": "nightly", "manual": "run by hand" }
+      "trigger": {
+        "cron": "nightly",
+        "manual": "run by hand"
+      }
     },
     "panel": {
       "title": "What runs every night",
@@ -1671,7 +1674,8 @@
       "under_review": "Under review",
       "approved": "Approved",
       "denied": "Denied",
-      "lease_sent": "Lease sent"
+      "lease_sent": "Lease sent",
+      "withdrawn": "Withdrawn"
     },
     "statusHint": {
       "draft": "Not sent yet. Finish the steps and submit.",
@@ -1679,7 +1683,8 @@
       "under_review": "The office is reviewing your application.",
       "approved": "Approved. The office will send your lease to sign.",
       "denied": "The office could not approve this application.",
-      "lease_sent": "Your lease is ready to sign. Check your email."
+      "lease_sent": "Your lease is ready to sign. Check your email.",
+      "withdrawn": "This application was withdrawn."
     },
     "fields": {
       "fullName": "Full name",
@@ -1730,7 +1735,8 @@
       "otherCompany": "Your account is applying with another company. Use a different email for this one.",
       "emailNotVerified": "Verify your email address first, then try again.",
       "failed": "We could not open your application. Try again.",
-      "oneEmail": "One email address is one Rentio account."
+      "oneEmail": "One email address is one Rentio account.",
+      "rateLimited": "You have started too many applications today. Try again tomorrow."
     },
     "form": {
       "next": "Save and continue",

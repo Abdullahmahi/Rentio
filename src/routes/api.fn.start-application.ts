@@ -120,6 +120,8 @@ export const Route = createFileRoute("/api/fn/start-application")({
             })
             .select("id")
             .single();
+          // applications_rate_limit: at most 5 new applications a day per login.
+          if (error?.code === "54000") return json({ error: "rate_limited" }, 429);
           if (error) throw error;
           return json({ application_id: application.id });
         } catch (caught) {

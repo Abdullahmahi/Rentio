@@ -66,5 +66,11 @@ apply 20261122000102_esign_decline_required.sql \
   "exists (select 1 from pg_proc where proname = 'decline_signature')"
 apply 20261122000103_esign_integrity.sql \
   "exists (select 1 from pg_proc where proname = 'sign_signature')"
+apply 20261123000100_applicant_role.sql \
+  "exists (select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid where t.typname = 'user_role' and e.enumlabel = 'applicant')"
+apply 20261123000101_applications.sql \
+  "exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'applications')"
+apply 20261123000102_applications_hardening.sql \
+  "exists (select 1 from pg_proc where proname = 'purge_closed_application_pii')"
 
 echo "done"

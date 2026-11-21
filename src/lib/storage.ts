@@ -33,6 +33,18 @@ export async function uploadFile(bucket: Bucket, ownerId: string, file: File) {
   return path;
 }
 
+/** An application document. The server names the file, checks its real
+ *  type and files the application_files row itself. */
+export async function uploadApplicationFile(applicationId: string, kind: string, file: File) {
+  const form = new FormData();
+  form.set("bucket", "applications");
+  form.set("path", `${applicationId}/upload`);
+  form.set("kind", kind);
+  form.set("file", file);
+  const { path } = await storage<{ path: string }>("upload", { body: form });
+  return path;
+}
+
 /**
  * Signs a batch in one request. Forty kanban cards one at a time is forty
  * round trips; this is one. Missing or forbidden paths come back absent

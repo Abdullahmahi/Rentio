@@ -21,7 +21,7 @@
 
 
 -- ============================================================================
--- 1/36  20260919000100_schema
+-- 1/37  20260919000100_schema
 -- ============================================================================
 -- Rentio — core schema
 -- All money is numeric(12,2). Never float.
@@ -436,7 +436,7 @@ insert into public.settings (company_name, invoice_prefix) values ('Rentio', 'RE
 
 
 -- ============================================================================
--- 2/36  20260919000200_rls
+-- 2/37  20260919000200_rls
 -- ============================================================================
 -- Rentio — row level security. Deny by default, everywhere.
 --
@@ -834,7 +834,7 @@ create policy storage_tenant_write on storage.objects
 
 
 -- ============================================================================
--- 3/36  20260919000300_portal_views
+-- 3/37  20260919000300_portal_views
 -- ============================================================================
 -- The tenant portal needs the tenant's OWN unit number and building address:
 -- it is the payment reference on the Inicio screen and the whole of the
@@ -869,7 +869,7 @@ grant select on public.my_lease_details to authenticated;
 
 
 -- ============================================================================
--- 4/36  20260919000400_public_settings_address
+-- 4/37  20260919000400_public_settings_address
 -- ============================================================================
 -- The recibo PDF prints the landlord's letterhead — company name, address and
 -- bank details — and a tenant must be able to render their own receipt. The
@@ -905,7 +905,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 5/36  20260920000500_us_localization
+-- 5/37  20260920000500_us_localization
 -- ============================================================================
 -- Prompt 15 — the properties are in El Paso, Texas, not Mexico.
 -- Addresses become US addresses. No business logic changes here.
@@ -995,7 +995,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 6/36  20260920000501_drop_rfc
+-- 6/37  20260920000501_drop_rfc
 -- ============================================================================
 -- Prompt 20's cleanup, pulled forward: `rfc` was captured for Mexican tax
 -- invoicing (CFDI) that will never happen for a Texas landlord. Removing it
@@ -1025,7 +1025,7 @@ $$;
 
 
 -- ============================================================================
--- 7/36  20260920000600_us_payment_methods
+-- 7/37  20260920000600_us_payment_methods
 -- ============================================================================
 -- Prompt 16 — US payment rails.
 --
@@ -1110,7 +1110,7 @@ grant select on public.public_settings to authenticated;
 
 
 -- ============================================================================
--- 8/36  20260920000700_texas_late_fees
+-- 8/37  20260920000700_texas_late_fees
 -- ============================================================================
 -- Prompt 17 — Texas Property Code §92.019 constrains residential late fees.
 --
@@ -1185,7 +1185,7 @@ alter table public.settings
 
 
 -- ============================================================================
--- 9/36  20260920000800_deposit_clock
+-- 9/37  20260920000800_deposit_clock
 -- ============================================================================
 -- Prompt 18 — Texas Property Code §92.103–92.109, security deposit returns.
 --
@@ -1253,7 +1253,7 @@ grant select on public.deposit_obligations to authenticated;
 
 
 -- ============================================================================
--- 10/36  20260920000900_texas_repairs_notices_turnover
+-- 10/37  20260920000900_texas_repairs_notices_turnover
 -- ============================================================================
 -- Prompt 19 — three smaller Texas Property Code obligations.
 
@@ -1403,7 +1403,7 @@ create policy turnover_admin_delete on public.unit_turnover_checklist
 
 
 -- ============================================================================
--- 11/36  20260920001000_late_fee_guard
+-- 11/37  20260920001000_late_fee_guard
 -- ============================================================================
 -- Prompt 17 said "do not let a manager bypass the 2-day rule anywhere in the
 -- UI". The gated "Apply late fee" button honoured it; "Add line" did not.
@@ -1476,7 +1476,7 @@ create trigger invoice_lines_enforce_late_fee_rules
 
 
 -- ============================================================================
--- 12/36  20260922001100_access_requests
+-- 12/37  20260922001100_access_requests
 -- ============================================================================
 -- A tenant with no invite needs somewhere to go.
 --
@@ -1540,7 +1540,7 @@ create policy access_requests_admin_delete on public.access_requests
 
 
 -- ============================================================================
--- 13/36  20260925001200_expenses
+-- 13/37  20260925001200_expenses
 -- ============================================================================
 -- Gastos: landlord expenses, entered by hand, one row per unit.
 -- The property is reached through units.property_id, like utility_charges.
@@ -1583,7 +1583,7 @@ create policy expenses_admin_delete on public.expenses
 
 
 -- ============================================================================
--- 14/36  20261024001300_super_admin_role
+-- 14/37  20261024001300_super_admin_role
 -- ============================================================================
 -- PortfolioAI staff: a role that spans every organization.
 --
@@ -1594,7 +1594,7 @@ alter type public.user_role add value if not exists 'super_admin';
 
 
 -- ============================================================================
--- 15/36  20261024001400_self_hosted_multi_tenant
+-- 15/37  20261024001400_self_hosted_multi_tenant
 -- ============================================================================
 -- Off Supabase, onto self-hosted Postgres + PostgREST, and multi-tenant.
 --
@@ -2131,7 +2131,7 @@ grant select on public.my_lease_details, public.public_settings to authenticated
 
 
 -- ============================================================================
--- 16/36  20261027001500_super_admin_acts_in_org
+-- 16/37  20261027001500_super_admin_acts_in_org
 -- ============================================================================
 -- super_admin: a real platform role, and a way to work inside a company.
 --
@@ -2303,7 +2303,7 @@ create trigger organizations_create_settings
 
 
 -- ============================================================================
--- 17/36  20261027001600_el_paso_dates
+-- 17/37  20261027001600_el_paso_dates
 -- ============================================================================
 -- Dates are El Paso dates. current_date was the server's UTC date, so every
 -- evening after 6pm Mountain time a receipt due "today" read as overdue,
@@ -2318,7 +2318,7 @@ $$;
 
 
 -- ============================================================================
--- 18/36  20261028002100_confirm_payment
+-- 18/37  20261028002100_confirm_payment
 -- ============================================================================
 -- B-013: confirming a payment was four browser writes with no transaction
 -- (status, allocations, invoice statuses, activity log). A failed insert or a
@@ -2427,7 +2427,7 @@ grant execute on function public.confirm_payment(uuid) to authenticated, service
 
 
 -- ============================================================================
--- 19/36  20261028002200_nightly_job
+-- 19/37  20261028002200_nightly_job
 -- ============================================================================
 -- The nightly job (execution.md A1, A3, A4; owner decisions D1, D2, D3).
 --
@@ -2828,7 +2828,7 @@ grant execute on function public.nightly() to service_role;
 
 
 -- ============================================================================
--- 20/36  20261028002300_record_and_void_payment
+-- 20/37  20261028002300_record_and_void_payment
 -- ============================================================================
 -- B-013 continued: "Record payment" and "Void" were several browser writes
 -- each (payment, allocations, invoice statuses, activity log) with no
@@ -3160,7 +3160,7 @@ grant execute on function public.void_payment(uuid, text) to authenticated, serv
 
 
 -- ============================================================================
--- 21/36  20261111000100_tenants_cannot_read_drafts
+-- 21/37  20261111000100_tenants_cannot_read_drafts
 -- ============================================================================
 -- Tenants must not see draft invoices. The nightly job drafts the month on
 -- the 1st for staff review; until staff send it, the tenant has nothing to
@@ -3177,7 +3177,7 @@ create policy invoices_select on public.invoices
 
 
 -- ============================================================================
--- 22/36  20261111000200_create_lease
+-- 22/37  20261111000200_create_lease
 -- ============================================================================
 -- A lease was five browser writes (lease, lease_tenants, turnover checklist,
 -- unit status, activity) with no transaction: a failed link insert left an
@@ -3267,7 +3267,7 @@ grant execute on function public.create_lease(uuid, jsonb, uuid, uuid[], uuid[],
 
 
 -- ============================================================================
--- 23/36  20261111000300_last_admin_and_append_only_log
+-- 23/37  20261111000300_last_admin_and_append_only_log
 -- ============================================================================
 -- Two guards the audit found missing (audit-product-2026-10-28.md §1).
 --
@@ -3316,7 +3316,7 @@ drop policy if exists admin_delete on public.activity_log;
 
 
 -- ============================================================================
--- 24/36  20261112000100_notifications
+-- 24/37  20261112000100_notifications
 -- ============================================================================
 -- Tenants never heard back (audit-product-2026-10-28.md §2.1 #8): no
 -- "payment confirmed", no "payment rejected, and why", no repair update, no
@@ -3584,7 +3584,7 @@ grant execute on function public.notification_result(uuid, text) to service_role
 
 
 -- ============================================================================
--- 25/36  20261112000200_nightly_per_org
+-- 25/37  20261112000200_nightly_per_org
 -- ============================================================================
 -- nightly() ran every company in one transaction: one bad lease in org A
 -- aborted invoicing for org B (audit-product-2026-10-28.md §4.3). Each
@@ -3640,7 +3640,7 @@ grant execute on function public.nightly() to service_role;
 
 
 -- ============================================================================
--- 26/36  20261113000100_automations
+-- 26/37  20261113000100_automations
 -- ============================================================================
 -- Automations a manager can switch and tune (approved Paper mock-up
 -- "13 · Automations", 2026-11-13). The heartbeat stays the daily cron; what
@@ -3939,7 +3939,7 @@ grant execute on function public.claim_notifications(int) to service_role;
 
 
 -- ============================================================================
--- 27/36  20261121000100_automations_per_org
+-- 27/37  20261121000100_automations_per_org
 -- ============================================================================
 -- Automations run one company at a time (issue #13). Every function the
 -- pipeline calls now takes the company it works on, so "Run now" in company
@@ -4195,7 +4195,7 @@ grant execute on function public.claim_notifications(uuid, int) to service_role;
 
 
 -- ============================================================================
--- 28/36  20261121000200_tenant_work_order_insert
+-- 28/37  20261121000200_tenant_work_order_insert
 -- ============================================================================
 -- A tenant's portal request may only say what is wrong: category, priority,
 -- title, description and which of their leases it is about. Everything else
@@ -4258,7 +4258,7 @@ create trigger guard_tenant_work_order_insert
 
 
 -- ============================================================================
--- 29/36  20261121000300_staff_can_void_payments
+-- 29/37  20261121000300_staff_can_void_payments
 -- ============================================================================
 -- Owner rule (2026-11-21, issue #50): admin and staff of a company see and
 -- do everything; no admin-only locks. Any staff member (admin, manager, a
@@ -4338,7 +4338,7 @@ grant execute on function public.void_payment(uuid, text) to authenticated, serv
 
 
 -- ============================================================================
--- 30/36  20261122000100_lease_drafts
+-- 30/37  20261122000100_lease_drafts
 -- ============================================================================
 -- Leases can start as drafts (shared by e-sign and applications).
 --
@@ -4463,7 +4463,7 @@ grant execute on function public.activate_lease(uuid) to authenticated, service_
 
 
 -- ============================================================================
--- 31/36  20261122000101_esign
+-- 31/37  20261122000101_esign
 -- ============================================================================
 -- E-sign: a lease PDF sent to its tenants (or applicants) for signature.
 --
@@ -4673,7 +4673,7 @@ grant execute on function public.complete_signature_request(uuid, text, text, te
 
 
 -- ============================================================================
--- 32/36  20261122000102_esign_decline_required
+-- 32/37  20261122000102_esign_decline_required
 -- ============================================================================
 -- E-sign follow-up (design review #34, #36).
 --
@@ -4806,7 +4806,7 @@ grant execute on function public.decline_signature(uuid, text) to service_role;
 
 
 -- ============================================================================
--- 33/36  20261122000103_esign_integrity
+-- 33/37  20261122000103_esign_integrity
 -- ============================================================================
 -- E-sign security review (#73).
 --
@@ -5089,7 +5089,7 @@ grant execute on function public.record_signature_consent(uuid, text, text, text
 
 
 -- ============================================================================
--- 34/36  20261123000100_applicant_role
+-- 34/37  20261123000100_applicant_role
 -- ============================================================================
 -- A prospect who applied through an application link. Alone in its file:
 -- a new enum value cannot be used in the transaction that adds it.
@@ -5097,7 +5097,7 @@ alter type public.user_role add value if not exists 'applicant';
 
 
 -- ============================================================================
--- 35/36  20261123000101_applications
+-- 35/37  20261123000101_applications
 -- ============================================================================
 -- Rental applications (issue #6): link -> prospect applies -> staff review
 -- -> approve creates the tenant and a draft lease -> the lease activates
@@ -5577,7 +5577,251 @@ create trigger applications_mark_lease_sent
 
 
 -- ============================================================================
--- 36/36  DEMO DATA
+-- 36/37  20261123000102_applications_hardening
+-- ============================================================================
+-- Applications security review (#75).
+--
+--   * Nobody but the service connection sets or changes an application's
+--     login (profile_id), link or email; approve_application refuses a
+--     login that is not an applicant of this company.
+--   * application_files rows are written only by the app server, after it
+--     checked the file's real type. path is <application_id>/<uuid>.<ext>
+--     (a check constraint), and an application holds at most 10 files and
+--     50 MB.
+--   * A login opens at most 5 applications a day.
+--   * An approved applicant (tenant_id set, role still 'applicant') does
+--     not read tenant notifications.
+--   * purge_closed_application_pii(days): ID scans and dates of birth of
+--     denied or withdrawn applications go after 90 days. Exported for the
+--     server (purgeClosedApplicationPii); not scheduled yet.
+
+alter table public.applications drop constraint applications_status_check;
+alter table public.applications add constraint applications_status_check
+  check (status in ('draft', 'submitted', 'under_review', 'approved', 'denied', 'lease_sent', 'withdrawn'));
+
+-- ------------------------------------------------- who the application is
+create or replace function public.applications_restrict_applicant()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if public.current_user_id() is null then
+    return new;  -- the app server's service connection
+  end if;
+  -- Who applied, through which link, with which verified email: fixed for
+  -- staff too, so an application cannot be pointed at someone else's login.
+  if new.org_id is distinct from old.org_id
+     or new.profile_id is distinct from old.profile_id
+     or new.link_id is distinct from old.link_id
+     or new.email is distinct from old.email then
+    raise exception 'Who applied cannot change.' using errcode = '42501';
+  end if;
+  if public.is_staff() then
+    return new;
+  end if;
+  if new.unit_id is distinct from old.unit_id
+     or new.tenant_id is distinct from old.tenant_id
+     or new.lease_id is distinct from old.lease_id
+     or not (new.status = old.status or (old.status = 'draft' and new.status = 'submitted')) then
+    raise exception 'Only the office can change that on an application.' using errcode = '42501';
+  end if;
+  if new.status = 'submitted' and old.status = 'draft' then
+    new.submitted_at := now();
+  else
+    new.submitted_at := old.submitted_at;
+  end if;
+  return new;
+end;
+$$;
+
+-- ------------------------------------------------- rate limit
+create or replace function public.applications_rate_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if (select count(*) from public.applications
+      where profile_id = new.profile_id and created_at > now() - interval '1 day') >= 5 then
+    raise exception 'Too many applications today. Try again tomorrow.' using errcode = '54000';
+  end if;
+  return new;
+end;
+$$;
+create trigger applications_rate_limit before insert on public.applications
+  for each row execute function public.applications_rate_limit();
+
+-- ------------------------------------------------- files
+alter table public.application_files
+  add column size_bytes   bigint not null default 0 check (size_bytes >= 0),
+  add column content_type text check (content_type in ('application/pdf', 'image/jpeg', 'image/png', 'image/heic')),
+  add constraint application_files_path_check
+    check (path ~ ('^' || application_id::text || '/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(pdf|jpg|png|heic)$'));
+
+-- The server inserts after sniffing the bytes; applicants and staff may
+-- still remove a row (draft only, for the applicant).
+revoke insert, update on public.application_files from authenticated;
+
+create or replace function public.application_files_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  n int; total bigint;
+begin
+  -- Serialise uploads to one application, so two at once cannot both fit.
+  perform 1 from public.applications where id = new.application_id for update;
+  select count(*), coalesce(sum(size_bytes), 0) into n, total
+  from public.application_files where application_id = new.application_id;
+  if n >= 10 or total + new.size_bytes > 50 * 1024 * 1024 then
+    raise exception 'An application holds at most 10 files and 50 MB.' using errcode = '54000';
+  end if;
+  return new;
+end;
+$$;
+create trigger application_files_limit before insert on public.application_files
+  for each row execute function public.application_files_limit();
+
+-- ------------------------------------------------- approve
+create or replace function public.approve_application(
+  p_application uuid,
+  p_terms       jsonb,
+  p_unit        uuid  default null,
+  p_note        text  default null,
+  p_checklist   jsonb default '[]'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  a          public.applications%rowtype;
+  login      public.profiles%rowtype;
+  unit       uuid;
+  new_tenant uuid;
+  co         uuid[];
+  new_lease  uuid;
+begin
+  if not public.is_staff() or public.current_org_id() is null then
+    raise exception 'Only staff can approve applications.' using errcode = '42501';
+  end if;
+  select * into a from public.applications
+  where id = p_application and org_id = public.current_org_id()
+  for update;
+  if a.id is null then
+    raise exception 'Application not found.' using errcode = 'P0002';
+  end if;
+  if a.lease_id is not null and a.status in ('approved', 'lease_sent') then
+    return jsonb_build_object('tenant_id', a.tenant_id, 'lease_id', a.lease_id);  -- idempotent
+  end if;
+  if a.status not in ('submitted', 'under_review') then
+    raise exception 'Only a submitted application can be approved.' using errcode = 'P0001';
+  end if;
+  unit := coalesce(p_unit, a.unit_id);
+  if unit is null then
+    raise exception 'Pick a unit for this lease.' using errcode = '22023';
+  end if;
+  -- The login that applied (profile_id cannot change after insert), and
+  -- only while it is an applicant of this same company.
+  select * into login from public.profiles where id = a.profile_id;
+  if login.id is null or login.org_id is distinct from a.org_id or login.role <> 'applicant' then
+    raise exception 'This application''s login is not an applicant of this company.' using errcode = '42501';
+  end if;
+
+  insert into public.tenants (org_id, full_name, email, phone)
+  values (a.org_id, coalesce(nullif(trim(a.full_name), ''), login.full_name, login.email),
+          login.email, a.phone)
+  returning id into new_tenant;
+
+  -- Co-applicants sign as co-tenants.
+  with made as (
+    insert into public.tenants (org_id, full_name, email, phone)
+    select a.org_id, c.full_name, c.email, c.phone
+    from public.application_co_applicants c
+    where c.application_id = a.id
+    returning id
+  )
+  select coalesce(array_agg(id), '{}') into co from made;
+
+  new_lease := public.create_lease(
+    unit, coalesce(p_terms, '{}'::jsonb) || '{"status": "borrador"}'::jsonb,
+    new_tenant, co, '{}', coalesce(p_checklist, '[]'::jsonb));
+
+  perform set_config('rentio.applicant_step', 'on', true);
+  update public.profiles set tenant_id = new_tenant
+  where id = login.id and org_id = a.org_id and role = 'applicant' and tenant_id is null;
+  perform set_config('rentio.applicant_step', 'off', true);
+
+  update public.applications
+  set status = 'approved', unit_id = unit, tenant_id = new_tenant, lease_id = new_lease
+  where id = a.id;
+
+  insert into public.application_reviews (org_id, application_id, decision_note, decided_by, decided_at)
+  values (a.org_id, a.id, nullif(trim(p_note), ''), public.current_user_id(), now())
+  on conflict (application_id) do update
+    set decision_note = coalesce(excluded.decision_note, application_reviews.decision_note),
+        decided_by = excluded.decided_by, decided_at = excluded.decided_at;
+
+  insert into public.activity_log (actor_id, entity_type, entity_id, action, meta, org_id)
+  values (public.current_user_id(), 'application', a.id, 'approve',
+          jsonb_build_object('tenant_id', new_tenant, 'lease_id', new_lease, 'unit_id', unit),
+          a.org_id);
+
+  return jsonb_build_object('tenant_id', new_tenant, 'lease_id', new_lease);
+end;
+$$;
+
+-- ------------------------------------------------- notifications
+-- my_tenant_id() ignores an applicant's tenant_id until promotion.
+drop policy notifications_select on public.notifications;
+drop policy notifications_tenant_read on public.notifications;
+create policy notifications_select on public.notifications
+  for select to authenticated
+  using (public.is_staff() or tenant_id = (select public.my_tenant_id()));
+create policy notifications_tenant_read on public.notifications
+  for update to authenticated
+  using (tenant_id = (select public.my_tenant_id()))
+  with check (tenant_id = (select public.my_tenant_id()));
+
+-- ------------------------------------------------- retention
+-- Service only. Deletes the ID-scan rows and clears date_of_birth on
+-- applications denied or withdrawn more than p_days ago, and returns the
+-- deleted files so the server removes them from disk.
+create or replace function public.purge_closed_application_pii(p_days int default 90)
+returns table (org_id uuid, path text)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return query
+  with closed as (
+    select a.id from public.applications a
+    where a.status in ('denied', 'withdrawn')
+      and coalesce(a.updated_at, a.created_at) < now() - make_interval(days => p_days)
+  ), cleared as (
+    update public.applications a set date_of_birth = null
+    where a.id in (select id from closed) and a.date_of_birth is not null
+  )
+  delete from public.application_files f
+  where f.application_id in (select id from closed) and f.kind = 'id'
+  returning f.org_id, f.path;
+end;
+$$;
+
+revoke all on function public.applications_rate_limit(), public.application_files_limit(),
+  public.purge_closed_application_pii(int) from public, anon, authenticated;
+grant execute on function public.purge_closed_application_pii(int) to service_role;
+
+
+-- ============================================================================
+-- 37/37  DEMO DATA
 -- ============================================================================
 -- Rentio — demo data (El Paso, Texas).
 -- Safe to re-run: it clears the demo tables first.

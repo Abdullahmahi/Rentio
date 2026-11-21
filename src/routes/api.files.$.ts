@@ -21,7 +21,8 @@ export const Route = createFileRoute("/api/files/$")({
         return new Response(new Uint8Array(bytes), {
           headers: {
             "content-type": contentTypeFor(objectPath),
-            "content-disposition": "inline",
+            // Applicant uploads are untrusted: always a download, never rendered.
+            "content-disposition": bucket === "applications" ? "attachment" : "inline",
             "x-content-type-options": "nosniff",
             "cache-control": "private, max-age=300",
           },

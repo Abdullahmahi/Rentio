@@ -217,7 +217,10 @@
       "next": "Corre cada noche alrededor de las 11 pm",
       "history": "Ver las últimas 30 corridas",
       "hide": "Ocultar el historial",
-      "trigger": { "cron": "nocturna", "manual": "a mano" }
+      "trigger": {
+        "cron": "nocturna",
+        "manual": "a mano"
+      }
     },
     "panel": {
       "title": "Lo que corre cada noche",
@@ -1671,7 +1674,8 @@
       "under_review": "En revisión",
       "approved": "Aprobada",
       "denied": "Rechazada",
-      "lease_sent": "Contrato enviado"
+      "lease_sent": "Contrato enviado",
+      "withdrawn": "Retirada"
     },
     "statusHint": {
       "draft": "Aún no la envías. Completa los pasos y envíala.",
@@ -1679,7 +1683,8 @@
       "under_review": "La oficina está revisando tu solicitud.",
       "approved": "Aprobada. La oficina te enviará el contrato para firmar.",
       "denied": "La oficina no pudo aprobar esta solicitud.",
-      "lease_sent": "Tu contrato está listo para firmar. Revisa tu correo."
+      "lease_sent": "Tu contrato está listo para firmar. Revisa tu correo.",
+      "withdrawn": "Esta solicitud fue retirada."
     },
     "fields": {
       "fullName": "Nombre completo",
@@ -1730,7 +1735,8 @@
       "otherCompany": "Tu cuenta ya está solicitando con otra empresa. Usa otro correo para esta.",
       "emailNotVerified": "Primero verifica tu correo y vuelve a intentarlo.",
       "failed": "No pudimos abrir tu solicitud. Inténtalo de nuevo.",
-      "oneEmail": "Un correo es una cuenta de Rentio."
+      "oneEmail": "Un correo es una cuenta de Rentio.",
+      "rateLimited": "Iniciaste demasiadas solicitudes hoy. Intenta de nuevo mañana."
     },
     "form": {
       "next": "Guardar y continuar",

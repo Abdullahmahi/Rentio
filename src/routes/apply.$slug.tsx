@@ -22,6 +22,7 @@ const ERRORS: Record<string, string> = {
   account_exists: "applications.apply.accountExists",
   other_company: "applications.apply.otherCompany",
   email_not_verified: "applications.apply.emailNotVerified",
+  rate_limited: "applications.apply.rateLimited",
 };
 
 /**

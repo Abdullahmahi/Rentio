@@ -117,6 +117,24 @@ const TYPES: Record<string, string> = {
   csv: "text/csv",
 };
 
+/**
+ * What an application upload really is, from its first bytes; the name and
+ * the browser's claimed type are ignored. PDF, JPEG, PNG, HEIC only.
+ */
+export function sniffUpload(bytes: Uint8Array) {
+  const ascii = (from: number, to: number) => String.fromCharCode(...bytes.subarray(from, to));
+  if (ascii(0, 5) === "%PDF-") return { ext: "pdf", type: "application/pdf" } as const;
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff)
+    return { ext: "jpg", type: "image/jpeg" } as const;
+  if (ascii(0, 8) === "\x89PNG\r\n\x1a\n") return { ext: "png", type: "image/png" } as const;
+  if (
+    ascii(4, 8) === "ftyp" &&
+    ["heic", "heix", "hevc", "hevx", "heim", "heis", "mif1", "msf1"].includes(ascii(8, 12))
+  )
+    return { ext: "heic", type: "image/heic" } as const;
+  return null;
+}
+
 /** Anything not listed (html, svg…) downloads instead of rendering. */
 export function contentTypeFor(objectPath: string) {
   return TYPES[objectPath.split(".").pop()?.toLowerCase() ?? ""] ?? "application/octet-stream";

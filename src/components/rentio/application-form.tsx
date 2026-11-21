@@ -14,7 +14,7 @@ import {
 import { Field } from "@/components/rentio/form-dialog";
 import { MoneyInput } from "@/components/rentio/money-input";
 import { db } from "@/lib/db";
-import { openSigned, uploadFile } from "@/lib/storage";
+import { openSigned, uploadApplicationFile } from "@/lib/storage";
 import { formatMoney } from "@/lib/format";
 import { useToastMutation } from "@/lib/queries";
 import type { Tables, TablesUpdate } from "@/lib/database.types";
@@ -41,6 +41,7 @@ export const APPLICATION_STATUSES = [
   "approved",
   "denied",
   "lease_sent",
+  "withdrawn",
 ] as const;
 
 export function applicationStatusVariant(status: string) {
@@ -252,11 +253,7 @@ export function ApplicationForm({ id }: { id: string }) {
 
   const upload = useToastMutation({
     mutationFn: async (chosen: File) => {
-      const path = await uploadFile("applications", id, chosen);
-      const { error: caught } = await db
-        .from("application_files")
-        .insert({ application_id: id, kind, path, file_name: chosen.name });
-      if (caught) throw caught;
+      await uploadApplicationFile(id, kind, chosen);
     },
     successKey: "applications.form.uploaded",
     invalidate: [applicationKey(id)],
@@ -512,7 +509,7 @@ export function ApplicationForm({ id }: { id: string }) {
               <Input
                 id="app-file"
                 type="file"
-                accept="image/*,application/pdf"
+                accept="application/pdf,image/jpeg,image/png,image/heic,.heic"
                 onChange={(event) => setFile(event.target.files?.[0] ?? null)}
               />
             </Field>
