@@ -28,7 +28,9 @@ import { currentPeriod, shiftPeriod } from "@/lib/invoicing";
 import { unitContexts } from "@/lib/portfolio";
 import { logActivity, qk, useActorId, usePortfolio, useToastMutation } from "@/lib/queries";
 import { db } from "@/lib/db";
-import type { Tables } from "@/lib/database.types";
+import type { Enums, Tables } from "@/lib/database.types";
+import { EXPENSE_CATEGORIES } from "@/lib/expenses";
+import { useVendors } from "@/lib/vendors";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 
@@ -43,11 +45,13 @@ export const Route = createFileRoute("/app/expenses/")({
 });
 
 const ALL = "__all__";
+const NO_VENDOR = "__none__";
 
 interface ExpenseRow extends Tables<"expenses"> {
   unitNumber: string;
   propertyId: string | null;
   propertyName: string;
+  vendorName: string;
 }
 
 const emptyForm = () => ({
@@ -57,6 +61,8 @@ const emptyForm = () => ({
   spent_at: todayIso(),
   description: "",
   notes: "",
+  category: "other" as Enums<"expense_category">,
+  vendor_id: null as string | null,
 });
 
 function ExpensesPage() {
@@ -66,6 +72,8 @@ function ExpensesPage() {
 
   const [period, setPeriod] = useState(() => currentPeriod());
   const [propertyFilter, setPropertyFilter] = useState(ALL);
+  const [categoryFilter, setCategoryFilter] = useState(ALL);
+  const vendors = useVendors();
   const [formOpen, setFormOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -91,6 +99,7 @@ function ExpensesPage() {
 
   const rows = useMemo<ExpenseRow[]>(() => {
     const byUnit = new Map(units.map((row) => [row.unit.id, row]));
+    const vendorName = new Map((vendors.data ?? []).map((row) => [row.id, row.company_name]));
     return (expenses.data ?? [])
       .map((expense) => {
         const context = byUnit.get(expense.unit_id);
@@ -99,10 +108,22 @@ function ExpensesPage() {
           unitNumber: context?.unit.unit_number ?? "—",
           propertyId: context?.property?.id ?? null,
           propertyName: context?.property?.name ?? "—",
+          vendorName: (expense.vendor_id && vendorName.get(expense.vendor_id)) || "—",
         };
       })
-      .filter((row) => propertyFilter === ALL || row.propertyId === propertyFilter);
-  }, [expenses.data, units, propertyFilter]);
+      .filter((row) => propertyFilter === ALL || row.propertyId === propertyFilter)
+      .filter((row) => categoryFilter === ALL || row.category === categoryFilter);
+  }, [expenses.data, units, vendors.data, propertyFilter, categoryFilter]);
+
+  const vendorOptions = useMemo<ComboboxOption[]>(
+    () => [
+      { value: NO_VENDOR, label: "—" },
+      ...(vendors.data ?? [])
+        .filter((row) => row.active || row.id === form.vendor_id)
+        .map((row) => ({ value: row.id, label: row.company_name, hint: row.trade ?? "" })),
+    ],
+    [vendors.data, form.vendor_id],
+  );
 
   const summary = useMemo(() => {
     const byProperty = new Map<string, number>();
@@ -140,6 +161,8 @@ function ExpensesPage() {
         spent_at: values.spent_at,
         description: values.description.trim(),
         notes: values.notes.trim() || null,
+        category: values.category,
+        vendor_id: values.vendor_id,
       };
       const { data, error: caught } = values.id
         ? await db.from("expenses").update(record).eq("id", values.id).select("id").single()
@@ -186,6 +209,8 @@ function ExpensesPage() {
             spent_at: row.spent_at,
             description: row.description,
             notes: row.notes ?? "",
+            category: row.category,
+            vendor_id: row.vendor_id,
           }
         : emptyForm(),
     );
@@ -216,6 +241,18 @@ function ExpensesPage() {
       header: t("expenses.columns.description"),
       sortValue: (row) => row.description,
       cell: (row) => row.description,
+    },
+    {
+      key: "category",
+      header: t("expenses.columns.category"),
+      sortValue: (row) => t(`expenses.categories.${row.category}`),
+      cell: (row) => t(`expenses.categories.${row.category}`),
+    },
+    {
+      key: "vendor",
+      header: t("expenses.columns.vendor"),
+      sortValue: (row) => row.vendorName,
+      cell: (row) => row.vendorName,
     },
     {
       key: "amount",
@@ -283,9 +320,9 @@ function ExpensesPage() {
         </div>
       </div>
 
-      <div className="max-w-xs">
+      <div className="flex flex-wrap gap-2">
         <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger aria-label={t("units.filters.property")}>
+          <SelectTrigger className="w-full sm:w-64" aria-label={t("units.filters.property")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -293,6 +330,19 @@ function ExpensesPage() {
             {portfolio.data?.properties.map((property) => (
               <SelectItem key={property.id} value={property.id}>
                 {property.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-full sm:w-64" aria-label={t("expenses.columns.category")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{t("expenses.allCategories")}</SelectItem>
+            {EXPENSE_CATEGORIES.map((category) => (
+              <SelectItem key={category} value={category}>
+                {t(`expenses.categories.${category}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -323,7 +373,7 @@ function ExpensesPage() {
           getRowId={(row) => row.id}
           onRowClick={openForm}
           searchValue={(row) =>
-            `${row.propertyName} ${row.unitNumber} ${row.description} ${row.notes ?? ""}`
+            `${row.propertyName} ${row.unitNumber} ${row.description} ${row.notes ?? ""} ${row.vendorName}`
           }
           pageSize={20}
         />
@@ -369,6 +419,37 @@ function ExpensesPage() {
               type="date"
               value={form.spent_at}
               onChange={(event) => setForm({ ...form, spent_at: event.target.value })}
+            />
+          </Field>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t("expenses.columns.category")}>
+            <Select
+              value={form.category}
+              onValueChange={(value) =>
+                setForm({ ...form, category: value as Enums<"expense_category"> })
+              }
+            >
+              <SelectTrigger aria-label={t("expenses.columns.category")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EXPENSE_CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {t(`expenses.categories.${category}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label={t("expenses.columns.vendor")}>
+            <Combobox
+              options={vendorOptions}
+              value={form.vendor_id ?? NO_VENDOR}
+              onChange={(value) =>
+                setForm({ ...form, vendor_id: value === NO_VENDOR ? null : value })
+              }
+              placeholder={t("vendors.picker.placeholder")}
             />
           </Field>
         </div>

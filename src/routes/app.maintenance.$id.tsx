@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Combobox, type ComboboxOption } from "@/components/rentio/combobox";
 import { EmptyState } from "@/components/rentio/empty-state";
 import { VendorDialog } from "@/components/rentio/vendor-dialog";
+import { WorkOrderExpense } from "@/components/rentio/work-order-expense";
 import { Field } from "@/components/rentio/form-dialog";
 import { MoneyInput } from "@/components/rentio/money-input";
 import { MoneyText } from "@/components/rentio/money-text";
@@ -688,6 +689,7 @@ function WorkOrderDetailPage() {
                       <MoneyText value={Number(data.cost)} className="font-semibold" />
                     </p>
                   ) : null}
+                  <WorkOrderExpense order={data} />
                 </section>
 
                 {/* -------------------------------------------- timeline */}

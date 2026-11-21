@@ -934,4 +934,68 @@ begin
 end;
 $$;
 
+-- ================================ expenses: categories, vendor + work order
+do $$
+declare
+  manager_id uuid := '00000000-0000-0000-0000-0000000000a2';
+  tenant_a   uuid := '00000000-0000-0000-0000-0000000000b1';
+  admin_b    uuid := '00000000-0000-0000-0000-0000000000c1';
+  org_a uuid := (select id from public.organizations order by created_at limit 1);
+  org_b uuid := (select id from public.organizations where slug = 'other-co');
+  vendor_a uuid; vendor_b uuid; wo_a public.work_orders%rowtype; wo_b uuid; exp_a uuid; n int;
+begin
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.org_id', '', true);
+  insert into public.vendors (org_id, company_name) values (org_a, 'A Roofing') returning id into vendor_a;
+  insert into public.vendors (org_id, company_name) values (org_b, 'B Roofing') returning id into vendor_b;
+  select * into wo_a from public.work_orders where org_id = org_a order by created_at desc limit 1;
+  select id into wo_b from public.work_orders where org_id = org_b limit 1;
+  perform pg_temp.check('fixture: work orders in both orgs', wo_a.id is not null and wo_b is not null);
+  perform pg_temp.check('existing expenses default to category other',
+    not exists (select 1 from public.expenses where category <> 'other'));
+
+  set local role authenticated;
+  perform pg_temp.act_as(manager_id);
+
+  insert into public.expenses (unit_id, amount, description, category, vendor_id, work_order_id)
+  values (wo_a.unit_id, 125, 'Roof patch', 'repairs_maintenance', vendor_a, wo_a.id)
+  returning id into exp_a;
+  perform pg_temp.check('staff create an expense linked to vendor and work order', exp_a is not null);
+
+  begin
+    insert into public.expenses (unit_id, amount, description, work_order_id)
+    values (wo_a.unit_id, 125, 'Roof patch again', wo_a.id);
+    perform pg_temp.check('one expense per work order', false);
+  exception when unique_violation then
+    perform pg_temp.check('one expense per work order', true);
+  end;
+
+  begin
+    update public.expenses set vendor_id = vendor_b where id = exp_a;
+    perform pg_temp.check('expense cannot point at another org vendor', false);
+  exception when foreign_key_violation then
+    perform pg_temp.check('expense cannot point at another org vendor', true);
+  end;
+
+  begin
+    update public.expenses set work_order_id = wo_b where id = exp_a;
+    perform pg_temp.check('expense cannot point at another org work order', false);
+  exception when foreign_key_violation then
+    perform pg_temp.check('expense cannot point at another org work order', true);
+  end;
+
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.expenses where id = exp_a;
+  perform pg_temp.check('org B cannot read org A expense', n = 0);
+  update public.expenses set amount = 1 where id = exp_a;
+  get diagnostics n = row_count;
+  perform pg_temp.check('org B cannot update org A expense', n = 0);
+
+  perform pg_temp.act_as(tenant_a);
+  select count(*) into n from public.expenses;
+  perform pg_temp.check('tenant cannot read expenses', n = 0);
+  reset role;
+end;
+$$;
+
 rollback;
