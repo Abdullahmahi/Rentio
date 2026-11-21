@@ -1321,10 +1321,10 @@ export type Database = {
         Args: { p_period: string };
         Returns: { created: number; skipped: number }[];
       };
-      nightly: { Args: Record<string, never>; Returns: Json };
-      queue_rent_reminders: { Args: Record<string, never>; Returns: number };
+      nightly: { Args: { p_org_id: string }; Returns: Json };
+      queue_rent_reminders: { Args: { p_org_id: string }; Returns: number };
       claim_notifications: {
-        Args: { p_limit?: number };
+        Args: { p_org_id: string; p_limit?: number };
         Returns: {
           id: string;
           org_id: string;
@@ -1339,7 +1339,7 @@ export type Database = {
       };
       notification_result: { Args: { p_id: string; p_channel: string | null }; Returns: undefined };
       late_fee_warnings_to_send: {
-        Args: Record<string, never>;
+        Args: { p_org_id: string };
         Returns: {
           invoice_id: string;
           org_id: string;
