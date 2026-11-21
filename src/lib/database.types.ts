@@ -447,6 +447,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      notifications: {
+        Row: {
+          id: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id: string | null;
+          kind: string;
+          entity_id: string | null;
+          dedupe_key: string;
+          payload: Json;
+          created_at: string;
+          sent_at: string | null;
+          channel: string | null;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id?: string | null;
+          kind: string;
+          entity_id?: string | null;
+          dedupe_key: string;
+          payload?: Json;
+          created_at?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          tenant_id?: string;
+          lease_id?: string | null;
+          kind?: string;
+          entity_id?: string | null;
+          dedupe_key?: string;
+          payload?: Json;
+          created_at?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          read_at?: string | null;
+        };
+        Relationships: [];
+      };
       organizations: {
         Row: {
           id: string;
@@ -777,6 +822,48 @@ export type Database = {
           nsf_fee?: number;
           default_late_fee_percent?: number;
           org_id?: string;
+        };
+        Relationships: [];
+      };
+      stripe_accounts: {
+        Row: {
+          id: string;
+          org_id: string;
+          stripe_account_id: string | null;
+          charges_enabled: boolean;
+          payouts_enabled: boolean;
+          details_submitted: boolean;
+          status: string;
+          card_fee_enabled: boolean;
+          card_fee_percent: number;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id?: string;
+          stripe_account_id?: string | null;
+          charges_enabled?: boolean;
+          payouts_enabled?: boolean;
+          details_submitted?: boolean;
+          status?: string;
+          card_fee_enabled?: boolean;
+          card_fee_percent?: number;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          stripe_account_id?: string | null;
+          charges_enabled?: boolean;
+          payouts_enabled?: boolean;
+          details_submitted?: boolean;
+          status?: string;
+          card_fee_enabled?: boolean;
+          card_fee_percent?: number;
+          created_at?: string;
+          updated_at?: string | null;
         };
         Relationships: [];
       };
