@@ -38,6 +38,8 @@ alter table public.job_runs enable row level security;
 revoke all on public.job_runs from anon, authenticated;
 grant select on public.job_runs to authenticated;
 -- Staff read their company's runs; only the server writes.
+-- drop-if-exists first so the file can be re-run after a partial deploy.
+drop policy if exists job_runs_staff_select on public.job_runs;
 create policy job_runs_staff_select on public.job_runs
   for select to authenticated using (public.is_staff());
 do $$
@@ -46,6 +48,7 @@ declare
   platform constant text :=
     '((select public.is_super_admin()) and (select public.current_org_id()) is null)';
 begin
+  drop policy if exists org_isolation_select on public.job_runs;
   execute format('create policy org_isolation_select on public.job_runs as restrictive for select to authenticated using (%s or %s)', mine, platform);
 end;
 $$;
