@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { runAutopay } from "@/lib/server/autopay";
 import { siteUrl } from "@/lib/server/email";
 import { fail, requireSession, serviceDb } from "@/lib/server/session";
 import {
@@ -106,6 +107,16 @@ export const Route = createFileRoute("/api/stripe/$action")({
         const stripe = getStripe();
         if (!stripe) return notConfigured();
         const service = serviceDb();
+
+        // Staff: charge today's enrolled invoices now (issue #10). The nightly
+        // job will do this on its own once it calls runAutopay per org.
+        if (params.action === "autopay-run") {
+          try {
+            return json(await runAutopay(orgId, { stripe, db: service }));
+          } catch (caught) {
+            return fail(caught, "stripe autopay-run");
+          }
+        }
 
         try {
           if (params.action === "connect") {

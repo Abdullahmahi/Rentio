@@ -28,6 +28,7 @@ import { Route as ApiMeRouteImport } from './routes/api.me'
 import { Route as ApiOrgRouteImport } from './routes/api.org'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
+import { Route as PortalAutopayRouteImport } from './routes/portal.autopay'
 import { Route as PortalContractsRouteImport } from './routes/portal.contracts'
 import { Route as PortalPayRouteImport } from './routes/portal.pay'
 import { Route as PortalProfileRouteImport } from './routes/portal.profile'
@@ -167,6 +168,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const PortalIndexRoute = PortalIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalAutopayRoute = PortalAutopayRouteImport.update({
+  id: '/autopay',
+  path: '/autopay',
   getParentRoute: () => PortalRoute,
 } as any)
 const PortalContractsRoute = PortalContractsRouteImport.update({
@@ -416,6 +422,7 @@ export interface FileRoutesByFullPath {
   '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
+  '/portal/autopay': typeof PortalAutopayRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/pay': typeof PortalPayRoute
   '/portal/profile': typeof PortalProfileRoute
@@ -480,6 +487,7 @@ export interface FileRoutesByTo {
   '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
+  '/portal/autopay': typeof PortalAutopayRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/pay': typeof PortalPayRoute
   '/portal/profile': typeof PortalProfileRoute
@@ -547,6 +555,7 @@ export interface FileRoutesById {
   '/vsl': typeof VslRoute
   '/api/me': typeof ApiMeRoute
   '/api/org': typeof ApiOrgRoute
+  '/portal/autopay': typeof PortalAutopayRoute
   '/portal/contracts': typeof PortalContractsRoute
   '/portal/pay': typeof PortalPayRoute
   '/portal/profile': typeof PortalProfileRoute
@@ -615,6 +624,7 @@ export interface FileRouteTypes {
     | '/vsl'
     | '/api/me'
     | '/api/org'
+    | '/portal/autopay'
     | '/portal/contracts'
     | '/portal/pay'
     | '/portal/profile'
@@ -679,6 +689,7 @@ export interface FileRouteTypes {
     | '/vsl'
     | '/api/me'
     | '/api/org'
+    | '/portal/autopay'
     | '/portal/contracts'
     | '/portal/pay'
     | '/portal/profile'
@@ -745,6 +756,7 @@ export interface FileRouteTypes {
     | '/vsl'
     | '/api/me'
     | '/api/org'
+    | '/portal/autopay'
     | '/portal/contracts'
     | '/portal/pay'
     | '/portal/profile'
@@ -964,6 +976,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/portal/'
       preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/autopay': {
+      id: '/portal/autopay'
+      path: '/autopay'
+      fullPath: '/portal/autopay'
+      preLoaderRoute: typeof PortalAutopayRouteImport
       parentRoute: typeof PortalRoute
     }
     '/portal/contracts': {
@@ -1335,6 +1354,7 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface PortalRouteChildren {
+  PortalAutopayRoute: typeof PortalAutopayRoute
   PortalContractsRoute: typeof PortalContractsRoute
   PortalPayRoute: typeof PortalPayRoute
   PortalProfileRoute: typeof PortalProfileRoute
@@ -1347,6 +1367,7 @@ interface PortalRouteChildren {
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
+  PortalAutopayRoute: PortalAutopayRoute,
   PortalContractsRoute: PortalContractsRoute,
   PortalPayRoute: PortalPayRoute,
   PortalProfileRoute: PortalProfileRoute,

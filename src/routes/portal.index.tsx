@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, ClipboardCopy, Clock, ReceiptText, Wrench } from "lucide-react";
+import { CheckCircle2, ClipboardCopy, Clock, ReceiptText, RefreshCw, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import {
 } from "@/components/rentio/status";
 import { formatMoney, formatDate } from "@/lib/format";
 import { useMyPortal, usePublicSettings } from "@/lib/queries";
-import { canPayOnline, useStripeAccount } from "@/lib/stripe";
+import { canPayOnline, useAutopayEnrollment, useStripeAccount } from "@/lib/stripe";
 import i18n from "@/lib/i18n";
 import { pageTitle } from "@/lib/brand";
 import { cn } from "@/lib/utils";
@@ -81,6 +81,7 @@ function PortalHome() {
   const settings = usePublicSettings();
 
   const stripeInfo = useStripeAccount();
+  const autopay = useAutopayEnrollment();
   const balance = Number(portal.data?.balance?.balance ?? 0);
   const owes = balance > 0.005;
   const payOnline = owes && canPayOnline(stripeInfo.data);
@@ -180,6 +181,20 @@ function PortalHome() {
             >
               <Link to="/portal/report-payment">{t("portal.reportPayment")}</Link>
             </Button>
+            {canPayOnline(stripeInfo.data) ? (
+              <Link
+                to="/portal/autopay"
+                className="flex h-11 items-center justify-between gap-3 rounded-lg px-1 text-sm hover:bg-muted"
+              >
+                <span className="inline-flex items-center gap-2 text-muted-foreground">
+                  <RefreshCw className="size-4" aria-hidden />
+                  {autopay.data?.enabled
+                    ? t("stripe.autopay.homeOn", { method: autopay.data.method_label ?? "" })
+                    : t("stripe.autopay.homeOff")}
+                </span>
+                <span className="font-medium text-primary">{t("stripe.autopay.manage")}</span>
+              </Link>
+            ) : null}
           </div>
         </section>
 

@@ -1,6 +1,6 @@
 /** Browser side of Stripe: what /api/stripe/account says about the company. */
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/db";
+import { apiFetch, db } from "@/lib/db";
 
 export interface StripeAccountInfo {
   configured: boolean;
@@ -32,6 +32,20 @@ export function useStripeAccount() {
 /** True when the company can take rent online right now. */
 export const canPayOnline = (info: StripeAccountInfo | undefined) =>
   Boolean(info?.configured && info.account?.charges_enabled);
+
+export const AUTOPAY_KEY = ["autopay-enrollment"] as const;
+
+/** The tenant's autopay enrollment, if any (RLS: own row only). */
+export function useAutopayEnrollment() {
+  return useQuery({
+    queryKey: AUTOPAY_KEY,
+    queryFn: async () => {
+      const { data, error } = await db.from("autopay_enrollments").select("*").maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
 
 /** POST to /api/stripe/<action>; throws the route's error message. */
 export async function stripePost<T = unknown>(action: string, body?: unknown): Promise<T> {
