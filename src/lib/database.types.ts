@@ -141,6 +141,9 @@ export type Database = {
           created_at: string;
           updated_at: string | null;
           org_id: string;
+          category: Database["public"]["Enums"]["expense_category"];
+          vendor_id: string | null;
+          work_order_id: string | null;
         };
         Insert: {
           id?: string;
@@ -153,6 +156,9 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
           org_id?: string;
+          category?: Database["public"]["Enums"]["expense_category"];
+          vendor_id?: string | null;
+          work_order_id?: string | null;
         };
         Update: {
           id?: string;
@@ -165,6 +171,9 @@ export type Database = {
           created_at?: string;
           updated_at?: string | null;
           org_id?: string;
+          category?: Database["public"]["Enums"]["expense_category"];
+          vendor_id?: string | null;
+          work_order_id?: string | null;
         };
         Relationships: [];
       };
@@ -1353,6 +1362,18 @@ export type Database = {
     };
     Enums: {
       access_request_status: "pending" | "approved" | "declined";
+      expense_category:
+        | "repairs_maintenance"
+        | "utilities"
+        | "insurance"
+        | "taxes"
+        | "management"
+        | "supplies"
+        | "cleaning"
+        | "landscaping"
+        | "legal_professional"
+        | "capital_improvement"
+        | "other";
       invoice_status:
         "borrador" | "enviado" | "pagado_parcial" | "pagado" | "vencido" | "cancelado";
       late_fee_type: "fixed" | "percent";
