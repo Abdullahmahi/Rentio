@@ -41,3 +41,4 @@ docs/security.md
 
 # Local file storage (STORAGE_DIR default)
 .storage/
+.claude/worktrees/

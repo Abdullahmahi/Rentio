@@ -249,6 +249,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      job_runs: {
+        Row: {
+          id: string;
+          org_id: string;
+          trigger: string;
+          actor_id: string | null;
+          started_at: string;
+          finished_at: string;
+          summary: Json;
+          error: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id: string;
+          trigger: string;
+          actor_id?: string | null;
+          started_at: string;
+          finished_at?: string;
+          summary?: Json;
+          error?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          trigger?: string;
+          actor_id?: string | null;
+          started_at?: string;
+          finished_at?: string;
+          summary?: Json;
+          error?: string | null;
+        };
+        Relationships: [];
+      };
       late_fee_warnings: {
         Row: {
           invoice_id: string;
@@ -444,6 +477,51 @@ export type Database = {
           deposit_itemization?: Json;
           move_out_notes?: string | null;
           org_id?: string;
+        };
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id: string | null;
+          kind: string;
+          entity_id: string | null;
+          dedupe_key: string;
+          payload: Json;
+          created_at: string;
+          sent_at: string | null;
+          channel: string | null;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          org_id: string;
+          tenant_id: string;
+          lease_id?: string | null;
+          kind: string;
+          entity_id?: string | null;
+          dedupe_key: string;
+          payload?: Json;
+          created_at?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          tenant_id?: string;
+          lease_id?: string | null;
+          kind?: string;
+          entity_id?: string | null;
+          dedupe_key?: string;
+          payload?: Json;
+          created_at?: string;
+          sent_at?: string | null;
+          channel?: string | null;
+          read_at?: string | null;
         };
         Relationships: [];
       };
@@ -727,6 +805,13 @@ export type Database = {
           nsf_fee: number;
           default_late_fee_percent: number;
           org_id: string;
+          auto_invoice_day: number;
+          auto_invoice_send: boolean;
+          auto_rent_reminder: boolean;
+          auto_rent_reminder_days: number;
+          auto_late_fee_warning: boolean;
+          auto_payment_emails: boolean;
+          auto_repair_emails: boolean;
         };
         Insert: {
           id?: string;
@@ -752,6 +837,13 @@ export type Database = {
           nsf_fee?: number;
           default_late_fee_percent?: number;
           org_id?: string;
+          auto_invoice_day?: number;
+          auto_invoice_send?: boolean;
+          auto_rent_reminder?: boolean;
+          auto_rent_reminder_days?: number;
+          auto_late_fee_warning?: boolean;
+          auto_payment_emails?: boolean;
+          auto_repair_emails?: boolean;
         };
         Update: {
           id?: string;
@@ -777,6 +869,13 @@ export type Database = {
           nsf_fee?: number;
           default_late_fee_percent?: number;
           org_id?: string;
+          auto_invoice_day?: number;
+          auto_invoice_send?: boolean;
+          auto_rent_reminder?: boolean;
+          auto_rent_reminder_days?: number;
+          auto_late_fee_warning?: boolean;
+          auto_payment_emails?: boolean;
+          auto_repair_emails?: boolean;
         };
         Relationships: [];
       };
@@ -1228,6 +1327,7 @@ export type Database = {
         Args: { p_limit?: number };
         Returns: {
           id: string;
+          org_id: string;
           kind: string;
           payload: Json;
           tenant_name: string | null;

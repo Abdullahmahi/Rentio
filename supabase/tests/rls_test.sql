@@ -802,6 +802,63 @@ begin
 end;
 $$;
 
+-- ============================================ automations: flags and run log
+do $$
+declare
+  admin_id uuid := '00000000-0000-0000-0000-0000000000a1';
+  tenant_a uuid := '00000000-0000-0000-0000-0000000000b1';
+  admin_b  uuid := '00000000-0000-0000-0000-0000000000c1';
+  org_a uuid; lease_a uuid; pay uuid; n int; run_id uuid;
+begin
+  select org_id into org_a from public.profiles where id = admin_id;
+
+  -- a run row for org A, written the way the server does (service role)
+  insert into public.job_runs (org_id, trigger, started_at, summary)
+  values (org_a, 'cron', now(), '{"invoices_created": 3}') returning id into run_id;
+
+  set local role authenticated;
+  perform pg_temp.act_as(admin_id);
+  select count(*) into n from public.job_runs where id = run_id;
+  perform pg_temp.check('staff read their company run log', n = 1);
+  perform pg_temp.act_as(tenant_a);
+  select count(*) into n from public.job_runs where id = run_id;
+  perform pg_temp.check('a tenant cannot read the run log', n = 0);
+  perform pg_temp.act_as(admin_b);
+  select count(*) into n from public.job_runs where id = run_id;
+  perform pg_temp.check('another company cannot read the run log', n = 0);
+
+  -- payment emails switched off: refusing a reported payment queues nothing
+  perform pg_temp.act_as(admin_id);
+  update public.settings set auto_payment_emails = false where org_id = org_a;
+  perform pg_temp.act_as(tenant_a);
+  select lt.lease_id into lease_a
+  from public.lease_tenants lt join public.profiles p on p.tenant_id = lt.tenant_id
+  where p.id = tenant_a limit 1;
+  insert into public.payments (lease_id, amount, reported_by_tenant, status, method)
+  values (lease_a, 60, true, 'pendiente', 'cash') returning id into pay;
+  perform pg_temp.act_as(admin_id);
+  update public.payments set status = 'cancelado', void_reason = 'test' where id = pay;
+  select count(*) into n from public.notifications where entity_id = pay;
+  perform pg_temp.check('payment emails off: nothing is queued', n = 0);
+  update public.settings set auto_payment_emails = true where org_id = org_a;
+  reset role;
+
+  -- rent reminders switched off: the nightly queue is empty for that company
+  update public.settings set auto_rent_reminder = false where org_id = org_a;
+  perform pg_temp.check('rent reminders off: nothing is queued',
+    (select count(*) from public.notifications where kind = 'rent_reminder' and org_id = org_a
+       and created_at > now() - interval '1 second') = 0
+    and public.queue_rent_reminders() >= 0);
+  select count(*) into n from public.notifications
+  where kind = 'rent_reminder' and org_id = org_a and created_at >= now();
+  perform pg_temp.check('rent reminders off: still nothing after the queue runs', n = 0);
+  update public.settings set auto_rent_reminder = true where org_id = org_a;
+
+  perform pg_temp.check('nightly() reports per company',
+    jsonb_typeof(public.nightly() -> 'orgs') = 'array');
+end;
+$$;
+
 -- ========================================== create_lease: one transaction
 do $$
 declare

@@ -17,11 +17,14 @@ export async function drainNotifications(db: ReturnType<typeof serviceDb>) {
   let emailed = 0;
   let portalOnly = 0;
   const failed: string[] = [];
+  const perOrg: Record<string, { emailed: number; portal: number }> = {};
+  const count = (orgId: string) => (perOrg[orgId] ??= { emailed: 0, portal: 0 });
 
   for (const row of rows ?? []) {
     if (!row.tenant_email) {
       await db.rpc("notification_result", { p_id: row.id, p_channel: "portal" });
       portalOnly += 1;
+      count(row.org_id).portal += 1;
       continue;
     }
     try {
@@ -29,11 +32,12 @@ export async function drainNotifications(db: ReturnType<typeof serviceDb>) {
       await sendEmail({ to: row.tenant_email, subject, html });
       await db.rpc("notification_result", { p_id: row.id, p_channel: "email" });
       emailed += 1;
+      count(row.org_id).emailed += 1;
     } catch (sendError) {
       console.error("notification email failed", row.id, row.kind, sendError);
       failed.push(row.id);
       await db.rpc("notification_result", { p_id: row.id, p_channel: null });
     }
   }
-  return { emailed, portal_only: portalOnly, failed };
+  return { emailed, portal_only: portalOnly, failed, per_org: perOrg };
 }

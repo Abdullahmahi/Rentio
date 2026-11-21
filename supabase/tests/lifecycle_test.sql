@@ -233,6 +233,8 @@ begin
   j := public.nightly();
   perform pg_temp.check('second nightly() changes nothing',
     (j ->> 'invoices_created')::int = 0 and (j ->> 'warnings_queued')::int = 0);
+  perform pg_temp.check('nightly() breaks the run down per company',
+    jsonb_typeof(j -> 'orgs') = 'array' and jsonb_array_length(j -> 'orgs') >= 1);
 
   raise notice '--- all lifecycle assertions passed ---';
 end;

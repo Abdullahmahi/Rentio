@@ -110,10 +110,13 @@ Then:
   and photos live there. Restore once into a scratch database to prove it works.
 - **Firewall:** allow 22, 80, 443 only. Reach Coolify's 8000 over an SSH tunnel.
 - **Files:** the old Supabase Storage files are gone with the project (demo data only), so `/data/storage` starts empty. Re-upload anything needed through the app.
-- **Nightly job** (draft invoices on the 1st, late-fee warning emails, rent
-  reminders 3 days before the due date, and the tenant-notification backstop:
-  payment confirmed/refused and repair updates are normally emailed seconds
-  after the staff action via `/api/fn/send-notifications`; D2, D3):
+- **Nightly job** — the one heartbeat. What it does per company (invoice day,
+  drafts vs. send automatically, rent reminders and how many days before,
+  late-fee warnings, payment and repair emails) is set on the **Automations**
+  page in the app and read at run time; nothing here changes when a manager
+  changes it. "Run now" on that page runs the same pipeline. Payment and
+  repair emails go out seconds after the staff action via
+  `/api/fn/send-notifications`; the nightly run is their backstop. (D2, D3):
   1. `rentio-app` → Environment Variables → add `CRON_SECRET` (at least 16
      random characters: `openssl rand -hex 32`). Redeploy so the app sees it.
   2. `rentio-app` → Scheduled Tasks → New: name `nightly`, frequency
