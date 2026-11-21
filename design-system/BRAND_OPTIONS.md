@@ -90,7 +90,8 @@ budget on the heading face, density and the mark instead of on hue.
 | danger | `#b3261e` | `#ff7f6f` |
 | info | `#2b5d8a` | `#7cb0e2` |
 
-- **Heading face:** Source Serif 4 Variable (`@fontsource-variable/source-serif-4`).
+- **Heading face:** *(Superseded 2026-11: the whole app now uses Plus Jakarta
+  Sans, see `rentio/MASTER.md`.)* Source Serif 4 Variable (`@fontsource-variable/source-serif-4`).
   A serif says *record*, which is what this product is. Full Latin Extended, so
   `ñ á é í ó ú ü ¿ ¡` are covered.
 - **Radius** `0.625rem` (unchanged) · **shadow** unchanged · **density** unchanged.

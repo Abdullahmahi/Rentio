@@ -97,7 +97,7 @@ function Hero({ name }: { name?: string | undefined }) {
           <p className="mb-3 text-sm font-medium uppercase tracking-wider text-primary">
             {t("booked.hero.eyebrow")}
           </p>
-          <h1 className="mx-auto max-w-3xl text-balance text-4xl font-bold !leading-tight lg:text-6xl">
+          <h1 className="mx-auto max-w-3xl text-balance text-4xl font-bold tracking-tight !leading-tight lg:text-6xl">
             {name ? t("booked.hero.headlineLeadNamed", { name }) : t("booked.hero.headlineLead")}{" "}
             <span className="font-subheading italic">{t("booked.hero.headlineEmphasis")}</span>
           </h1>
@@ -323,7 +323,7 @@ function Closing() {
       <div className="absolute inset-0 -bottom-[12.5%] -z-20 mx-auto h-1/2 w-3/4 rounded-full bg-primary/20 blur-[8rem]" />
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
         <Container>
-          <h2 className="text-balance font-heading text-3xl font-medium !leading-snug md:text-4xl lg:text-5xl">
+          <h2 className="text-balance font-heading text-3xl font-semibold tracking-tight !leading-snug md:text-4xl lg:text-5xl">
             {t("booked.closing.headingLead")}{" "}
             <span className="font-subheading italic">{t("booked.closing.headingEmphasis")}</span>
           </h2>

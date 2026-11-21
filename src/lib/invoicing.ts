@@ -44,6 +44,20 @@ export function currentPeriod() {
   return `${todayIso().slice(0, 7)}-01`;
 }
 
+/**
+ * Cash received per month (D5): payment amounts summed by the month of their
+ * `paid_at` date. Feed it confirmed payments only (`useCashReceived`); the
+ * dashboard and Reports both use it so their "collected" can never disagree.
+ */
+export function cashByMonth(payments: { amount: number | string; paid_at: string }[]) {
+  const byMonth = new Map<string, number>();
+  for (const row of payments) {
+    const period = `${row.paid_at.slice(0, 7)}-01`;
+    byMonth.set(period, (byMonth.get(period) ?? 0) + Number(row.amount));
+  }
+  return byMonth;
+}
+
 export function shiftPeriod(period: string, months: number) {
   const [year, month] = period.split("-").map(Number);
   const date = new Date(year!, month! - 1 + months, 1);

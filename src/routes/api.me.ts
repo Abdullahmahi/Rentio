@@ -9,7 +9,12 @@ export const Route = createFileRoute("/api/me")({
       GET: async ({ request }) => {
         const session = await requireSession(request);
         if (session instanceof Response) return session;
-        return Response.json({ profile: session.profile });
+        return Response.json({
+          profile: session.profile,
+          preview: session.preview
+            ? { tenantId: session.preview.tenantId, tenantName: session.preview.tenantName }
+            : null,
+        });
       },
     },
   },

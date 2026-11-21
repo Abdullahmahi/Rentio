@@ -11,6 +11,7 @@ import { MoneyInput } from "@/components/rentio/money-input";
 import { PageHeader } from "@/components/rentio/page-header";
 import { QueryState, RowsSkeleton } from "@/components/rentio/query-state";
 import { formatMoney, todayIso } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
 import { useMyPortal, useToastMutation } from "@/lib/queries";
 import { db } from "@/lib/db";
 import { uploadFile } from "@/lib/storage";
@@ -30,6 +31,7 @@ function ReportPaymentPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const portal = useMyPortal();
+  const { preview } = useAuth();
 
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +111,6 @@ function ReportPaymentPage() {
         skeleton={<RowsSkeleton count={4} />}
       >
         <form
-          className="space-y-4"
           noValidate
           onSubmit={(event) => {
             event.preventDefault();
@@ -120,99 +121,102 @@ function ReportPaymentPage() {
             submit.mutate(undefined);
           }}
         >
-          <Field
-            label={t("payments.columns.amount")}
-            hint={
-              balance > 0 ? t("portal.balanceHint", { amount: formatMoney(balance) }) : undefined
-            }
-          >
-            {/* 48px like every other control on this phone-first form. */}
-            <MoneyInput
-              className="[&_input]:h-12"
-              value={form.amount}
-              onChange={(value) => setForm({ ...form, amount: value })}
-            />
-          </Field>
-
-          <Field label={t("portal.paidOn")} htmlFor="report-date">
-            <Input
-              id="report-date"
-              type="date"
-              className="numeric h-12"
-              value={form.paid_at}
-              onChange={(event) => setForm({ ...form, paid_at: event.target.value })}
-            />
-          </Field>
-
-          {/* Large tap targets beat a dropdown on a phone. */}
-          <Field label={t("payments.columns.method")}>
-            <div className="grid grid-cols-2 gap-2">
-              {METHODS.map((method) => (
-                <button
-                  key={method}
-                  type="button"
-                  onClick={() => setForm({ ...form, method })}
-                  aria-pressed={form.method === method}
-                  className={`h-12 rounded-lg border px-3 text-sm font-medium ${
-                    form.method === method
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-surface text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {t(`paymentMethod.${method}`)}
-                </button>
-              ))}
-            </div>
-          </Field>
-
-          <Field
-            label={t("payments.columns.reference")}
-            htmlFor="report-reference"
-            hint={t("portal.referenceHint")}
-          >
-            <Input
-              id="report-reference"
-              className="numeric h-12"
-              value={form.reference}
-              onChange={(event) => setForm({ ...form, reference: event.target.value })}
-            />
-          </Field>
-
-          {/* capture="environment" opens the phone camera directly. */}
-          <Field
-            label={t("portal.receiptPhoto")}
-            htmlFor="report-receipt"
-            hint={t("portal.receiptPhotoHint")}
-          >
-            <PhotoPicker
-              id="report-receipt"
-              files={form.receipt ? [form.receipt] : []}
-              onChange={(files) => setForm({ ...form, receipt: files[0] ?? null })}
-            />
-          </Field>
-
-          <Field label={t("tenants.fields.notes")} htmlFor="report-notes">
-            <Textarea
-              id="report-notes"
-              rows={3}
-              value={form.notes}
-              onChange={(event) => setForm({ ...form, notes: event.target.value })}
-            />
-          </Field>
-
-          {error ? (
-            <p
-              role="alert"
-              className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+          {/* A portal preview is read-only; the server refuses the write too. */}
+          <fieldset disabled={Boolean(preview)} className="min-w-0 space-y-4">
+            <Field
+              label={t("payments.columns.amount")}
+              hint={
+                balance > 0 ? t("portal.balanceHint", { amount: formatMoney(balance) }) : undefined
+              }
             >
-              {error}
-            </p>
-          ) : null}
+              {/* 48px like every other control on this phone-first form. */}
+              <MoneyInput
+                className="[&_input]:h-12"
+                value={form.amount}
+                onChange={(value) => setForm({ ...form, amount: value })}
+              />
+            </Field>
 
-          <Button type="submit" className="h-12 w-full text-base" disabled={submit.isPending}>
-            {submit.isPending ? <Loader2 className="animate-spin" /> : null}
-            {t("portal.sendReport")}
-          </Button>
+            <Field label={t("portal.paidOn")} htmlFor="report-date">
+              <Input
+                id="report-date"
+                type="date"
+                className="numeric h-12"
+                value={form.paid_at}
+                onChange={(event) => setForm({ ...form, paid_at: event.target.value })}
+              />
+            </Field>
+
+            {/* Large tap targets beat a dropdown on a phone. */}
+            <Field label={t("payments.columns.method")}>
+              <div className="grid grid-cols-2 gap-2">
+                {METHODS.map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => setForm({ ...form, method })}
+                    aria-pressed={form.method === method}
+                    className={`h-12 rounded-lg border px-3 text-sm font-medium ${
+                      form.method === method
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-surface text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {t(`paymentMethod.${method}`)}
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            <Field
+              label={t("payments.columns.reference")}
+              htmlFor="report-reference"
+              hint={t("portal.referenceHint")}
+            >
+              <Input
+                id="report-reference"
+                className="numeric h-12"
+                value={form.reference}
+                onChange={(event) => setForm({ ...form, reference: event.target.value })}
+              />
+            </Field>
+
+            {/* capture="environment" opens the phone camera directly. */}
+            <Field
+              label={t("portal.receiptPhoto")}
+              htmlFor="report-receipt"
+              hint={t("portal.receiptPhotoHint")}
+            >
+              <PhotoPicker
+                id="report-receipt"
+                files={form.receipt ? [form.receipt] : []}
+                onChange={(files) => setForm({ ...form, receipt: files[0] ?? null })}
+              />
+            </Field>
+
+            <Field label={t("tenants.fields.notes")} htmlFor="report-notes">
+              <Textarea
+                id="report-notes"
+                rows={3}
+                value={form.notes}
+                onChange={(event) => setForm({ ...form, notes: event.target.value })}
+              />
+            </Field>
+
+            {error ? (
+              <p
+                role="alert"
+                className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2 text-sm text-danger"
+              >
+                {error}
+              </p>
+            ) : null}
+
+            <Button type="submit" className="h-12 w-full text-base" disabled={submit.isPending}>
+              {submit.isPending ? <Loader2 className="animate-spin" /> : null}
+              {t("portal.sendReport")}
+            </Button>
+          </fieldset>
         </form>
       </QueryState>
     </div>

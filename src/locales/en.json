@@ -8,6 +8,7 @@
     "properties": "Properties",
     "units": "Units",
     "parking": "Parking",
+    "automations": "Automations",
     "tenants": "Tenants",
     "contracts": "Leases",
     "receipts": "Invoices",
@@ -44,6 +45,10 @@
     "parking": {
       "title": "Parking",
       "description": "Manage assigned parking spaces."
+    },
+    "automations": {
+      "title": "Automations",
+      "description": "What Rentio does on its own, every night."
     },
     "tenants": {
       "title": "Tenants",
@@ -93,8 +98,8 @@
       "property": "Property",
       "unit": "Unit",
       "tenant": "Tenant",
-      "contract": "Contract",
-      "receipt": "Receipt",
+      "contract": "Lease",
+      "receipt": "Invoice",
       "workOrder": "Work order"
     },
     "requests": {
@@ -193,6 +198,58 @@
     "paid": "Paid",
     "open": "Open"
   },
+  "automations": {
+    "title": "Automations",
+    "description": "What Rentio does on its own, every night. Changes apply from the next run.",
+    "runNow": "Run now",
+    "running": "Running tonight's jobs now…",
+    "ranNow": "Done. The counts above are from this run.",
+    "ranWithErrors": "Finished with {{count}} errors. Open the run history for details.",
+    "save": "Save changes",
+    "saved": "Automations saved. They apply from the next run.",
+    "lastRun": {
+      "ok": "Ran {{when}} · everything went through",
+      "failed": "Ran {{when}} · something failed",
+      "never": "Hasn't run yet",
+      "neverHint": "The nightly job hasn't run for this company. Press Run now, or wait for tonight.",
+      "counts": "{{invoices}} invoices drafted · {{reminders}} rent reminders · {{warnings}} late-fee warnings · {{updates}} tenant updates · {{errors}} errors",
+      "next": "Runs every night around 11 pm",
+      "history": "See the last 30 runs",
+      "hide": "Hide the run history",
+      "trigger": { "cron": "nightly", "manual": "run by hand" }
+    },
+    "panel": {
+      "title": "What runs every night",
+      "description": "Switch any of these off at any time. Days count in El Paso time. Tenants always get emails in their own language."
+    },
+    "invoices": {
+      "title": "Monthly invoices",
+      "description": "Rentio drafts every active lease's rent invoice for the month. Drafts stay hidden from tenants until they are sent.",
+      "dayBefore": "Generate on day",
+      "dayAfter": "of each month",
+      "dayLabel": "Day of the month to generate invoices",
+      "drafts": "Leave as drafts for me to review",
+      "send": "Send to tenants automatically"
+    },
+    "reminder": {
+      "title": "Rent reminder",
+      "description": "A friendly email before rent is due, with the balance and how to pay. Says \"there is never a fee to pay rent\".",
+      "daysAfter": "days before the due date",
+      "daysLabel": "Days before the due date"
+    },
+    "lateFee": {
+      "title": "Late-fee warning",
+      "description": "Tells the tenant a late fee may be charged if rent doesn't arrive. The day is set by Texas law — the due date plus the lease's grace days — so there is nothing to adjust here."
+    },
+    "payments": {
+      "title": "Payment confirmations",
+      "description": "When you confirm or refuse a payment a tenant reported, they get an email within a minute — with the reason, if refused."
+    },
+    "repairs": {
+      "title": "Repair updates",
+      "description": "When a request changes status, or you add a note marked \"visible to tenant\", the tenant hears about it by email."
+    }
+  },
   "dialog": {
     "title": "Confirm action",
     "description": "This action cannot be undone. Would you like to continue?"
@@ -222,7 +279,7 @@
     "passwordUpdated": "Your password was updated.",
     "passwordHint": "At least {{min}} characters.",
     "brandHeadline": "Your rental operation, in one place.",
-    "brandBody": "Leases, receipts, payments and maintenance across your whole portfolio, with control spreadsheets can't give you.",
+    "brandBody": "Leases, invoices, payments and maintenance across your whole portfolio, with control spreadsheets can't give you.",
     "brandFooter": "{{brand}} — rental property management",
     "errors": {
       "emailRequired": "Enter your email address.",
@@ -265,10 +322,10 @@
     "valueRows": {
       "leases": {
         "title": "Leases and documents",
-        "body": "Your lease, receipts and notices in one place, readable on a phone."
+        "body": "Your lease, invoices and notices in one place, readable on a phone."
       },
       "payments": {
-        "title": "Payments and receipts",
+        "title": "Payments and invoices",
         "body": "See what's due, report a payment and keep a record of every one."
       },
       "maintenance": {
@@ -481,11 +538,11 @@
     "assign": "Assign",
     "assigned": "Space assigned to the lease.",
     "assignTitle": "Assign space {{label}}",
-    "assignNote": "This space will be added to the lease's monthly receipt automatically.",
+    "assignNote": "This space will be added to the lease's monthly invoice automatically.",
     "release": "Release",
     "released": "Space released.",
     "releaseTitle": "Release space {{label}}?",
-    "releaseDescription": "The space will stop being billed on this lease's monthly receipts.",
+    "releaseDescription": "The space will stop being billed on this lease's monthly invoices.",
     "outOfServiceHint": "Space is out of service.",
     "unknownLease": "Lease unavailable",
     "noneInProperty": "This property has no parking spaces yet.",
@@ -520,6 +577,7 @@
   },
   "contracts": {
     "new": "New lease",
+    "monthToMonth": "Month-to-month",
     "columns": {
       "tenant": "Primary tenant",
       "start": "Start",
@@ -835,8 +893,8 @@
     "resendInvite": "Resend invite"
   },
   "receipts": {
-    "emptyTitle": "No receipts",
-    "emptyDescription": "Generated receipts will appear here.",
+    "emptyTitle": "No invoices",
+    "emptyDescription": "Generated invoices will appear here.",
     "columns": {
       "folio": "Ref.",
       "period": "Period",
@@ -848,30 +906,30 @@
       "paid": "Paid",
       "lines": "Line items"
     },
-    "generate": "Generate this month's receipts",
-    "generateTitle": "Generate receipts — {{month}}",
-    "generateSubmit": "Generate receipts",
-    "generatePreview_one": "This will create 1 receipt totalling {{total}}.",
-    "generatePreview": "This will create {{count}} receipts totalling {{total}}.",
-    "generateNothing": "Every active lease already has a receipt for this month.",
-    "generateNote": "Receipts include rent and parking, and are created as drafts.",
-    "generated": "Receipts generated.",
+    "generate": "Generate this month's invoices",
+    "generateTitle": "Generate invoices — {{month}}",
+    "generateSubmit": "Generate invoices",
+    "generatePreview_one": "This will create 1 invoice totalling {{total}}.",
+    "generatePreview": "This will create {{count}} invoices totalling {{total}}.",
+    "generateNothing": "Every active lease already has an invoice for this month.",
+    "generateNote": "Invoices include rent and parking, and are created as drafts.",
+    "generated": "Invoices generated.",
     "skippedTitle": "{{count}} lease skipped",
     "skippedTitle_other": "{{count}} leases skipped",
-    "skippedReason": "already has a receipt for this month",
+    "skippedReason": "already has an invoice for this month",
     "sendSelected": "Send selected",
-    "sent": "Receipts sent.",
+    "sent": "Invoices sent.",
     "send": "Send",
     "downloadPdf": "Download PDF",
-    "backToList": "Back to receipts",
-    "untitled": "Receipt without a number",
-    "notFound": "Receipt not found",
+    "backToList": "Back to invoices",
+    "untitled": "Invoice without a number",
+    "notFound": "Invoice not found",
     "notFoundDescription": "It may have been deleted, or the link is wrong.",
     "detailDescription": "Unit {{unit}} — {{tenant}} · {{period}}",
-    "emptyMonthTitle": "No receipts in {{month}}",
-    "emptyMonthDescription": "Generate this month's receipts to start collecting.",
-    "overdueCount": "{{count}} overdue receipt",
-    "overdueCount_other": "{{count}} overdue receipts",
+    "emptyMonthTitle": "No invoices in {{month}}",
+    "emptyMonthDescription": "Generate this month's invoices to start collecting.",
+    "overdueCount": "{{count}} overdue invoice",
+    "overdueCount_other": "{{count}} overdue invoices",
     "conceptsTitle": "Line items",
     "subtotal": "Subtotal",
     "addLine": "Add line item",
@@ -879,15 +937,15 @@
     "lineRemoved": "Line item removed.",
     "applyLateFee": "Apply late fee",
     "lateFeeApplied": "Late fee applied.",
-    "cancel": "Cancel receipt",
-    "cancelled": "Receipt cancelled.",
-    "cancelTitle": "Cancel receipt {{folio}}",
-    "cancelDescription": "The receipt is not deleted — it stays on record as cancelled with the reason you give.",
+    "cancel": "Cancel invoice",
+    "cancelled": "Invoice cancelled.",
+    "cancelTitle": "Cancel invoice {{folio}}",
+    "cancelDescription": "The invoice is not deleted — it stays on record as cancelled with the reason you give.",
     "cancelReason": "Reason for cancelling",
-    "cancelledNotice": "Receipt cancelled. Reason: {{reason}}",
-    "paymentsApplied": "Payments applied to this receipt",
+    "cancelledNotice": "Invoice cancelled. Reason: {{reason}}",
+    "paymentsApplied": "Payments applied to this invoice",
     "noPayments": "No payments applied",
-    "noPaymentsDescription": "Payments applied to this receipt will appear here.",
+    "noPaymentsDescription": "Payments applied to this invoice will appear here.",
     "summary": {
       "invoiced": "Total invoiced",
       "collected": "Collected",
@@ -910,15 +968,17 @@
       "amountRequired": "Enter the amount.",
       "reasonRequired": "Enter the reason for cancelling."
     },
-    "sentWithoutEmail": "Receipt marked as sent, but the email could not be delivered. Check your email configuration.",
+    "sentWithoutEmail": "Invoice marked as sent, but the email could not be delivered. Check your email configuration.",
     "lateFeeTooEarly": "Texas law does not allow a late fee yet. Available from {{date}}, once the rent has been unpaid for two full days.",
-    "lateFeeAlreadyApplied": "This receipt already has a late fee.",
-    "generating": "Generating receipts…",
-    "generatedCount": "{{count}} receipt generated",
-    "generatedCount_other": "{{count}} receipts generated",
+    "lateFeeAlreadyApplied": "This invoice already has a late fee.",
+    "generating": "Generating invoices…",
+    "generatedCount": "{{count}} invoice generated",
+    "generatedCount_other": "{{count}} invoices generated",
     "sending": "Sending…",
-    "sentCount": "{{count}} receipt sent",
-    "sentCount_other": "{{count}} receipts sent",
+    "sentCount": "{{count}} invoice sent",
+    "sentCount_other": "{{count}} invoices sent",
+    "sendFailed": "{{count}} invoice could not be emailed and was not marked as sent: {{names}}",
+    "sendFailed_other": "{{count}} invoices could not be emailed and were not marked as sent: {{names}}",
     "batchTitle": "Review the {{month}} batch",
     "batchSummary": "{{count}} draft about to be invoiced, totalling",
     "batchSummary_other": "{{count}} drafts about to be invoiced, totalling",
@@ -943,7 +1003,7 @@
     "record": "Record payment",
     "recorded": "Payment recorded and applied.",
     "confirm": "Confirm",
-    "confirmed": "Payment confirmed and applied to the oldest receipt.",
+    "confirmed": "Payment confirmed and applied to the oldest invoice.",
     "reject": "Reject",
     "rejected": "Payment rejected.",
     "rejectTitle": "Reject reported payment",
@@ -958,8 +1018,8 @@
     "noReceipt": "No proof attached",
     "currentBalance": "Balance: {{amount}}",
     "applyTo": "Apply to",
-    "noOpenInvoices": "This lease has no open receipts. The payment will be held as credit.",
-    "creditNotice": "Credit balance: {{amount}} — it will apply to the next receipt.",
+    "noOpenInvoices": "This lease has no open invoices. The payment will be held as credit.",
+    "creditNotice": "Credit balance: {{amount}} — it will apply to the next invoice.",
     "tabs": {
       "queue": "Awaiting confirmation",
       "history": "History"
@@ -1023,7 +1083,7 @@
     "alreadyCharged": "Already has this charge this month",
     "emptyTitle": "No charges in {{month}}",
     "emptyDescription": "Record utility charges or fees for this period.",
-    "pipelineNote": "Pending charges are pulled into the monthly receipts automatically and flip to billed. A billed charge can no longer be edited or deleted.",
+    "pipelineNote": "Pending charges are pulled into the monthly invoices automatically and flip to billed. A billed charge can no longer be edited or deleted.",
     "summary": {
       "pending": "Total pending",
       "billed": "Total billed",
@@ -1052,6 +1112,13 @@
     "telefono": "Phone",
     "personal": "In person"
   },
+  "portalPreview": {
+    "open": "View portal as this tenant",
+    "banner": "Viewing as {{name}}, read-only",
+    "exit": "Exit preview",
+    "noLogin": "Invite this tenant to the portal first. There is nothing to preview until they have a portal login.",
+    "failed": "Could not open the preview. Try again."
+  },
   "portal": {
     "balanceDue": "Outstanding balance",
     "dueOn": "Due {{date}}",
@@ -1068,8 +1135,8 @@
     "copy": "Copy",
     "copied": "Copied",
     "nextPayment": "Next payment",
-    "noPendingInvoices": "You have no outstanding receipts.",
-    "viewReceipts": "View my receipts",
+    "noPendingInvoices": "You have no outstanding invoices.",
+    "viewReceipts": "View my invoices",
     "openRequests": "Open requests",
     "noOpenRequests": "You have no open requests.",
     "viewRequests": "View my requests",
@@ -1088,8 +1155,8 @@
     "reportReceivedTitle": "We received your report",
     "reportReceivedBody": "We'll confirm it within 24 hours. You'll see the status on your home screen.",
     "backHome": "Back to home",
-    "receiptsHint": "Your rent receipts, newest first.",
-    "noReceipts": "Your rent receipts will appear here.",
+    "receiptsHint": "Your rent invoices, newest first.",
+    "noReceipts": "Your rent invoices will appear here.",
     "contractHint": "The details of your lease agreement.",
     "downloadContract": "Download lease",
     "noContractFile": "Your signed lease isn't available online yet.",
@@ -1120,7 +1187,7 @@
     "checkMailingAddress": "Mail checks to",
     "dropoffAddress": "Drop off cash or money orders at",
     "officeHours": "Office hours",
-    "viewReceipt": "View receipt",
+    "viewReceipt": "View invoice",
     "viewLease": "View my lease"
   },
   "dashboard": {
@@ -1282,7 +1349,11 @@
       "welcomeKitReady": "Welcome kit downloaded."
     },
     "roleChanged": "Role updated.",
-    "ownRoleLocked": "Ask another admin to change your role.",
+    "demoteSelf": {
+      "title": "Remove your own admin access?",
+      "description": "You'll become {{role}} and lose access to Settings and user management right away. Only another admin can make you an admin again.",
+      "confirm": "Yes, change my role"
+    },
     "inviteSent": "Invitation sent.",
     "adminOnly": "Only an administrator can view this section.",
     "inviteUser": "Invite user",
@@ -1290,7 +1361,7 @@
     "sendInvite": "Send invitation",
     "tabs": {
       "company": "Company",
-      "invoicing": "Receipts",
+      "invoicing": "Invoices",
       "users": "Users",
       "preferences": "Preferences",
       "paymentInstructions": "Payment instructions"
@@ -1298,8 +1369,8 @@
     "fields": {
       "companyName": "Company name",
       "logo": "Logo",
-      "logoHint": "Used on PDF receipts.",
-      "invoicePrefix": "Receipt number prefix",
+      "logoHint": "Used on PDF invoices.",
+      "invoicePrefix": "Invoice number prefix",
       "invoicePrefixHint": "For example REC produces REC-00001.",
       "role": "Role",
       "zelleHandle": "Zelle handle",
@@ -1375,19 +1446,19 @@
   "palette": {
     "trigger": "Search or jump to…",
     "shortcut": "⌘K",
-    "placeholder": "Search units, tenants, contracts, actions…",
+    "placeholder": "Search units, tenants, leases, actions…",
     "emptyTitle": "Nothing matches that",
     "showingOf": "{{shown}} of {{total}}",
     "groups": {
       "navigation": "Navigation",
       "units": "Units",
       "tenants": "Tenants",
-      "contracts": "Contracts",
+      "contracts": "Leases",
       "actions": "Actions",
       "properties": "Properties"
     },
     "actions": {
-      "generateReceipts": "Generate this month's receipts",
+      "generateReceipts": "Generate this month's invoices",
       "recordPayment": "Record a payment",
       "newWorkOrder": "New work order",
       "toggleLanguage": "Toggle language",
